@@ -7,6 +7,7 @@ import Reveal from "@/components/ui/Reveal";
 import HeroRiskChecker from "@/components/dashboard/HeroRiskChecker";
 import HighlightsBento from "@/components/dashboard/HighlightsBento";
 import SectorScatterChart from "@/components/charts/SectorScatterChart";
+import KeyFindings from "@/components/dashboard/KeyFindings";
 import { generateAllCareerInsights, getSectorAggregatesExtended, getTotalWorkforce, getWorkforceExposure } from "@/lib/data";
 
 export default function HomePage() {
@@ -119,6 +120,10 @@ export default function HomePage() {
           </Link>
         </Reveal>
       </section>
+
+      <hr className="divider-glow" />
+
+      <Reveal delay={20}><KeyFindings /></Reveal>
 
       <hr className="divider-glow" />
 
