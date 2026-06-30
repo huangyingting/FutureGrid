@@ -518,3 +518,192 @@ This lesson applies to high-velocity, multi-agent batches. Single-agent or fully
 
 ✅ **Batch 6 complete. 5 chart components + /explore + enhancements shipped (commit cc49d58).** Build exit 0; 103/103 tests pass; eslint clean. No regressions.  
 ✅ **Shared-file concurrency constraint documented and added to architecture guidelines.**
+
+---
+
+## Batch 7: Storytelling & Polish — Scrollytelling Report + Key Findings + Data Export (2026-06-30)
+
+**Requested by:** huangyingting  
+**Status:** ✅ **COMPLETE — ALL 5 ISSUES CLOSED + 1 PRODUCTION HOTFIX**  
+**Issues:** #28 (Trinity), #29 (Neo), #30 (Switch), #31 (Switch solo), #32 (Tank)  
+**Scope:** Scrollytelling narrative report at `/report` (5 story beats), animated bar-chart-race (2019–2025 BLS employment), Key Findings stat cards on home, chart i18n (14 charts localized), CSV+JSON data export on `/sources`
+
+### Summary
+Batch 7 ships the storytelling layer: an immersive scrollytelling report with sticky animated charts, auto-generated Key Findings dashboard band, comprehensive chart internationalization (100+ keys across 14 charts), and client-side data export. One production crash discovered and fixed before merge.
+
+### Features Delivered
+
+#### #28: Scrollytelling Narrative Report (Trinity)
+- **Route:** `/report` and `/report/layout.tsx`
+- **Component:** `ReportView.tsx` (client, "use client")
+- **Design:** 5 story beats, each with narrative text + relevant chart
+  1. Beat 1: Workforce AI exposure stats + BeeswarmChart
+  2. Beat 2: GenAI adoption diffusion narrative + OccupationTrendChart
+  3. Beat 3: Skills transition risk + SkillFlowSankey
+  4. Beat 4: Career resilience + QuadrantScatterChart
+  5. Beat 5: Future outlook + predictions
+- **Layout:** Desktop sticky-chart + scrollytelling narrative (lg+); mobile stacked narrative with inline charts
+- **Reduced-motion:** All 5 beats stacked in document order (no sticky, no opacity transitions)
+- **i18n:** Local `useReportT()` hook (pre-integration) → replaced with `useT("report")` after Neo registered namespace
+- **Files:** `app/report/page.tsx`, `app/report/layout.tsx`, `components/report/ReportView.tsx`, `lib/i18n/messages/en/report.ts`, `lib/i18n/messages/zh/report.ts`
+
+#### #29: Animated Bar-Chart-Race (Neo)
+- **Component:** `BarChartRace.tsx` (client, d3 + SVG)
+- **Data Source:** BLS employment 2019–2025 (15 occupations, ranked by employment)
+- **Animation:** D3 transitions (700ms ease-cubic-in-out) per year; auto-advance 1.2s/year; Play/Pause/Replay controls
+- **Reduced-motion:** Animations disabled; scrubber still functional for manual navigation
+- **Integration:** `ExploreView` added section with race title + subheading
+- **Files:** `components/charts/BarChartRace.tsx`, extended `lib/i18n/messages/en/explore.ts` + `zh/explore.ts` (10 keys)
+
+#### #30: Key Findings Stat Cards (Switch)
+- **Component:** `KeyFindings.tsx` (client, "use client")
+- **Stats:**
+  1. High AI-Exposure Share: `getWorkforceExposure().highExposureShare * 100` → XX.X%
+  2. U.S. Workers Tracked: `getTotalWorkforce() / 1_000_000` → XXX.XM
+  3. Fastest GenAI Adoption Rise: `getDiffusionRisers(1)[0].delta` → +X.Xpp
+  4. Occupations Analyzed: `generateAllCareerInsights().length` → NNN+
+- **Animation:** `AnimatedCounter` scroll-triggered numeric count-up (respects reduced-motion)
+- **Styling:** `.glass .glass-hover` cards, `text-gradient` on numbers, per-card glow colors (red/violet/green/amber)
+- **Responsive:** 2-col on sm+, 4-col on lg+
+- **Integration:** `app/page.tsx` inserted after hero's first divider with flanking `divider-glow` lines
+- **Files:** `components/dashboard/KeyFindings.tsx`, `lib/i18n/messages/en/keyfindings.ts`, `lib/i18n/messages/zh/keyfindings.ts`
+
+#### #31: Chart i18n Namespace (Switch, SOLO)
+- **Scope:** All 14 chart components localized via new `charts` i18n namespace (100+ keys)
+- **Files Modified:**
+  - `lib/i18n/messages/en/charts.ts` (100 keys, verbatim EN from hardcoded strings)
+  - `lib/i18n/messages/zh/charts.ts` (100 keys, Chinese translations)
+  - `lib/i18n/messages/index.ts` (registered chartsEn/chartsZh)
+  - All 14 chart components: D3 axis labels, legends, tooltips, reset buttons, error states
+- **Approach:** Strings captured as stable consts before useEffect/useCallback, added to deps array so re-render on locale change
+- **Validation:** 103/103 tests pass; eslint clean; build exit 0
+
+#### #32: Client-Side Data Export (Tank)
+- **Component:** `DataExport.tsx` (client, "use client")
+- **Datasets:** Occupations (10 fields), Countries (10 fields), Sources (6 fields)
+- **Formats:** CSV (inline toCsv helper, no dep) + JSON
+- **Filenames:** `futuregrid-{key}-2025.{csv|json}` (e.g., `futuregrid-occupations-2025.csv`)
+- **Accessibility:** `aria-live="polite"` download announcements, `aria-label` on buttons, `aria-busy` on loading
+- **SSR Safety:** All file operations inside click handler (no document at module/render level)
+- **Integration:** `SourcesView` inserted at bottom after methodology note
+- **Files:** `components/sources/DataExport.tsx`, `lib/i18n/messages/en/dataexport.ts`, `lib/i18n/messages/zh/dataexport.ts`
+
+### Integration Orchestration (Neo)
+
+Neo served as SOLO **Integrator**, wiring all 4 new components into shared files post-batch:
+1. Registered `report`, `keyfindings`, `dataexport` namespaces in `lib/i18n/messages/index.ts`
+2. Updated `components/report/ReportView.tsx` to use `useT("report")`
+3. Simplified `KeyFindings.tsx` and `DataExport.tsx` type casts (removed workarounds)
+4. Wired `KeyFindings` → `app/page.tsx`, `BarChartRace` → `ExploreView`, `DataExport` → `SourcesView`
+5. Added sidebar nav route for `/report`
+6. Lint: 0 errors, 1 pre-existing warning (BarChartRace groups variable)
+
+### PRODUCTION INCIDENT: /report & /skills Runtime Crash (Fixed d915eea)
+
+**Discovered:** During real-browser smoke-test (headless Chrome at desktop + mobile viewports)  
+**Error:** `Error: missing: 0` thrown by d3-sankey in SkillFlowSankey component (error boundary caught)
+
+**Root Cause:** Pre-existing bug from Batch 6 (#26)
+1. SkillFlowSankey called `d3-sankey.nodeId(d => d.id)` (string id function)
+2. But links were built using NUMERIC INDICES → d3-sankey threw "missing: 0"
+3. Never caught in tests because jsdom mocks ResizeObserver → d3 layout path never executed
+4. ReportView mounted each chart twice: sticky + display:none lg:hidden → same chart crashed on mobile in zero-width container
+
+**Fixes Applied:**
+1. SkillFlowSankey links now use string ids instead of numeric indices
+2. ReportView: scrollytelling only on desktop (lg+); mobile/SSR render stacked narrative with inline charts → each chart mounts once in visible container
+3. Added SkillFlowSankey render regression test (jsx render to verify no error boundary)
+
+**Testing Gap Identified:**
+- **Problem:** jsdom + mocked ResizeObserver give false confidence. D3 charts that run layout behind ResizeObserver are never exercised by test suite (no rendered output, no DOM mutations).
+- **Solution:** For chart-heavy work, always do a real-browser smoke check (headless Chrome dump-dom to verify no error boundary) before declaring done.
+- **Result:** Test count now 105 (added regression test + improved coverage)
+
+### Validation & Quality
+
+#### Build & Tests
+- `npm run build` → exit 0 (routes include `/report`, `/explore`, `/sources` all verified)
+- `npx eslint app components lib` → exit 0 (1 pre-existing BarChartRace warning noted, not blocking)
+- `npm run test:run` → 105/105 vitest pass (103 prior + 2 new chart regression tests)
+- Headless Chrome smoke test: /report + /skills render without error boundary in desktop + mobile viewports
+
+#### Feature-Level
+- ✅ ReportView: 5 beats render + sticky chart stage on lg+, stacked on mobile, no render crash
+- ✅ BarChartRace: 15 occupations, smooth 700ms transitions, 1.2s auto-advance, Play/Pause/Replay functional, reduced-motion respected
+- ✅ KeyFindings: 4 stat cards (or 3 if no diffusion data), animated counters, responsive 2→4 col grid, glow styling consistent
+- ✅ Chart i18n: All 14 charts re-render on locale toggle, legend/axis/tooltip labels update correctly
+- ✅ DataExport: CSV + JSON both download with correct formatting, filenames parameterized, no SSR errors
+
+#### Accessibility & Performance
+- Scrollytelling narrative accessible via keyboard (no sticky traps on mobile); reduced-motion respected throughout
+- All new charts follow prior color schemes (colorForRisk, .glass styling)
+- No hydration errors; all components client-side render-safe
+
+### Commits
+- 20eef30 (#29 BarChartRace)
+- 9ac52f9 (#30 KeyFindings)
+- e44ea41 (#32 DataExport)
+- 350946e (#28 Report scrollytelling)
+- 1a6ec8d (#31 Chart i18n + test)
+- d915eea (Production hotfix: SkillFlowSankey link ids + ReportView mobile layout)
+
+### Durable Lessons Recorded
+
+**Lesson 1: Clobber-safe Orchestration Works**  
+4 concurrent builders (Trinity, Neo, Switch, Tank) created ONLY new files. Neo (SOLO integrator) then sequenced all shared-file wiring. Zero clobbering (vs Batch 6 which lost edits due to concurrent agents). Confirms: shared-file edits must be solo/sequenced.
+
+**Lesson 2: Production Crash in D3 Charts**  
+Pre-existing bug (SkillFlowSankey link ids) only surfaced in real browser. jsdom + mocked ResizeObserver never execute d3 layout path → tests pass, production crashes. Lesson: always real-browser smoke check for chart-heavy work before ship.
+
+**Lesson 3: Testing Gap**  
+105 tests (vitest) passing does NOT guarantee charts render in real browser. d3 layout runs behind ResizeObserver (jsdom-invisible). Regression test added for SkillFlowSankey crash; future chart work must include headless Chrome verification.
+
+### Outcome
+
+✅ **Batch 7 complete. All 5 issues (#28–#32) closed + production hotfix shipped (commit d915eea).**  
+✅ **Build exit 0; 105/105 tests pass; eslint clean; headless Chrome smoke test verified.**  
+✅ **Clobber-safe orchestration + real-browser testing lessons recorded in architecture guidelines.**  
+✅ **FutureGrid now ships scrollytelling narrative, auto-generated insights, full chart i18n, and data export.**
+
+---
+
+## Architectural Guidelines — Chart Testing & D3 Render Verification (2026-06-30)
+
+**Recorded by:** Scribe  
+**Basis:** Batch 7 production incident + testing gap discovery  
+**Status:** ✅ Adopted
+
+### Decision
+
+**For chart-heavy feature work (D3, Chart.js, or similar render-path libraries):**
+
+1. **Real-browser smoke test mandatory before ship** (not optional polish)
+   - jsdom + mocked ResizeObserver do NOT exercise D3 layout code
+   - Unit + vitest passes do NOT guarantee real-browser render
+   - Run headless Chrome at desktop + mobile viewports
+   - Verify error boundary does not catch (no render crash)
+   - Expected effort: 5–10 minutes post-build
+
+2. **Chart regression tests** should verify:
+   - Component renders without throwing (e.g., JSX render test)
+   - D3 simulations initialize (ResizeObserver callback fires)
+   - No "missing: 0" or undefined node errors from d3-sankey, d3-simulation, etc.
+
+3. **When adding new charts:**
+   - Create new component + test file (regression test inside)
+   - Do not skip the headless Chrome smoke test
+   - Build output must exit 0 AND headless render must succeed
+
+### Rationale
+
+Batch 7 surfaced a pre-existing SkillFlowSankey bug (link ids numeric vs string) that passed 103/103 vitest but crashed in real browser. Root cause: jsdom mocks ResizeObserver, so D3 layout code (which runs inside ResizeObserver callback) never executes in test. The error only surfaced when real browser rendered the component.
+
+### Implication
+
+Test suite alone is insufficient for D3-heavy work. Adopt a lightweight real-browser check (headless Chrome dump-dom) as a gate before declaring chart work complete. This is the same rigor applied to accessibility (manual screen-reader check) or responsive design (manual mobile check).
+
+### Related Decisions
+
+- **Batch 6 lesson:** Shared-file edits must be solo/sequenced (concurrent agents clobber).
+- **Batch 7 lesson:** Clobber-safe orchestration works when builders create new files only, integrator sequences shared-file edits.
+
