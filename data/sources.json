@@ -116,6 +116,14 @@
       "usedFor": "Supplemental developer-ecosystem proxy metrics for AI repositories"
     },
     {
+      "name": "Stack Overflow Annual Developer Survey 2024 — TidyTuesday derived subset",
+      "publisher": "Stack Overflow / R4DS TidyTuesday",
+      "year": 2024,
+      "url": "https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-09-03",
+      "license": "Open Database License (ODbL) / Stack Overflow survey terms",
+      "usedFor": "Supplemental developer AI-tool usage, AI sentiment, and respondent-country proxy metrics"
+    },
+    {
       "name": "O*NET 28.3 Skills Database",
       "publisher": "U.S. Department of Labor / Employment and Training Administration",
       "year": 2024,

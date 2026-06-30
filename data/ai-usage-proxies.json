@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T08:47:12.627Z",
+  "generatedAt": "2026-06-30T08:53:20.724Z",
   "scope": "Supplemental AI adoption and usage proxies outside Anthropic's Claude.ai country usage index.",
   "caveat": "These metrics use different denominators and collection methods. Do not merge them into the Anthropic usageIndex without explicit normalization and labeling.",
   "enterpriseAdoptionMetrics": [
@@ -1474,10 +1474,803 @@
       "comparability": "Product MAU for a China-native AI app; not comparable to Anthropic country usageIndex."
     }
   ],
+  "developerSurveyMetrics": [
+    {
+      "id": "stack-overflow-developer-survey-ai-usage-2024",
+      "metric": "developer_ai_tool_usage_and_attitudes",
+      "unit": "survey_responses_and_percent",
+      "period": "2024-05",
+      "population": "Stack Overflow Developer Survey respondents; public TidyTuesday single-response subset only.",
+      "source": {
+        "name": "Stack Overflow Annual Developer Survey 2024 — TidyTuesday derived single-response subset",
+        "publisher": "Stack Overflow / R4DS TidyTuesday",
+        "url": "https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-09-03",
+        "responseUrl": "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-09-03/stackoverflow_survey_single_response.csv",
+        "crosswalkUrl": "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-09-03/qname_levels_single_response_crosswalk.csv"
+      },
+      "confidence": "medium_high",
+      "comparability": "Developer survey proxy; country values are respondent shares, not population-representative national adoption rates.",
+      "responseCount": 65437,
+      "overall": [
+        {
+          "question": "ai_select",
+          "responses": 60907,
+          "distribution": [
+            {
+              "label": "Yes",
+              "count": 37662,
+              "percent": 61.84
+            },
+            {
+              "label": "No, and I don't plan to",
+              "count": 14837,
+              "percent": 24.36
+            },
+            {
+              "label": "No, but I plan to soon",
+              "count": 8408,
+              "percent": 13.8
+            }
+          ]
+        },
+        {
+          "question": "ai_sent",
+          "responses": 45873,
+          "distribution": [
+            {
+              "label": "Favorable",
+              "count": 22167,
+              "percent": 48.32
+            },
+            {
+              "label": "Very favorable",
+              "count": 10848,
+              "percent": 23.65
+            },
+            {
+              "label": "Indifferent",
+              "count": 8564,
+              "percent": 18.67
+            },
+            {
+              "label": "Unfavorable",
+              "count": 2381,
+              "percent": 5.19
+            },
+            {
+              "label": "Unsure",
+              "count": 1357,
+              "percent": 2.96
+            },
+            {
+              "label": "Very unfavorable",
+              "count": 556,
+              "percent": 1.21
+            }
+          ]
+        },
+        {
+          "question": "ai_acc",
+          "responses": 37302,
+          "distribution": [
+            {
+              "label": "Somewhat trust",
+              "count": 15039,
+              "percent": 40.32
+            },
+            {
+              "label": "Neither trust nor distrust",
+              "count": 9920,
+              "percent": 26.59
+            },
+            {
+              "label": "Somewhat distrust",
+              "count": 8395,
+              "percent": 22.51
+            },
+            {
+              "label": "Highly distrust",
+              "count": 2932,
+              "percent": 7.86
+            },
+            {
+              "label": "Highly trust",
+              "count": 1016,
+              "percent": 2.72
+            }
+          ]
+        },
+        {
+          "question": "ai_complex",
+          "responses": 37021,
+          "distribution": [
+            {
+              "label": "Good, but not great at handling complex tasks",
+              "count": 12102,
+              "percent": 32.69
+            },
+            {
+              "label": "Bad at handling complex tasks",
+              "count": 11583,
+              "percent": 31.29
+            },
+            {
+              "label": "Neither good or bad at handling complex tasks",
+              "count": 7706,
+              "percent": 20.82
+            },
+            {
+              "label": "Very poor at handling complex tasks",
+              "count": 4415,
+              "percent": 11.93
+            },
+            {
+              "label": "Very well at handling complex tasks",
+              "count": 1215,
+              "percent": 3.28
+            }
+          ]
+        },
+        {
+          "question": "ai_threat",
+          "responses": 44689,
+          "distribution": [
+            {
+              "label": "No",
+              "count": 30423,
+              "percent": 68.08
+            },
+            {
+              "label": "I'm not sure",
+              "count": 8878,
+              "percent": 19.87
+            },
+            {
+              "label": "Yes",
+              "count": 5388,
+              "percent": 12.06
+            }
+          ]
+        }
+      ],
+      "countries": [
+        {
+          "country": "Kenya",
+          "responses": 179,
+          "yes": 143,
+          "planSoon": 20,
+          "noPlan": 16,
+          "yesPercent": 79.89,
+          "planSoonPercent": 11.17,
+          "noPlanPercent": 8.94
+        },
+        {
+          "country": "China",
+          "responses": 396,
+          "yes": 314,
+          "planSoon": 42,
+          "noPlan": 40,
+          "yesPercent": 79.29,
+          "planSoonPercent": 10.61,
+          "noPlanPercent": 10.1
+        },
+        {
+          "country": "Pakistan",
+          "responses": 410,
+          "yes": 322,
+          "planSoon": 69,
+          "noPlan": 19,
+          "yesPercent": 78.54,
+          "planSoonPercent": 16.83,
+          "noPlanPercent": 4.63
+        },
+        {
+          "country": "Egypt",
+          "responses": 262,
+          "yes": 203,
+          "planSoon": 38,
+          "noPlan": 21,
+          "yesPercent": 77.48,
+          "planSoonPercent": 14.5,
+          "noPlanPercent": 8.02
+        },
+        {
+          "country": "Nigeria",
+          "responses": 302,
+          "yes": 229,
+          "planSoon": 56,
+          "noPlan": 17,
+          "yesPercent": 75.83,
+          "planSoonPercent": 18.54,
+          "noPlanPercent": 5.63
+        },
+        {
+          "country": "Nepal",
+          "responses": 139,
+          "yes": 104,
+          "planSoon": 17,
+          "noPlan": 18,
+          "yesPercent": 74.82,
+          "planSoonPercent": 12.23,
+          "noPlanPercent": 12.95
+        },
+        {
+          "country": "Viet Nam",
+          "responses": 290,
+          "yes": 216,
+          "planSoon": 45,
+          "noPlan": 29,
+          "yesPercent": 74.48,
+          "planSoonPercent": 15.52,
+          "noPlanPercent": 10
+        },
+        {
+          "country": "Colombia",
+          "responses": 216,
+          "yes": 160,
+          "planSoon": 28,
+          "noPlan": 28,
+          "yesPercent": 74.07,
+          "planSoonPercent": 12.96,
+          "noPlanPercent": 12.96
+        },
+        {
+          "country": "Sri Lanka",
+          "responses": 162,
+          "yes": 120,
+          "planSoon": 26,
+          "noPlan": 16,
+          "yesPercent": 74.07,
+          "planSoonPercent": 16.05,
+          "noPlanPercent": 9.88
+        },
+        {
+          "country": "Israel",
+          "responses": 599,
+          "yes": 435,
+          "planSoon": 55,
+          "noPlan": 109,
+          "yesPercent": 72.62,
+          "planSoonPercent": 9.18,
+          "noPlanPercent": 18.2
+        },
+        {
+          "country": "Thailand",
+          "responses": 146,
+          "yes": 106,
+          "planSoon": 19,
+          "noPlan": 21,
+          "yesPercent": 72.6,
+          "planSoonPercent": 13.01,
+          "noPlanPercent": 14.38
+        },
+        {
+          "country": "Ukraine",
+          "responses": 2668,
+          "yes": 1930,
+          "planSoon": 389,
+          "noPlan": 349,
+          "yesPercent": 72.34,
+          "planSoonPercent": 14.58,
+          "noPlanPercent": 13.08
+        },
+        {
+          "country": "Bangladesh",
+          "responses": 324,
+          "yes": 233,
+          "planSoon": 54,
+          "noPlan": 37,
+          "yesPercent": 71.91,
+          "planSoonPercent": 16.67,
+          "noPlanPercent": 11.42
+        },
+        {
+          "country": "Philippines",
+          "responses": 194,
+          "yes": 137,
+          "planSoon": 33,
+          "noPlan": 24,
+          "yesPercent": 70.62,
+          "planSoonPercent": 17.01,
+          "noPlanPercent": 12.37
+        },
+        {
+          "country": "United Arab Emirates",
+          "responses": 128,
+          "yes": 90,
+          "planSoon": 25,
+          "noPlan": 13,
+          "yesPercent": 70.31,
+          "planSoonPercent": 19.53,
+          "noPlanPercent": 10.16
+        },
+        {
+          "country": "Taiwan",
+          "responses": 267,
+          "yes": 186,
+          "planSoon": 45,
+          "noPlan": 36,
+          "yesPercent": 69.66,
+          "planSoonPercent": 16.85,
+          "noPlanPercent": 13.48
+        },
+        {
+          "country": "Iran, Islamic Republic of...",
+          "responses": 409,
+          "yes": 283,
+          "planSoon": 66,
+          "noPlan": 60,
+          "yesPercent": 69.19,
+          "planSoonPercent": 16.14,
+          "noPlanPercent": 14.67
+        },
+        {
+          "country": "Turkey",
+          "responses": 539,
+          "yes": 372,
+          "planSoon": 69,
+          "noPlan": 98,
+          "yesPercent": 69.02,
+          "planSoonPercent": 12.8,
+          "noPlanPercent": 18.18
+        },
+        {
+          "country": "Indonesia",
+          "responses": 350,
+          "yes": 241,
+          "planSoon": 58,
+          "noPlan": 51,
+          "yesPercent": 68.86,
+          "planSoonPercent": 16.57,
+          "noPlanPercent": 14.57
+        },
+        {
+          "country": "South Africa",
+          "responses": 356,
+          "yes": 244,
+          "planSoon": 39,
+          "noPlan": 73,
+          "yesPercent": 68.54,
+          "planSoonPercent": 10.96,
+          "noPlanPercent": 20.51
+        },
+        {
+          "country": "South Korea",
+          "responses": 144,
+          "yes": 98,
+          "planSoon": 15,
+          "noPlan": 31,
+          "yesPercent": 68.06,
+          "planSoonPercent": 10.42,
+          "noPlanPercent": 21.53
+        },
+        {
+          "country": "India",
+          "responses": 4161,
+          "yes": 2827,
+          "planSoon": 896,
+          "noPlan": 438,
+          "yesPercent": 67.94,
+          "planSoonPercent": 21.53,
+          "noPlanPercent": 10.53
+        },
+        {
+          "country": "Singapore",
+          "responses": 174,
+          "yes": 118,
+          "planSoon": 35,
+          "noPlan": 21,
+          "yesPercent": 67.82,
+          "planSoonPercent": 20.11,
+          "noPlanPercent": 12.07
+        },
+        {
+          "country": "Estonia",
+          "responses": 110,
+          "yes": 74,
+          "planSoon": 10,
+          "noPlan": 26,
+          "yesPercent": 67.27,
+          "planSoonPercent": 9.09,
+          "noPlanPercent": 23.64
+        },
+        {
+          "country": "Serbia",
+          "responses": 243,
+          "yes": 161,
+          "planSoon": 24,
+          "noPlan": 58,
+          "yesPercent": 66.26,
+          "planSoonPercent": 9.88,
+          "noPlanPercent": 23.87
+        },
+        {
+          "country": "Malaysia",
+          "responses": 160,
+          "yes": 106,
+          "planSoon": 39,
+          "noPlan": 15,
+          "yesPercent": 66.25,
+          "planSoonPercent": 24.38,
+          "noPlanPercent": 9.38
+        },
+        {
+          "country": "Hong Kong (S.A.R.)",
+          "responses": 145,
+          "yes": 96,
+          "planSoon": 20,
+          "noPlan": 29,
+          "yesPercent": 66.21,
+          "planSoonPercent": 13.79,
+          "noPlanPercent": 20
+        },
+        {
+          "country": "Brazil",
+          "responses": 1367,
+          "yes": 902,
+          "planSoon": 207,
+          "noPlan": 258,
+          "yesPercent": 65.98,
+          "planSoonPercent": 15.14,
+          "noPlanPercent": 18.87
+        },
+        {
+          "country": "Portugal",
+          "responses": 466,
+          "yes": 307,
+          "planSoon": 65,
+          "noPlan": 94,
+          "yesPercent": 65.88,
+          "planSoonPercent": 13.95,
+          "noPlanPercent": 20.17
+        },
+        {
+          "country": "Slovakia",
+          "responses": 248,
+          "yes": 163,
+          "planSoon": 27,
+          "noPlan": 58,
+          "yesPercent": 65.73,
+          "planSoonPercent": 10.89,
+          "noPlanPercent": 23.39
+        },
+        {
+          "country": "Mexico",
+          "responses": 393,
+          "yes": 257,
+          "planSoon": 73,
+          "noPlan": 63,
+          "yesPercent": 65.39,
+          "planSoonPercent": 18.58,
+          "noPlanPercent": 16.03
+        },
+        {
+          "country": "Spain",
+          "responses": 1115,
+          "yes": 728,
+          "planSoon": 141,
+          "noPlan": 246,
+          "yesPercent": 65.29,
+          "planSoonPercent": 12.65,
+          "noPlanPercent": 22.06
+        },
+        {
+          "country": "Norway",
+          "responses": 447,
+          "yes": 289,
+          "planSoon": 55,
+          "noPlan": 103,
+          "yesPercent": 64.65,
+          "planSoonPercent": 12.3,
+          "noPlanPercent": 23.04
+        },
+        {
+          "country": "Greece",
+          "responses": 386,
+          "yes": 248,
+          "planSoon": 57,
+          "noPlan": 81,
+          "yesPercent": 64.25,
+          "planSoonPercent": 14.77,
+          "noPlanPercent": 20.98
+        },
+        {
+          "country": "Chile",
+          "responses": 133,
+          "yes": 85,
+          "planSoon": 22,
+          "noPlan": 26,
+          "yesPercent": 63.91,
+          "planSoonPercent": 16.54,
+          "noPlanPercent": 19.55
+        },
+        {
+          "country": "Lithuania",
+          "responses": 180,
+          "yes": 115,
+          "planSoon": 21,
+          "noPlan": 44,
+          "yesPercent": 63.89,
+          "planSoonPercent": 11.67,
+          "noPlanPercent": 24.44
+        },
+        {
+          "country": "Romania",
+          "responses": 435,
+          "yes": 277,
+          "planSoon": 58,
+          "noPlan": 100,
+          "yesPercent": 63.68,
+          "planSoonPercent": 13.33,
+          "noPlanPercent": 22.99
+        },
+        {
+          "country": "Croatia",
+          "responses": 185,
+          "yes": 117,
+          "planSoon": 27,
+          "noPlan": 41,
+          "yesPercent": 63.24,
+          "planSoonPercent": 14.59,
+          "noPlanPercent": 22.16
+        },
+        {
+          "country": "Poland",
+          "responses": 1523,
+          "yes": 959,
+          "planSoon": 172,
+          "noPlan": 392,
+          "yesPercent": 62.97,
+          "planSoonPercent": 11.29,
+          "noPlanPercent": 25.74
+        },
+        {
+          "country": "Japan",
+          "responses": 287,
+          "yes": 180,
+          "planSoon": 40,
+          "noPlan": 67,
+          "yesPercent": 62.72,
+          "planSoonPercent": 13.94,
+          "noPlanPercent": 23.34
+        },
+        {
+          "country": "Belgium",
+          "responses": 522,
+          "yes": 326,
+          "planSoon": 48,
+          "noPlan": 148,
+          "yesPercent": 62.45,
+          "planSoonPercent": 9.2,
+          "noPlanPercent": 28.35
+        },
+        {
+          "country": "Ireland",
+          "responses": 269,
+          "yes": 168,
+          "planSoon": 40,
+          "noPlan": 61,
+          "yesPercent": 62.45,
+          "planSoonPercent": 14.87,
+          "noPlanPercent": 22.68
+        },
+        {
+          "country": "Slovenia",
+          "responses": 141,
+          "yes": 88,
+          "planSoon": 15,
+          "noPlan": 38,
+          "yesPercent": 62.41,
+          "planSoonPercent": 10.64,
+          "noPlanPercent": 26.95
+        },
+        {
+          "country": "Argentina",
+          "responses": 343,
+          "yes": 213,
+          "planSoon": 49,
+          "noPlan": 81,
+          "yesPercent": 62.1,
+          "planSoonPercent": 14.29,
+          "noPlanPercent": 23.62
+        },
+        {
+          "country": "Czech Republic",
+          "responses": 712,
+          "yes": 442,
+          "planSoon": 82,
+          "noPlan": 188,
+          "yesPercent": 62.08,
+          "planSoonPercent": 11.52,
+          "noPlanPercent": 26.4
+        },
+        {
+          "country": "Finland",
+          "responses": 385,
+          "yes": 239,
+          "planSoon": 45,
+          "noPlan": 101,
+          "yesPercent": 62.08,
+          "planSoonPercent": 11.69,
+          "noPlanPercent": 26.23
+        },
+        {
+          "country": "Sweden",
+          "responses": 1008,
+          "yes": 625,
+          "planSoon": 113,
+          "noPlan": 270,
+          "yesPercent": 62,
+          "planSoonPercent": 11.21,
+          "noPlanPercent": 26.79
+        },
+        {
+          "country": "Bulgaria",
+          "responses": 317,
+          "yes": 196,
+          "planSoon": 40,
+          "noPlan": 81,
+          "yesPercent": 61.83,
+          "planSoonPercent": 12.62,
+          "noPlanPercent": 25.55
+        },
+        {
+          "country": "Austria",
+          "responses": 787,
+          "yes": 484,
+          "planSoon": 90,
+          "noPlan": 213,
+          "yesPercent": 61.5,
+          "planSoonPercent": 11.44,
+          "noPlanPercent": 27.06
+        },
+        {
+          "country": "Netherlands",
+          "responses": 1441,
+          "yes": 868,
+          "planSoon": 150,
+          "noPlan": 423,
+          "yesPercent": 60.24,
+          "planSoonPercent": 10.41,
+          "noPlanPercent": 29.35
+        },
+        {
+          "country": "Denmark",
+          "responses": 498,
+          "yes": 300,
+          "planSoon": 56,
+          "noPlan": 142,
+          "yesPercent": 60.24,
+          "planSoonPercent": 11.24,
+          "noPlanPercent": 28.51
+        },
+        {
+          "country": "Switzerland",
+          "responses": 866,
+          "yes": 513,
+          "planSoon": 97,
+          "noPlan": 256,
+          "yesPercent": 59.24,
+          "planSoonPercent": 11.2,
+          "noPlanPercent": 29.56
+        },
+        {
+          "country": "Canada",
+          "responses": 2084,
+          "yes": 1213,
+          "planSoon": 278,
+          "noPlan": 593,
+          "yesPercent": 58.21,
+          "planSoonPercent": 13.34,
+          "noPlanPercent": 28.45
+        },
+        {
+          "country": "Italy",
+          "responses": 1332,
+          "yes": 761,
+          "planSoon": 225,
+          "noPlan": 346,
+          "yesPercent": 57.13,
+          "planSoonPercent": 16.89,
+          "noPlanPercent": 25.98
+        },
+        {
+          "country": "Germany",
+          "responses": 4911,
+          "yes": 2804,
+          "planSoon": 621,
+          "noPlan": 1486,
+          "yesPercent": 57.1,
+          "planSoonPercent": 12.65,
+          "noPlanPercent": 30.26
+        },
+        {
+          "country": "Hungary",
+          "responses": 394,
+          "yes": 224,
+          "planSoon": 53,
+          "noPlan": 117,
+          "yesPercent": 56.85,
+          "planSoonPercent": 13.45,
+          "noPlanPercent": 29.7
+        },
+        {
+          "country": "Latvia",
+          "responses": 128,
+          "yes": 72,
+          "planSoon": 18,
+          "noPlan": 38,
+          "yesPercent": 56.25,
+          "planSoonPercent": 14.06,
+          "noPlanPercent": 29.69
+        },
+        {
+          "country": "Australia",
+          "responses": 1253,
+          "yes": 687,
+          "planSoon": 168,
+          "noPlan": 398,
+          "yesPercent": 54.83,
+          "planSoonPercent": 13.41,
+          "noPlanPercent": 31.76
+        },
+        {
+          "country": "United States of America",
+          "responses": 11001,
+          "yes": 5968,
+          "planSoon": 1472,
+          "noPlan": 3561,
+          "yesPercent": 54.25,
+          "planSoonPercent": 13.38,
+          "noPlanPercent": 32.37
+        },
+        {
+          "country": "France",
+          "responses": 2094,
+          "yes": 1135,
+          "planSoon": 240,
+          "noPlan": 719,
+          "yesPercent": 54.2,
+          "planSoonPercent": 11.46,
+          "noPlanPercent": 34.34
+        },
+        {
+          "country": "New Zealand",
+          "responses": 395,
+          "yes": 211,
+          "planSoon": 49,
+          "noPlan": 135,
+          "yesPercent": 53.42,
+          "planSoonPercent": 12.41,
+          "noPlanPercent": 34.18
+        },
+        {
+          "country": "United Kingdom of Great Britain and Northern Ireland",
+          "responses": 3209,
+          "yes": 1627,
+          "planSoon": 418,
+          "noPlan": 1164,
+          "yesPercent": 50.7,
+          "planSoonPercent": 13.03,
+          "noPlanPercent": 36.27
+        },
+        {
+          "country": "Russian Federation",
+          "responses": 918,
+          "yes": 436,
+          "planSoon": 153,
+          "noPlan": 329,
+          "yesPercent": 47.49,
+          "planSoonPercent": 16.67,
+          "noPlanPercent": 35.84
+        }
+      ]
+    }
+  ],
   "openModelDownloadProxies": [
     {
       "provider": "Alibaba Qwen",
-      "capturedAt": "2026-06-30T08:47:31.243Z",
+      "capturedAt": "2026-06-30T08:53:37.149Z",
       "source": "https://huggingface.co/api/models?search=Qwen&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -1511,7 +2304,7 @@
     },
     {
       "provider": "DeepSeek",
-      "capturedAt": "2026-06-30T08:47:31.239Z",
+      "capturedAt": "2026-06-30T08:53:37.166Z",
       "source": "https://huggingface.co/api/models?search=DeepSeek&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -1545,7 +2338,7 @@
     },
     {
       "provider": "Moonshot Kimi",
-      "capturedAt": "2026-06-30T08:47:31.304Z",
+      "capturedAt": "2026-06-30T08:53:37.217Z",
       "source": "https://huggingface.co/api/models?search=Kimi&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -1579,7 +2372,7 @@
     },
     {
       "provider": "Zhipu ChatGLM",
-      "capturedAt": "2026-06-30T08:47:31.310Z",
+      "capturedAt": "2026-06-30T08:53:37.219Z",
       "source": "https://huggingface.co/api/models?search=ChatGLM&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -1613,7 +2406,7 @@
     },
     {
       "provider": "Baichuan",
-      "capturedAt": "2026-06-30T08:47:31.370Z",
+      "capturedAt": "2026-06-30T08:53:37.280Z",
       "source": "https://huggingface.co/api/models?search=Baichuan&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -1653,9 +2446,9 @@
       "repository": "huggingface/transformers",
       "stars": 162045,
       "forks": 33668,
-      "openIssues": 2452,
-      "repositoryUpdatedAt": "2026-06-30T08:29:50Z",
-      "capturedAt": "2026-06-30T08:47:31.929Z",
+      "openIssues": 2451,
+      "repositoryUpdatedAt": "2026-06-30T08:50:42Z",
+      "capturedAt": "2026-06-30T08:53:40.588Z",
       "source": "https://api.github.com/repos/huggingface/transformers",
       "confidence": "high",
       "comparability": "Developer ecosystem proxy; no country split and no end-user usage measurement."
@@ -1665,7 +2458,7 @@
     {
       "name": "Similarweb",
       "status": "not_collected",
-      "reason": "Useful for web traffic and country share across AI products, but detailed API access is commercial.",
+      "reason": "Useful for web traffic and country share across AI products, but the official API is commercial; undocumented extension endpoints are intentionally not used.",
       "potentialMetrics": [
         "website_visits",
         "country_traffic_share",
@@ -1685,7 +2478,7 @@
     {
       "name": "Google Trends",
       "status": "not_collected",
-      "reason": "Search-interest proxy is accessible manually but has no official stable public API for production collection.",
+      "reason": "Search-interest proxy is accessible manually, but the unofficial Trends endpoint returned HTTP 429 in automated collection and has no official stable public API.",
       "potentialMetrics": [
         "relative_search_interest_by_country",
         "time_series_interest"
@@ -1714,8 +2507,8 @@
     },
     {
       "name": "Stack Overflow Developer Survey",
-      "status": "not_collected",
-      "reason": "Survey can support developer AI-tool adoption analysis, but the current public dataset ZIP URL was not resolved in this pass.",
+      "status": "collected",
+      "reason": "Collected developer AI-tool usage and attitude distributions from the public TidyTuesday single-response subset of the 2024 Stack Overflow Developer Survey.",
       "potentialMetrics": [
         "developer_ai_tool_usage",
         "developer_attitudes",

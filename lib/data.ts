@@ -320,6 +320,7 @@ export interface AIUsageProxyDataset {
   countrySurveyMetrics: Record<string, unknown>[];
   chinaAppMarketMetrics: Record<string, unknown>[];
   chinaNativeAppMau: Record<string, unknown>[];
+  developerSurveyMetrics: Record<string, unknown>[];
   openModelDownloadProxies: Record<string, unknown>[];
   developerEcosystemProxies: Record<string, unknown>[];
   sourceCatalogForFutureCollection: Record<string, unknown>[];

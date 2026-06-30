@@ -449,12 +449,96 @@ function buildStaticChinaNativeAppMau() {
   }));
 }
 
+async function buildStackOverflowDeveloperSurveyMetrics() {
+  const baseUrl = "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-09-03";
+  const responseUrl = `${baseUrl}/stackoverflow_survey_single_response.csv`;
+  const crosswalkUrl = `${baseUrl}/qname_levels_single_response_crosswalk.csv`;
+  const [responseText, crosswalkText] = await Promise.all([
+    fetchText(responseUrl, "Stack Overflow Developer Survey 2024 responses"),
+    fetchText(crosswalkUrl, "Stack Overflow Developer Survey 2024 response labels"),
+  ]);
+
+  const responses = parseCSV(responseText);
+  const crosswalk = parseCSV(crosswalkText);
+  const labels = new Map();
+  for (const row of crosswalk) {
+    labels.set(`${row.qname}:${row.level}`, row.label);
+  }
+
+  const decode = (question, value) => labels.get(`${question}:${value}`) ?? value;
+  const questions = ["ai_select", "ai_sent", "ai_acc", "ai_complex", "ai_threat"];
+  const overall = questions.map((question) => {
+    const counts = new Map();
+    let total = 0;
+    for (const row of responses) {
+      const value = row[question];
+      if (!value || value === "NA") continue;
+      const label = decode(question, value);
+      counts.set(label, (counts.get(label) ?? 0) + 1);
+      total++;
+    }
+    return {
+      question,
+      responses: total,
+      distribution: Array.from(counts.entries())
+        .map(([label, count]) => ({ label, count, percent: round(count / total * 100, 2) }))
+        .sort((a, b) => b.count - a.count),
+    };
+  });
+
+  const countryMap = new Map();
+  for (const row of responses) {
+    const country = row.country;
+    const value = row.ai_select;
+    if (!country || country === "NA" || !value || value === "NA") continue;
+    const entry = countryMap.get(country) ?? { country, responses: 0, yes: 0, planSoon: 0, noPlan: 0 };
+    entry.responses++;
+    const label = decode("ai_select", value);
+    if (label === "Yes") entry.yes++;
+    else if (label === "No, but I plan to soon") entry.planSoon++;
+    else if (label === "No, and I don't plan to") entry.noPlan++;
+    countryMap.set(country, entry);
+  }
+
+  const countries = Array.from(countryMap.values())
+    .filter((entry) => entry.responses >= 100)
+    .map((entry) => ({
+      ...entry,
+      yesPercent: round(entry.yes / entry.responses * 100, 2),
+      planSoonPercent: round(entry.planSoon / entry.responses * 100, 2),
+      noPlanPercent: round(entry.noPlan / entry.responses * 100, 2),
+    }))
+    .sort((a, b) => b.yesPercent - a.yesPercent || b.responses - a.responses);
+
+  return [
+    {
+      id: "stack-overflow-developer-survey-ai-usage-2024",
+      metric: "developer_ai_tool_usage_and_attitudes",
+      unit: "survey_responses_and_percent",
+      period: "2024-05",
+      population: "Stack Overflow Developer Survey respondents; public TidyTuesday single-response subset only.",
+      source: {
+        name: "Stack Overflow Annual Developer Survey 2024 — TidyTuesday derived single-response subset",
+        publisher: "Stack Overflow / R4DS TidyTuesday",
+        url: "https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-09-03",
+        responseUrl,
+        crosswalkUrl,
+      },
+      confidence: "medium_high",
+      comparability: "Developer survey proxy; country values are respondent shares, not population-representative national adoption rates.",
+      responseCount: responses.length,
+      overall,
+      countries,
+    },
+  ];
+}
+
 function buildSourceCatalog(censusCollected) {
   return [
     {
       name: "Similarweb",
       status: "not_collected",
-      reason: "Useful for web traffic and country share across AI products, but detailed API access is commercial.",
+      reason: "Useful for web traffic and country share across AI products, but the official API is commercial; undocumented extension endpoints are intentionally not used.",
       potentialMetrics: ["website_visits", "country_traffic_share", "engagement"],
     },
     {
@@ -466,7 +550,7 @@ function buildSourceCatalog(censusCollected) {
     {
       name: "Google Trends",
       status: "not_collected",
-      reason: "Search-interest proxy is accessible manually but has no official stable public API for production collection.",
+      reason: "Search-interest proxy is accessible manually, but the unofficial Trends endpoint returned HTTP 429 in automated collection and has no official stable public API.",
       potentialMetrics: ["relative_search_interest_by_country", "time_series_interest"],
     },
     {
@@ -486,8 +570,8 @@ function buildSourceCatalog(censusCollected) {
     },
     {
       name: "Stack Overflow Developer Survey",
-      status: "not_collected",
-      reason: "Survey can support developer AI-tool adoption analysis, but the current public dataset ZIP URL was not resolved in this pass.",
+      status: "collected",
+      reason: "Collected developer AI-tool usage and attitude distributions from the public TidyTuesday single-response subset of the 2024 Stack Overflow Developer Survey.",
       potentialMetrics: ["developer_ai_tool_usage", "developer_attitudes", "country_split"],
     },
     {
@@ -515,6 +599,7 @@ async function main() {
     fetchHuggingFaceModels("Zhipu ChatGLM", "ChatGLM"),
     fetchHuggingFaceModels("Baichuan", "Baichuan"),
   ]);
+  const developerSurveyMetrics = await buildStackOverflowDeveloperSurveyMetrics();
   const developerEcosystemProxies = [await fetchGithubRepoProxy()];
 
   const dataset = {
@@ -527,6 +612,7 @@ async function main() {
     countrySurveyMetrics: buildStaticChinaSurveyMetrics(),
     chinaAppMarketMetrics: buildStaticChinaAppMarketMetrics(),
     chinaNativeAppMau: buildStaticChinaNativeAppMau(),
+    developerSurveyMetrics,
     openModelDownloadProxies,
     developerEcosystemProxies,
     sourceCatalogForFutureCollection: buildSourceCatalog(usCensusBusinessAIMetrics.length > 0),
@@ -537,6 +623,7 @@ async function main() {
   console.log(`  Enterprise sections: ${dataset.enterpriseAdoptionMetrics.length}`);
   console.log(`  Individual GenAI sections: ${dataset.individualGenerativeAIUsageMetrics.length}`);
   console.log(`  Census sections: ${dataset.usCensusBusinessAIMetrics.length}`);
+  console.log(`  Developer survey sections: ${dataset.developerSurveyMetrics.length}`);
   console.log(`  Open model groups: ${dataset.openModelDownloadProxies.length}`);
 }
 
