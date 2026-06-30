@@ -167,6 +167,7 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
                 <Link
                   href={href}
                   onClick={onNavigate}
+                  aria-current={isActive ? "page" : undefined}
                   className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
                     isActive
                       ? "bg-zinc-800/80 text-white"

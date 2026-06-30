@@ -1,12 +1,6 @@
 import Reveal from "@/components/ui/Reveal";
 import { getDataSources } from "@/lib/data";
 
-export const metadata = {
-  title: "Data & Sources — FutureGrid",
-  description:
-    "FutureGrid uses current, authoritative datasets. Full transparency on every data source, license, and methodology.",
-};
-
 function LicenseBadge({ license }: { license: string }) {
   const isOpen =
     license.startsWith("CC") || license === "Public Domain";

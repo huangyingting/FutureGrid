@@ -35,12 +35,6 @@ function Sparkline3({ h1, h2, q1 }: { h1: number; h2: number; q1: number }) {
   );
 }
 
-export const metadata = {
-  title: "Global AI Adoption — FutureGrid",
-  description:
-    "Per-country AI (Claude.ai) usage from the Anthropic Economic Index (Aug 2025). See which nations lead in real-world AI adoption.",
-};
-
 export default function GlobalPage() {
   const allCountries = getCountryExposure();
   const proxies = getAIUsageProxies();
