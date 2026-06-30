@@ -61,6 +61,14 @@ To refresh only supplemental AI usage/adoption proxies:
 npm run build:proxies
 ```
 
+To refresh O*NET occupation enrichment for career detail pages:
+
+```bash
+npm run build:onet
+```
+
+Set `ONET_API_KEY` and optionally `ONET_ENRICH_LIMIT` in `.env` first. `ONET_ENRICH_LIMIT=0` enriches all occupations; the default enriches a priority subset.
+
 ## Tech Stack
 
 - **Frontend**: React / Next.js

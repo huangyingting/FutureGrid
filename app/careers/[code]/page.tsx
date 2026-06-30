@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { generateAllCareerInsights, getSectorAggregatesExtended, computeResiliencyScore } from "@/lib/data";
+import { generateAllCareerInsights, getOnetEnrichment, getSectorAggregatesExtended, computeResiliencyScore } from "@/lib/data";
 import { colorForRisk, formatCurrency } from "@/lib/utils";
 import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
@@ -13,6 +13,11 @@ export default function CareerDetailPage() {
 
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
   const career = allInsights.find((i) => i.occupationCode === code);
+  const allInsightCodes = useMemo(
+    () => new Set(allInsights.map((insight) => insight.occupationCode)),
+    [allInsights],
+  );
+  const onet = useMemo(() => getOnetEnrichment(code), [code]);
   const sectorAgg = useMemo(
     () => getSectorAggregatesExtended().find((s) => s.sector === career?.sectorName),
     [career],
@@ -193,6 +198,94 @@ export default function CareerDetailPage() {
           </div>
         </div>
       </div>
+
+      {onet && (
+        <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 space-y-6">
+          <div>
+            <p className="text-xs text-zinc-500 uppercase tracking-widest mb-2">
+              O*NET occupation profile
+            </p>
+            <h2 className="text-lg font-semibold text-white mb-2">What this work involves</h2>
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-4xl">
+              {onet.description}
+            </p>
+            {onet.sampleTitles.length > 0 && (
+              <p className="text-xs text-zinc-500 mt-3">
+                Common titles: {onet.sampleTitles.slice(0, 6).join(", ")}
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-200 mb-3">Representative Tasks</h3>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                {onet.tasks.slice(0, 5).map((task) => (
+                  <li key={task.id} className="flex gap-2">
+                    <span className="text-violet-400 mt-0.5">•</span>
+                    <span>{task.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-200 mb-3">Detailed Work Activities</h3>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                {onet.detailedWorkActivities.slice(0, 5).map((activity) => (
+                  <li key={activity.id} className="flex gap-2">
+                    <span className="text-cyan-400 mt-0.5">•</span>
+                    <span>{activity.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {onet.technologySkills.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-200 mb-3">Tools &amp; Technologies</h3>
+                <div className="flex flex-wrap gap-2">
+                  {onet.technologySkills.slice(0, 10).map((tech) => (
+                    <span
+                      key={`${tech.category}-${tech.name}`}
+                      className="px-2.5 py-1 rounded-lg bg-zinc-800/70 border border-zinc-700/60 text-xs text-zinc-300"
+                      title={tech.category}
+                    >
+                      {tech.name}
+                      {tech.hot && <span className="text-orange-400"> · hot</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {onet.relatedOccupations.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-200 mb-3">Related Occupations</h3>
+                <div className="flex flex-wrap gap-2">
+                  {onet.relatedOccupations.slice(0, 8).map((related) => {
+                    const chip = (
+                      <span className="px-2.5 py-1 rounded-lg bg-violet-900/20 border border-violet-700/25 text-xs text-violet-200">
+                        {related.title}
+                        {related.brightOutlook && <span className="text-green-400"> · Bright</span>}
+                      </span>
+                    );
+                    return allInsightCodes.has(related.code) ? (
+                      <Link key={related.onetCode} href={`/careers/${related.code}`} className="hover:opacity-80 transition-opacity">
+                        {chip}
+                      </Link>
+                    ) : (
+                      <span key={related.onetCode}>{chip}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Predictive chart */}
       <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">

@@ -773,6 +773,14 @@ async function main() {
         usedFor: "Top skills (by importance) per SOC occupation",
       },
       {
+        name: "O*NET Web Services API v2",
+        publisher: "U.S. Department of Labor / O*NET Resource Center",
+        year: 2026,
+        url: "https://services.onetcenter.org/reference/",
+        license: "CC BY 4.0",
+        usedFor: "Build-time enrichment for occupation descriptions, tasks, detailed work activities, technology skills, and related occupations",
+      },
+      {
         name: "IMF Artificial Intelligence Occupational Exposure (AIOE) Index 2024",
         publisher: "International Monetary Fund",
         year: 2024,

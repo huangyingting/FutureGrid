@@ -1,6 +1,7 @@
 import occupationSnapshot from "@/data/occupation-snapshot.json";
 import countryExposureData from "@/data/country-exposure.json";
 import aiUsageProxiesData from "@/data/ai-usage-proxies.json";
+import onetEnrichmentData from "@/data/onet-enrichment.json";
 import sourcesData from "@/data/sources.json";
 import globalAiMetricsData from "@/data/global-ai-metrics.json";
 
@@ -369,6 +370,32 @@ export interface AIUsageProxyDataset {
 
 export function getAIUsageProxies(): AIUsageProxyDataset {
   return aiUsageProxiesData as AIUsageProxyDataset;
+}
+
+// ─── O*NET enrichment ────────────────────────────────────────────────────────
+
+export interface OnetEnrichmentOccupation {
+  occupationCode: string;
+  onetCode: string;
+  title: string;
+  description: string;
+  sampleTitles: string[];
+  jobZone: { code: number; title: string } | null;
+  tasks: { id: string; title: string }[];
+  detailedWorkActivities: { id: string; title: string }[];
+  skills: { id: string; name: string; description: string }[];
+  technologySkills: { name: string; category: string; hot: boolean; inDemand: boolean }[];
+  relatedOccupations: { code: string; onetCode: string; title: string; brightOutlook: boolean }[];
+}
+
+export interface OnetEnrichmentData {
+  generatedAt: string;
+  coverage: { requested: number; enriched: number; missing: string[] };
+  occupations: Record<string, OnetEnrichmentOccupation>;
+}
+
+export function getOnetEnrichment(code: string): OnetEnrichmentOccupation | undefined {
+  return (onetEnrichmentData as OnetEnrichmentData).occupations[code];
 }
 
 // ─── Country map data (choropleth) ───────────────────────────────────────────
