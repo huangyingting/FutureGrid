@@ -124,8 +124,10 @@ export default function SkillsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {occupationsWithSkill.map((i) => {
           const riskColor = colorForRisk(i.automationRisk);
-          const matchedSkills = i.skills.filter(
-            (s) => GROUP_SKILLS[selectedGroup]?.includes(s),
+          const matchedSkills = Array.from(
+            new Set(
+              i.skills.filter((s) => GROUP_SKILLS[selectedGroup]?.includes(s)),
+            ),
           );
           return (
             <Link

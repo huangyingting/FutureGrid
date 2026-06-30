@@ -32,6 +32,8 @@ export const metadata: Metadata = {
     default: "FutureGrid — AI & the Future of Work",
     template: "%s · FutureGrid",
   },
+  authors: [{ name: "Yingting Huang" }],
+  creator: "Yingting Huang",
   description:
     "Explore how artificial intelligence is reshaping careers — see AI exposure levels, Bright Outlook occupations, and salary data across 22 industry sectors.",
   openGraph: {
@@ -67,6 +69,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* pt-16 on mobile offsets the fixed top bar; lg resets to lg:pt-0 via p-8 shorthand */}
         <main id="main" className="ml-0 lg:ml-60 min-h-full px-4 pb-4 pt-16 sm:px-6 sm:pb-6 sm:pt-16 lg:p-8">
           {children}
+          <footer className="mt-12 border-t border-white/10 pt-5 text-xs text-zinc-500 sm:text-sm" aria-label="Site credit">
+            Built by <span className="font-medium text-zinc-300">Yingting Huang</span>
+          </footer>
         </main>
       </body>
     </html>
