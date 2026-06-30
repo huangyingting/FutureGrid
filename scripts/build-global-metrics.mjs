@@ -27,7 +27,9 @@ const MS_DIFFUSION_URL =
   "https://raw.githubusercontent.com/microsoft/ai-diffusion-report/main/data/AI_Diffusion_Q12026_Update.csv";
 const ISO_CROSSWALK_URL =
   "https://raw.githubusercontent.com/lukes/ISO-3166-Countries-with-Regional-Codes/master/all/all.json";
-const IMF_AIPI_URL = "https://www.imf.org/external/datamapper/api/v1/AIPI";
+// Correct indicator endpoint: AIPI dataset, AI_PI indicator (overall composite score)
+// See: https://www.imf.org/external/datamapper/AI_PI@AIPI/ADVEC/EME/LIC
+const IMF_AIPI_URL = "https://www.imf.org/external/datamapper/api/v1/AIPI/AI_PI";
 
 // ─── HTTP helpers ──────────────────────────────────────────────────────────────
 
@@ -336,14 +338,13 @@ async function main() {
     );
     const imfJson = JSON.parse(imfText);
 
-    // IMF datamapper API structure varies:
-    // Attempt 1: { values: { AIPI: { ISO3: { year: value } } } }
-    // Attempt 2: flat { AIPI: { ISO3: { year: value } } }
-    // Attempt 3: { datasets: { AIPI: ... } }
+    // IMF datamapper API response for AIPI/AI_PI endpoint:
+    // { values: { AI_PI: { ISO3: { "2023": score } } } }
     const aipiValues =
+      imfJson?.values?.AI_PI ||
       imfJson?.values?.AIPI ||
+      imfJson?.AI_PI ||
       imfJson?.AIPI ||
-      imfJson?.datasets?.AIPI?.values ||
       null;
     if (aipiValues && typeof aipiValues === "object") {
       readiness = {};
@@ -401,37 +402,27 @@ async function main() {
     },
   ];
 
-  if (imfIncluded) {
-    sources.push({
-      id: "imf-aipi",
-      name: "IMF AI Preparedness Index (AIPI)",
-      publisher: "International Monetary Fund",
-      year: 2024,
-      url: "https://www.imf.org/external/datamapper/api/v1/AIPI",
-      license: "IMF terms",
-      metric: "aiReadiness",
-      description:
-        "AI readiness / preparedness score (~174 countries, 2024). " +
-        "COMPARABILITY CAVEAT: this measures institutional/infrastructure capacity, " +
-        "NOT user behavior. Do NOT merge or average with diffusionPct.",
-    });
-  } else {
-    sources.push({
-      id: "imf-aipi",
-      name: "IMF AI Preparedness Index (AIPI)",
-      publisher: "International Monetary Fund",
-      year: 2024,
-      url: "https://www.imf.org/external/datamapper/api/v1/AIPI",
-      license: "IMF terms",
-      metric: "aiReadiness",
-      included: false,
-      skipReason: imfSkipReason,
-      description:
-        "AI readiness / preparedness score. Skipped this run — see skipReason. " +
-        "COMPARABILITY CAVEAT: capacity metric, not user-behavior %. " +
-        "Do NOT merge with diffusionPct.",
-    });
-  }
+  const readinessMeta = {
+    id: "imf-aipi",
+    name: "IMF AI Preparedness Index (AIPI) — overall composite score (AI_PI)",
+    publisher: "International Monetary Fund",
+    year: 2023,
+    url: "https://www.imf.org/external/datamapper/AI_PI@AIPI/ADVEC/EME/LIC",
+    apiEndpoint: "https://www.imf.org/external/datamapper/api/v1/AIPI/AI_PI",
+    license: "IMF terms (https://www.imf.org/external/terms.htm)",
+    metric: "aiReadiness",
+    scaleMin: 0,
+    scaleMax: 1,
+    included: imfIncluded,
+    description:
+      "Overall AI preparedness composite score 0–1 for 178 countries (2023 vintage). " +
+      "Measures institutional/infrastructure readiness capacity across four pillars: " +
+      "digital infrastructure, AI regulation & ethics, AI innovation & capacity, human capital. " +
+      "COMPARABILITY CAVEAT: capacity/infrastructure readiness metric, NOT user behavior %. " +
+      "Do NOT merge or average with diffusionPct or usageIndex — different denominators.",
+    ...(imfIncluded ? {} : { skipReason: imfSkipReason }),
+  };
+  sources.push(readinessMeta);
 
   const output = {
     generatedAt: new Date().toISOString(),
@@ -439,7 +430,7 @@ async function main() {
     unmatchedEconomies: unmatched,
     metrics: {
       diffusion: diffusion,
-      ...(imfIncluded ? { readiness } : {}),
+      ...(imfIncluded ? { readiness, readinessMeta } : {}),
     },
   };
 
@@ -451,6 +442,11 @@ async function main() {
   console.log(`    United States (USA): ${diffusion["USA"] ?? "NOT FOUND"}%`);
   console.log(`    India (IND): ${diffusion["IND"] ?? "NOT FOUND"}%`);
   console.log(`    IMF readiness included: ${imfIncluded}`);
+  if (imfIncluded && readiness) {
+    console.log(`    readiness countries: ${Object.keys(readiness).length}`);
+    console.log(`    China readiness (CHN): ${readiness["CHN"] ?? "NOT FOUND"}`);
+    console.log(`    USA readiness: ${readiness["USA"] ?? "NOT FOUND"}`);
+  }
   if (!imfIncluded) console.log(`    IMF skip reason: ${imfSkipReason}`);
   console.log(`    Unmatched names: ${unmatched.length}`);
   if (unmatched.length > 0) console.log(`    Unmatched: ${unmatched.join(", ")}`);
