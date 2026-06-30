@@ -7,6 +7,7 @@ import type { SectorAggregate } from "@/lib/data";
 import Link from "next/link";
 import { colorForRisk, formatCurrency } from "@/lib/utils";
 import { useState, useMemo } from "react";
+import { useT } from "@/lib/i18n/useT";
 
 type SortKey = "risk" | "brightOutlook" | "size" | "salary" | "employment";
 
@@ -18,6 +19,7 @@ function riskLabel(avgRisk: number): "Low" | "Medium" | "High" | "Very High" {
 }
 
 export default function SectorsPage() {
+  const t = useT("sectors");
   const [sortBy, setSortBy] = useState<SortKey>("risk");
   const allSectors = useMemo(() => getSectorAggregatesExtended(), []);
 
@@ -38,10 +40,10 @@ export default function SectorsPage() {
       {/* Header */}
       <div className="animate-fade-up">
         <h1 className="text-3xl font-bold tracking-tight text-gradient">
-          AI Disruption by Sector
+          {t("pageTitle")}
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-          Compare AI exposure, Bright Outlook share, and occupation counts across major industry sectors.
+          {t("pageIntro")}
         </p>
       </div>
 
@@ -52,7 +54,7 @@ export default function SectorsPage() {
 
       <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-          Top Occupations by AI Exposure
+          {t("topOccupationsHeading")}
         </h2>
         <JobImpactChart />
       </div>
@@ -61,20 +63,20 @@ export default function SectorsPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
-            All Sectors{" "}
+            {t("allSectorsHeading")}{" "}
             <span className="text-zinc-500 font-normal text-sm">
               ({allSectors.length})
             </span>
           </h2>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500">Sort by</span>
+            <span className="text-xs text-zinc-500">{t("sortBy")}</span>
             {(
               [
-                { key: "risk",          label: "Risk"       },
-                { key: "brightOutlook", label: "Outlook"    },
-                { key: "size",          label: "Size"       },
-                { key: "salary",        label: "Salary"     },
-                { key: "employment",    label: "Employment" },
+                { key: "risk",          label: t("sortRisk")       },
+                { key: "brightOutlook", label: t("sortOutlook")    },
+                { key: "size",          label: t("sortSize")       },
+                { key: "salary",        label: t("sortSalary")     },
+                { key: "employment",    label: t("sortEmployment") },
               ] as { key: SortKey; label: string }[]
             ).map(({ key, label }) => (
               <button
@@ -117,7 +119,7 @@ export default function SectorsPage() {
                 {/* Risk bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-zinc-500">AI Risk</span>
+                    <span className="text-zinc-500">{t("aiRisk")}</span>
                     <span
                       className="font-semibold"
                       style={{ color: riskColor }}
@@ -139,23 +141,23 @@ export default function SectorsPage() {
                 {/* Stats */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">Bright Outlook</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{t("brightOutlook")}</span>
                     <span className="font-medium text-green-700 dark:text-green-400">
                       {(s.brightShare * 100).toFixed(0)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">Avg Salary</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{t("avgSalary")}</span>
                     <span className="font-medium text-zinc-900 dark:text-white">
                       {s.avgSalary != null ? formatCurrency(s.avgSalary) : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">Occupations</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{t("occupations")}</span>
                     <span className="font-medium text-zinc-900 dark:text-white">{s.occupationCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">Employment</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{t("employment")}</span>
                     <span className="font-medium text-zinc-900 dark:text-white">
                       {s.totalEmployment != null ? s.totalEmployment.toLocaleString() : "—"}
                     </span>

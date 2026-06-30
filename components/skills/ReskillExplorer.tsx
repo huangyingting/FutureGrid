@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getHighExposureOccupations, getReskillingPaths } from "@/lib/data";
 import { colorForRisk, formatCurrency } from "@/lib/utils";
 import Reveal from "@/components/ui/Reveal";
+import { useT } from "@/lib/i18n/useT";
 
 const PREFERRED_DEFAULTS = ["Data Entry", "Customer Service", "Telemarket"];
 
@@ -15,6 +16,7 @@ const OUTLOOK_STYLES: Record<string, string> = {
 };
 
 export default function ReskillExplorer() {
+  const t = useT("skills");
   const highExposure = useMemo(() => getHighExposureOccupations(30), []);
 
   const defaultCode = useMemo(() => {
@@ -71,16 +73,15 @@ export default function ReskillExplorer() {
       {/* Section header */}
       <div>
         <h2 id="reskill-heading" className="text-2xl font-bold tracking-tight text-gradient">
-          Reskilling Pathways
+          {t("reskillingPathways")}
         </h2>
         <p className="text-zinc-600 dark:text-zinc-400 mt-1 text-sm max-w-2xl">
-          Roles with lower AI exposure that build on skills you already have (O*NET skill
-          overlap). Not financial advice.{" "}
+          {t("reskillingSubhead")}{" "}
           <Link
             href="/sources"
             className="text-violet-400 underline underline-offset-2 hover:text-violet-300 transition-colors"
           >
-            View sources
+            {t("viewSources")}
           </Link>
           .
         </p>
@@ -92,7 +93,7 @@ export default function ReskillExplorer() {
           htmlFor="reskill-from-btn"
           className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
         >
-          Your current role (high AI exposure)
+          {t("yourCurrentRole")}
         </label>
 
         <div ref={containerRef} className="relative w-full max-w-md">
@@ -106,7 +107,7 @@ export default function ReskillExplorer() {
             className="w-full flex items-center justify-between gap-2 glass bg-white/70 dark:bg-zinc-900/60 border border-zinc-300 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm text-zinc-900 dark:text-white hover:border-violet-600 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors"
           >
             <span className="truncate">
-              {selected ? selected.occupationName : "Select an occupation…"}
+              {selected ? selected.occupationName : t("selectOccupation")}
             </span>
             <svg
               className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -133,7 +134,7 @@ export default function ReskillExplorer() {
               <div className="p-2 border-b border-zinc-200 dark:border-zinc-800">
                 <input
                   type="search"
-                  placeholder="Search occupations…"
+                  placeholder={t("searchOccupations")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -159,13 +160,13 @@ export default function ReskillExplorer() {
                     >
                       <span className="block">{o.occupationName}</span>
                       <span className="text-xs text-zinc-500">
-                        {o.sectorName} · AI exposure {(o.aiExposure * 100).toFixed(0)}%
+                        {o.sectorName} · {t("aiExposureDropdownLabel", { pct: (o.aiExposure * 100).toFixed(0) })}
                       </span>
                     </button>
                   </li>
                 ))}
                 {filtered.length === 0 && (
-                  <li className="px-4 py-3 text-sm text-zinc-500">No occupations found.</li>
+                  <li className="px-4 py-3 text-sm text-zinc-500">{t("noOccupationsFoundDropdown")}</li>
                 )}
               </ul>
             </div>
@@ -176,44 +177,44 @@ export default function ReskillExplorer() {
       {/* Target cards */}
       {targets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {targets.map((t, i) => {
-            const riskColor    = colorForRisk(t.automationRisk);
-            const outlookClass = OUTLOOK_STYLES[t.outlook] ?? "bg-zinc-100 dark:bg-zinc-800/40 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/40";
+          {targets.map((path, i) => {
+            const riskColor    = colorForRisk(path.automationRisk);
+            const outlookClass = OUTLOOK_STYLES[path.outlook] ?? "bg-zinc-100 dark:bg-zinc-800/40 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/40";
             return (
-              <Reveal key={t.occupationCode} delay={i * 60}>
+              <Reveal key={path.occupationCode} delay={i * 60}>
                 <Link
-                  href={`/careers/${t.occupationCode}`}
+                  href={`/careers/${path.occupationCode}`}
                   className="block glass glass-hover bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 group focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all h-full"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 pr-2">
                       <h3 className="font-semibold text-zinc-900 dark:text-white text-sm leading-snug group-hover:text-cyan-300 transition-colors">
-                        {t.occupationName}
+                        {path.occupationName}
                       </h3>
-                      <p className="text-xs text-zinc-500 mt-0.5">{t.sectorName}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">{path.sectorName}</p>
                     </div>
                     <span
                       className="shrink-0 px-2 py-0.5 rounded text-xs font-semibold"
                       style={{ backgroundColor: `${riskColor}22`, color: riskColor }}
                     >
-                      {t.automationRisk}
+                      {path.automationRisk}
                     </span>
                   </div>
 
                   {/* Salary + outlook + AI exposure row */}
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="text-xs text-zinc-700 dark:text-zinc-300 font-medium">
-                      {formatCurrency(t.medianSalary)}
-                      <span className="text-zinc-600">/yr</span>
+                      {formatCurrency(path.medianSalary)}
+                      <span className="text-zinc-600">{t("perYear")}</span>
                     </span>
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${outlookClass}`}>
-                      {t.outlook}
+                      {path.outlook}
                     </span>
                     <span className="ml-auto text-xs text-zinc-500">
                       AI{" "}
                       <span className="text-zinc-700 dark:text-zinc-300 font-medium">
-                        {(t.aiExposure * 100).toFixed(0)}%
+                        {(path.aiExposure * 100).toFixed(0)}%
                       </span>
                     </span>
                   </div>
@@ -221,11 +222,11 @@ export default function ReskillExplorer() {
                   {/* Shared skills */}
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-zinc-500">
-                      <span className="text-emerald-400 font-semibold">{t.sharedCount}</span>{" "}
-                      shared skill{t.sharedCount !== 1 ? "s" : ""}
+                      <span className="text-emerald-400 font-semibold">{path.sharedCount}</span>{" "}
+                      {t("sharedSkillLabel", { suffix: path.sharedCount !== 1 ? "s" : "" })}
                     </p>
                     <div className="flex flex-wrap gap-1">
-                      {t.sharedSkills.slice(0, 6).map((s) => (
+                      {path.sharedSkills.slice(0, 6).map((s) => (
                         <span
                           key={s}
                           className="px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-900/25 border border-emerald-200 dark:border-emerald-700/30 text-emerald-700 dark:text-emerald-300 text-xs"
@@ -233,9 +234,9 @@ export default function ReskillExplorer() {
                           {s}
                         </span>
                       ))}
-                      {t.sharedSkills.length > 6 && (
+                      {path.sharedSkills.length > 6 && (
                         <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 text-xs">
-                          +{t.sharedSkills.length - 6} more
+                          {t("moreSkillsLabel", { n: String(path.sharedSkills.length - 6) })}
                         </span>
                       )}
                     </div>
@@ -247,7 +248,7 @@ export default function ReskillExplorer() {
         </div>
       ) : fromCode ? (
         <div className="glass bg-white/70 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl py-10 flex items-center justify-center">
-          <p className="text-zinc-500 text-sm">No reskilling paths found for this occupation.</p>
+          <p className="text-zinc-500 text-sm">{t("noReskillingPaths")}</p>
         </div>
       ) : null}
     </section>

@@ -7,9 +7,11 @@ import JobImpactChart from "@/components/charts/JobImpactChart";
 import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useT } from "@/lib/i18n/useT";
 
 export default function SectorDetailPage() {
   const params = useParams();
+  const t = useT("sectors");
   const sectorName = decodeURIComponent(params.id as string);
 
   const sectorInsights = useMemo(
@@ -120,11 +122,11 @@ export default function SectorDetailPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Occupation Risk Levels</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("occupationRiskLevels")}</h2>
           <JobImpactChart selectedSector={sectorName} />
         </div>
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Employment Projections</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("employmentProjections")}</h2>
           <PredictiveChart selectedSector={sectorName} />
         </div>
       </div>
@@ -132,17 +134,17 @@ export default function SectorDetailPage() {
       {/* Occupations table */}
       <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-          Occupations in {sectorName}
+          {t("occupationsIn", { sector: sectorName })}
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400">
-                <th className="text-left py-3 px-4">Occupation</th>
-              <th className="text-right py-3 px-4">AI Exposure</th>
-              <th className="text-right py-3 px-4">Outlook</th>
-                <th className="text-right py-3 px-4">Median Salary</th>
-                <th className="text-left py-3 px-4">Top Skills</th>
+                <th className="text-left py-3 px-4">{t("thOccupation")}</th>
+              <th className="text-right py-3 px-4">{t("thAiExposure")}</th>
+              <th className="text-right py-3 px-4">{t("thOutlook")}</th>
+                <th className="text-right py-3 px-4">{t("thMedianSalary")}</th>
+                <th className="text-left py-3 px-4">{t("thTopSkills")}</th>
               </tr>
             </thead>
             <tbody>
@@ -180,7 +182,7 @@ export default function SectorDetailPage() {
                           : "bg-zinc-100 dark:bg-zinc-700/30 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700/30"
                       }`}
                     >
-                      {i.outlook === "Bright" ? "Bright ↗" : "Average"}
+                      {i.outlook === "Bright" ? t("outlookBright") : t("outlookAverage")}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right text-zinc-900 dark:text-white">

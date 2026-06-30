@@ -1,0 +1,16 @@
+export const navEn = {
+  dashboard: "Dashboard",
+  sectors: "Sectors",
+  careers: "Careers",
+  skills: "Skills",
+  heatmap: "Heatmap",
+  global: "Global",
+  sources: "Sources",
+  searchPlaceholder: "Search…",
+  openSearch: "Open search command palette (Cmd K)",
+  openNav: "Open navigation menu",
+  closeNav: "Close navigation menu",
+  mainNav: "Main navigation",
+  navDrawer: "Navigation drawer",
+  dataAttribution: "Data: Anthropic Economic Index · BLS · O*NET",
+};

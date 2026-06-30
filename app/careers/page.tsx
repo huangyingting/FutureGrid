@@ -5,6 +5,7 @@ import type { CareerInsight } from "@/lib/data";
 import { colorForRisk, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
+import { useT } from "@/lib/i18n/useT";
 
 const MAX_COMPARE = 3;
 
@@ -14,6 +15,7 @@ export default function CareersPage() {
   const [sortBy, setSortBy] = useState<"risk" | "openings" | "salary" | "employment">("risk");
   const [compareList, setCompareList] = useState<CareerInsight[]>([]);
   const [showComparePanel, setShowComparePanel] = useState(false);
+  const t = useT("careers");
 
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
 
@@ -54,9 +56,9 @@ export default function CareersPage() {
     <div className="space-y-6 max-w-[1400px] pb-28">
       {/* Header */}
       <div className="animate-fade-up">
-        <h1 className="text-3xl font-bold tracking-tight text-gradient">Career Explorer</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gradient">{t("pageTitle")}</h1>
         <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-          Browse {allInsights.length} occupations and their AI exposure profiles.
+          {t("pageSubhead", { n: allInsights.length })}
         </p>
       </div>
 
@@ -64,55 +66,54 @@ export default function CareersPage() {
       <div className="flex flex-col sm:flex-row gap-3 animate-fade-up">
         <input
           type="text"
-          placeholder="Search occupations or sectors..."
+          placeholder={t("searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          aria-label="Search occupations or sectors"
+          aria-label={t("searchPlaceholder")}
           className="flex-1 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500/30 transition-colors"
         />
         <select
           value={riskFilter}
           onChange={(e) => setRiskFilter(e.target.value)}
-          aria-label="Filter by risk level"
+          aria-label={t("filterAriaLabel")}
           className="bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
         >
-          <option value="all">All Risk Levels</option>
-          <option value="Low">Low Risk</option>
-          <option value="Medium">Medium Risk</option>
-          <option value="High">High Risk</option>
-          <option value="Very High">Very High Risk</option>
+          <option value="all">{t("filterAll")}</option>
+          <option value="Low">{t("filterLow")}</option>
+          <option value="Medium">{t("filterMedium")}</option>
+          <option value="High">{t("filterHigh")}</option>
+          <option value="Very High">{t("filterVeryHigh")}</option>
         </select>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as "risk" | "openings" | "salary" | "employment")}
-          aria-label="Sort occupations"
+          aria-label={t("sortAriaLabel")}
           className="bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-700/50 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors"
         >
-          <option value="risk">Sort by AI Exposure</option>
-          <option value="openings">Sort by Openings</option>
-          <option value="salary">Sort by Salary</option>
-          <option value="employment">Sort by Employment</option>
+          <option value="risk">{t("sortByRisk")}</option>
+          <option value="openings">{t("sortByOpenings")}</option>
+          <option value="salary">{t("sortBySalary")}</option>
+          <option value="employment">{t("sortByEmployment")}</option>
         </select>
       </div>
 
       {/* Result count */}
       <div className="flex items-center justify-between text-sm">
         <p className="text-zinc-600 dark:text-zinc-400">
-          <span className="font-semibold text-zinc-900 dark:text-white">{filtered.length}</span>{" "}
-          occupation{filtered.length !== 1 ? "s" : ""}
+          {t("resultCount", { n: filtered.length })}
           {compareList.length > 0 && (
             <span className="ml-2 text-violet-600 dark:text-violet-400">
-              &middot; {compareList.length}/{MAX_COMPARE} selected for compare
+              &middot; {t("selectedForCompare", { n: compareList.length, max: MAX_COMPARE })}
             </span>
           )}
         </p>
         {compareList.length === 0 && (
           <p className="text-zinc-600 text-xs hidden sm:block">
-            Use{" "}
+            {t("compareHintPre")}{" "}
             <kbd className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-mono">
               +
             </kbd>{" "}
-            on cards to compare up to {MAX_COMPARE}
+            {t("compareHintPost", { max: MAX_COMPARE })}
           </p>
         )}
       </div>
@@ -140,8 +141,8 @@ export default function CareersPage() {
                   aria-pressed={selected}
                   aria-label={
                     selected
-                      ? `Remove ${i.occupationName} from comparison`
-                      : `Add ${i.occupationName} to comparison`
+                      ? t("removeFromComparison", { name: i.occupationName })
+                      : t("addToComparison", { name: i.occupationName })
                   }
                   className={`absolute top-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-white dark:focus:ring-offset-zinc-900 focus:ring-violet-500 ${
                     selected
@@ -201,7 +202,7 @@ export default function CareersPage() {
                   {/* Metrics */}
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-zinc-500">Outlook</span>
+                      <span className="text-zinc-500">{t("labelOutlook")}</span>
                       <span
                         className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
                           i.outlook === "Bright"
@@ -209,21 +210,21 @@ export default function CareersPage() {
                             : "bg-zinc-100 dark:bg-zinc-700/30 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700/30"
                         }`}
                       >
-                        {i.outlook === "Bright" ? "Bright ↗" : "Average"}
+                        {i.outlook === "Bright" ? t("outlookBright") : t("outlookAverage")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Proj. Openings</span>
+                      <span className="text-zinc-500">{t("labelProjOpenings")}</span>
                       <span className="text-zinc-900 dark:text-white">
                         {i.projectedOpenings != null ? i.projectedOpenings.toLocaleString() : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Median Salary</span>
+                      <span className="text-zinc-500">{t("labelMedianSalary")}</span>
                       <span className="text-zinc-900 dark:text-white">{formatCurrency(i.medianSalary)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Employment</span>
+                      <span className="text-zinc-500">{t("labelEmployment")}</span>
                       <span className="text-zinc-900 dark:text-white">
                         {i.totalEmployment != null ? i.totalEmployment.toLocaleString() : "—"}
                       </span>
@@ -239,7 +240,7 @@ export default function CareersPage() {
           <span className="text-4xl opacity-30" aria-hidden="true">
             &#128269;
           </span>
-          <p className="text-zinc-600 dark:text-zinc-400 text-sm">No occupations match your criteria.</p>
+          <p className="text-zinc-600 dark:text-zinc-400 text-sm">{t("noResults")}</p>
           <button
             onClick={() => {
               setSearchQuery("");
@@ -247,7 +248,7 @@ export default function CareersPage() {
             }}
             className="text-xs text-violet-400 hover:underline focus:outline-none focus:underline"
           >
-            Clear filters
+            {t("clearFilters")}
           </button>
         </div>
       )}
@@ -257,14 +258,14 @@ export default function CareersPage() {
         <div
           className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200 dark:border-zinc-700/50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl"
           role="region"
-          aria-label="Career comparison"
+          aria-label={t("compareRegionLabel")}
         >
           <div className="max-w-[1400px] mx-auto px-4 py-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               {/* Selected careers */}
               <div className="flex-1 flex flex-wrap gap-2 items-center">
                 <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                  Compare
+                  {t("compareBarLabel")}
                 </span>
                 {compareList.map((c) => (
                   <span
@@ -278,7 +279,7 @@ export default function CareersPage() {
                     <span className="text-zinc-900 dark:text-white font-medium">{c.occupationName}</span>
                     <button
                       onClick={() => toggleCompare(c)}
-                      aria-label={`Remove ${c.occupationName} from comparison`}
+                      aria-label={t("removeFromComparison", { name: c.occupationName })}
                       className="text-zinc-500 hover:text-white focus:outline-none focus:text-white ml-0.5 leading-none transition-colors"
                     >
                       &times;
@@ -294,7 +295,7 @@ export default function CareersPage() {
                     onClick={() => setShowComparePanel((v) => !v)}
                     className="brand-grad text-white text-xs font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 hover:opacity-90 transition-opacity"
                   >
-                    {showComparePanel ? "Hide" : "Compare"} Side-by-Side
+                    {showComparePanel ? t("hideSideBySide") : t("compareSideBySide")}
                   </button>
                 )}
                 <button
@@ -304,7 +305,7 @@ export default function CareersPage() {
                   }}
                   className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white px-3 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-colors"
                 >
-                  Clear All
+                  {t("clearAll")}
                 </button>
               </div>
             </div>
@@ -316,7 +317,7 @@ export default function CareersPage() {
                   <thead>
                     <tr>
                       <th className="text-left py-2 px-3 text-zinc-500 font-medium w-32">
-                        Metric
+                        {t("colMetric")}
                       </th>
                       {compareList.map((c) => (
                         <th
@@ -335,7 +336,7 @@ export default function CareersPage() {
                   </thead>
                   <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60">
                     <tr>
-                     <td className="py-2 px-3 text-zinc-500">AI Exposure</td>
+                     <td className="py-2 px-3 text-zinc-500">{t("labelAIExposure")}</td>
                       {compareList.map((c) => (
                         <td key={c.occupationCode} className="py-2 px-3">
                           <span
@@ -352,7 +353,7 @@ export default function CareersPage() {
                       ))}
                     </tr>
                     <tr>
-                     <td className="py-2 px-3 text-zinc-500">Outlook</td>
+                     <td className="py-2 px-3 text-zinc-500">{t("labelOutlook")}</td>
                       {compareList.map((c) => (
                        <td key={c.occupationCode} className="py-2 px-3">
                          <span
@@ -362,13 +363,13 @@ export default function CareersPage() {
                                : "bg-zinc-100 dark:bg-zinc-700/30 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700/30"
                            }`}
                          >
-                           {c.outlook === "Bright" ? "Bright ↗" : "Average"}
+                           {c.outlook === "Bright" ? t("outlookBright") : t("outlookAverage")}
                          </span>
                        </td>
                      ))}
                     </tr>
                     <tr>
-                     <td className="py-2 px-3 text-zinc-500">Proj. Openings</td>
+                     <td className="py-2 px-3 text-zinc-500">{t("labelProjOpenings")}</td>
                      {compareList.map((c) => (
                        <td key={c.occupationCode} className="py-2 px-3 text-zinc-900 dark:text-white">
                          {c.projectedOpenings != null ? c.projectedOpenings.toLocaleString() : "—"}
@@ -376,7 +377,7 @@ export default function CareersPage() {
                      ))}
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">Median Salary</td>
+                      <td className="py-2 px-3 text-zinc-500">{t("labelMedianSalary")}</td>
                       {compareList.map((c) => (
                         <td
                           key={c.occupationCode}
@@ -387,7 +388,7 @@ export default function CareersPage() {
                       ))}
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">Est. Employment</td>
+                      <td className="py-2 px-3 text-zinc-500">{t("colEstEmployment")}</td>
                       {compareList.map((c) => (
                         <td key={c.occupationCode} className="py-2 px-3 text-zinc-900 dark:text-white">
                           {c.totalEmployment != null ? c.totalEmployment.toLocaleString() : "—"}
@@ -395,7 +396,7 @@ export default function CareersPage() {
                       ))}
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">Resiliency</td>
+                      <td className="py-2 px-3 text-zinc-500">{t("colResiliency")}</td>
                       {compareList.map((c) => {
                         const score = computeResiliencyScore(c.automationProbability);
                         return (
@@ -409,7 +410,7 @@ export default function CareersPage() {
                       })}
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">Key Skills</td>
+                      <td className="py-2 px-3 text-zinc-500">{t("colKeySkills")}</td>
                       {compareList.map((c) => (
                         <td key={c.occupationCode} className="py-2 px-3">
                           <div className="flex flex-wrap gap-1">

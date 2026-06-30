@@ -6,6 +6,7 @@ import { colorForRisk, formatCurrency } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import ReskillExplorer from "@/components/skills/ReskillExplorer";
+import { useT } from "@/lib/i18n/useT";
 
 const GROUPS = ["Technical", "Cognitive", "Interpersonal", "Administrative", "Management"];
 
@@ -28,6 +29,7 @@ const GROUP_DESCRIPTIONS: Record<string, string> = {
 type SkillSortKey = "risk-desc" | "risk-asc" | "salary" | "openings";
 
 export default function SkillsPage() {
+  const t = useT("skills");
   const [selectedGroup, setSelectedGroup] = useState<string>("Technical");
   const [sortKey, setSortKey] = useState<SkillSortKey>("risk-asc");
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
@@ -52,10 +54,10 @@ export default function SkillsPage() {
       {/* Header */}
       <div className="animate-fade-up">
         <h1 className="text-3xl font-bold tracking-tight text-gradient">
-          Skill Transition Pathways
+          {t("pageTitle")}
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-          Identify skill-based pathways from high-exposure to low-exposure occupations.
+          {t("pageIntro")}
         </p>
       </div>
 
@@ -78,12 +80,12 @@ export default function SkillsPage() {
                   : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white"
               }`}
             >
-              {group}
+              {t(`groupName${group}`)}
             </button>
           ))}
         </div>
         {GROUP_DESCRIPTIONS[selectedGroup] && (
-          <p className="text-zinc-500 text-sm">{GROUP_DESCRIPTIONS[selectedGroup]}</p>
+          <p className="text-zinc-500 text-sm">{t(`groupDesc${selectedGroup}`)}</p>
         )}
       </div>
 
@@ -91,17 +93,18 @@ export default function SkillsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <p className="text-zinc-600 dark:text-zinc-400 text-sm">
           <span className="text-zinc-900 dark:text-white font-semibold">{occupationsWithSkill.length}</span>{" "}
-          occupation{occupationsWithSkill.length !== 1 ? "s" : ""} use{" "}
-          <span className="text-violet-400">{selectedGroup}</span> skills
+          {t("occupationsUseSkillsPre", { suffix: occupationsWithSkill.length !== 1 ? "s" : "" })}{" "}
+          <span className="text-violet-400">{t(`groupName${selectedGroup}`)}</span>
+          {t("occupationsUseSkillsPost") ? ` ${t("occupationsUseSkillsPost")}` : ""}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500">Sort</span>
+          <span className="text-xs text-zinc-500">{t("sort")}</span>
           {(
             [
-              { key: "risk-asc",  label: "Safest First"  },
-              { key: "risk-desc", label: "Most at Risk"  },
-              { key: "salary",    label: "Highest Pay"   },
-              { key: "openings",  label: "Most Openings" },
+              { key: "risk-asc",  label: t("sortSafestFirst")  },
+              { key: "risk-desc", label: t("sortMostAtRisk")   },
+              { key: "salary",    label: t("sortHighestPay")   },
+              { key: "openings",  label: t("sortMostOpenings") },
             ] as { key: SkillSortKey; label: string }[]
           ).map(({ key, label }) => (
             <button
@@ -167,7 +170,7 @@ export default function SkillsPage() {
 
               {/* Salary */}
               <p className="text-xs text-zinc-500 mb-2.5">
-                Salary:{" "}
+                {t("salaryLabel")}{" "}
                 <span className="text-zinc-700 dark:text-zinc-300 font-medium">
                   {formatCurrency(i.medianSalary)}
                 </span>
@@ -191,7 +194,7 @@ export default function SkillsPage() {
 
       {occupationsWithSkill.length === 0 && (
         <div className="glass bg-white/70 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl py-12 flex items-center justify-center">
-          <p className="text-zinc-500 text-sm">No occupations found for this skill group.</p>
+          <p className="text-zinc-500 text-sm">{t("noOccupationsFound")}</p>
         </div>
       )}
 

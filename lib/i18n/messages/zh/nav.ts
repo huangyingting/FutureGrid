@@ -1,0 +1,16 @@
+export const navZh = {
+  dashboard: "仪表板",
+  sectors: "行业",
+  careers: "职业",
+  skills: "技能",
+  heatmap: "热力图",
+  global: "全球",
+  sources: "数据来源",
+  searchPlaceholder: "搜索…",
+  openSearch: "打开搜索命令面板（⌘K）",
+  openNav: "打开导航菜单",
+  closeNav: "关闭导航菜单",
+  mainNav: "主导航",
+  navDrawer: "导航抽屉",
+  dataAttribution: "数据来源：Anthropic Economic Index · BLS · O*NET",
+};

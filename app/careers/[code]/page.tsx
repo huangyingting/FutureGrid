@@ -7,9 +7,11 @@ import { colorForRisk, formatCurrency } from "@/lib/utils";
 import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
 import { useMemo } from "react";
+import { useT } from "@/lib/i18n/useT";
 
 export default function CareerDetailPage() {
   const params = useParams();
+  const t = useT("careers");
   const code = decodeURIComponent(params.code as string);
 
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
@@ -29,10 +31,10 @@ export default function CareerDetailPage() {
     return (
       <div className="space-y-4">
         <Link href="/careers" className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
-          &larr; Back to Careers
+          &larr; {t("backToCareers")}
         </Link>
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Career Not Found</h1>
-        <p className="text-zinc-600 dark:text-zinc-400">No data available for occupation &quot;{code}&quot;.</p>
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">{t("careerNotFound")}</h1>
+        <p className="text-zinc-600 dark:text-zinc-400">{t("noDataAvailable", { code })}</p>
       </div>
     );
   }
@@ -46,7 +48,7 @@ export default function CareerDetailPage() {
         href="/careers"
         className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white inline-block transition-colors"
       >
-        &larr; Back to Careers
+        &larr; {t("backToCareers")}
       </Link>
 
       {/* Hero */}
@@ -67,7 +69,7 @@ export default function CareerDetailPage() {
               color: riskColor,
             }}
           >
-            {(career.automationProbability * 100).toFixed(1)}% AI Exposure &mdash; {career.automationRisk}
+            {t("aiExposureBadge", { pct: (career.automationProbability * 100).toFixed(1), risk: career.automationRisk })}
           </span>
         </div>
       </div>
@@ -77,31 +79,31 @@ export default function CareerDetailPage() {
         {[
           {
             value: formatCurrency(career.medianSalary),
-            label: "Median Annual Salary",
+            label: t("labelMedianAnnualSalary"),
             className: "text-zinc-900 dark:text-white",
           },
           {
-            value: career.outlook === "Bright" ? "Bright ↗" : "Average",
-            label: "O*NET Outlook",
+            value: career.outlook === "Bright" ? t("outlookBright") : t("outlookAverage"),
+            label: t("labelOnetOutlook"),
             className: career.outlook === "Bright" ? "text-green-700 dark:text-green-400" : "text-zinc-600 dark:text-zinc-400",
           },
           {
             value: career.projectedOpenings != null ? career.projectedOpenings.toLocaleString() : "—",
-            label: "Proj. Annual Openings",
+            label: t("labelProjAnnualOpenings"),
             className: "text-zinc-900 dark:text-white",
           },
           ...(career.totalEmployment != null
             ? [
                 {
                   value: career.totalEmployment.toLocaleString(),
-                  label: "Employment (OEWS 2025)",
+                  label: t("labelEmploymentOews"),
                   className: "text-zinc-900 dark:text-white",
                 },
               ]
             : []),
           {
             value: `${resiliency}`,
-            label: "AI Resiliency Score",
+            label: t("labelAIResiliencyScore"),
             className: "text-cyan-700 dark:text-cyan-400",
             suffix: "/100",
           },
@@ -121,9 +123,9 @@ export default function CareerDetailPage() {
         ))}
       </div>
       <p className="text-xs text-zinc-500 italic -mt-4">
-        AI exposure from the Anthropic Economic Index (2025); salary from BLS; skills from O*NET.{" "}
+        {t("dataNote")}{" "}
         <Link href="/sources" className="underline underline-offset-2 hover:text-zinc-400">
-          See /sources
+          {t("seeSourcesLink")}
         </Link>
         .
       </p>
@@ -131,11 +133,11 @@ export default function CareerDetailPage() {
       {/* Risk analysis + skills */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">AI Exposure Analysis</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("sectionAIExposureAnalysis")}</h2>
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-1.5">
-                <span className="text-zinc-600 dark:text-zinc-400">AI Exposure</span>
+                <span className="text-zinc-600 dark:text-zinc-400">{t("labelAIExposure")}</span>
                 <span className="font-semibold" style={{ color: riskColor }}>
                   {(career.automationProbability * 100).toFixed(1)}%
                 </span>
@@ -152,7 +154,7 @@ export default function CareerDetailPage() {
             </div>
             <div>
               <div className="flex justify-between text-sm mb-1.5">
-                <span className="text-zinc-600 dark:text-zinc-400">AI Resiliency</span>
+                <span className="text-zinc-600 dark:text-zinc-400">{t("labelAIResiliency")}</span>
                 <span className="font-semibold text-cyan-400">{resiliency}/100</span>
               </div>
               <div className="h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -167,13 +169,13 @@ export default function CareerDetailPage() {
             </div>
             <div className="pt-2 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400">Exposure Band</span>
+                <span className="text-zinc-600 dark:text-zinc-400">{t("labelExposureBand")}</span>
                 <span style={{ color: riskColor }} className="font-semibold">
                   {career.automationRisk}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400">Sector Avg. Exposure</span>
+                <span className="text-zinc-600 dark:text-zinc-400">{t("labelSectorAvgExposure")}</span>
                 <span className="text-zinc-900 dark:text-white">
                   {sectorAgg ? `${(sectorAgg.avgRisk * 100).toFixed(1)}%` : "N/A"}
                 </span>
@@ -183,7 +185,7 @@ export default function CareerDetailPage() {
         </div>
 
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Top Skills</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("sectionTopSkills")}</h2>
           <div className="space-y-2.5">
             {career.skills.map((skill, idx) => (
               <div key={skill} className="flex items-center gap-3">
@@ -205,22 +207,22 @@ export default function CareerDetailPage() {
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 space-y-6">
           <div>
             <p className="text-xs text-zinc-500 uppercase tracking-widest mb-2">
-              O*NET occupation profile
+              {t("onetProfileLabel")}
             </p>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">What this work involves</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">{t("onetWhatThisWorkInvolves")}</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-4xl">
               {onet.description}
             </p>
             {onet.sampleTitles.length > 0 && (
               <p className="text-xs text-zinc-500 mt-3">
-                Common titles: {onet.sampleTitles.slice(0, 6).join(", ")}
+                {t("commonTitlesLabel")} {onet.sampleTitles.slice(0, 6).join(", ")}
               </p>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">Representative Tasks</h3>
+              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">{t("sectionRepresentativeTasks")}</h3>
               <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 {onet.tasks.slice(0, 5).map((task) => (
                   <li key={task.id} className="flex gap-2">
@@ -232,7 +234,7 @@ export default function CareerDetailPage() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">Detailed Work Activities</h3>
+              <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">{t("sectionDetailedWorkActivities")}</h3>
               <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 {onet.detailedWorkActivities.slice(0, 5).map((activity) => (
                   <li key={activity.id} className="flex gap-2">
@@ -247,7 +249,7 @@ export default function CareerDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {onet.technologySkills.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">Tools &amp; Technologies</h3>
+                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">{t("sectionToolsAndTechnologies")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {onet.technologySkills.slice(0, 10).map((tech) => (
                     <span
@@ -265,7 +267,7 @@ export default function CareerDetailPage() {
 
             {onet.relatedOccupations.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">Related Occupations</h3>
+                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-3">{t("sectionRelatedOccupations")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {onet.relatedOccupations.slice(0, 8).map((related) => {
                     const chip = (
@@ -292,7 +294,7 @@ export default function CareerDetailPage() {
       {/* Predictive chart */}
       <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
-          Employment Projections &amp; AI Exposure
+          {t("sectionEmploymentProjections")}
         </h2>
         <PredictiveChart selectedSector={career.sectorName} />
       </div>
@@ -300,24 +302,23 @@ export default function CareerDetailPage() {
       {/* Employment & wage trend */}
       <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-gradient mb-1">
-          Employment &amp; Wage Trend
+          {t("sectionEmploymentWageTrend")}
         </h2>
         <p className="text-xs text-zinc-500 uppercase tracking-widest mb-3">
-          BLS OEWS, 2019–2025
+          {t("blsOewsPeriod")}
         </p>
         <hr className="divider-glow mb-5" />
         {trend.length >= 2 ? (
           <OccupationTrendChart code={code} />
         ) : (
           <p className="text-sm text-zinc-500 italic">
-            Limited historical data available for this occupation.
+            {t("limitedHistoricalData")}
           </p>
         )}
         <p className="text-xs text-zinc-500 mt-4">
-          Source: U.S. Bureau of Labor Statistics Occupational Employment and Wage Statistics
-          (OEWS).{" "}
+          {t("sourceOews")}{" "}
           <Link href="/sources" className="underline underline-offset-2 hover:text-zinc-400">
-            See /sources
+            {t("seeSourcesLink")}
           </Link>
           .
         </p>
@@ -325,19 +326,19 @@ export default function CareerDetailPage() {
 
       {/* Sector comparison table */}
       <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Sector Comparison</h2>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("sectionSectorComparison")}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400">
-                <th className="text-left py-3 px-4">Metric</th>
-                <th className="text-right py-3 px-4">This Career</th>
-                <th className="text-right py-3 px-4">Sector Average</th>
+                <th className="text-left py-3 px-4">{t("colMetric")}</th>
+                <th className="text-right py-3 px-4">{t("colThisCareer")}</th>
+                <th className="text-right py-3 px-4">{t("colSectorAverage")}</th>
               </tr>
             </thead>
             <tbody>
               <tr className="border-b border-zinc-200/60 dark:border-zinc-800/50">
-                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">AI Exposure</td>
+                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{t("labelAIExposure")}</td>
                 <td className="py-3 px-4 text-right" style={{ color: riskColor }}>
                   {(career.automationProbability * 100).toFixed(1)}%
                 </td>
@@ -346,27 +347,27 @@ export default function CareerDetailPage() {
                 </td>
               </tr>
               <tr className="border-b border-zinc-200/60 dark:border-zinc-800/50">
-                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Outlook</td>
+                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{t("labelOutlook")}</td>
                 <td
                   className={`py-3 px-4 text-right font-medium ${
                     career.outlook === "Bright" ? "text-green-400" : "text-zinc-400"
                   }`}
                 >
-                  {career.outlook === "Bright" ? "Bright ↗" : "Average"}
+                  {career.outlook === "Bright" ? t("outlookBright") : t("outlookAverage")}
                 </td>
                 <td className="py-3 px-4 text-right text-zinc-900 dark:text-white">
                   {sectorAgg ? `${(sectorAgg.brightShare * 100).toFixed(0)}% Bright` : "N/A"}
                 </td>
               </tr>
               <tr className="border-b border-zinc-200/60 dark:border-zinc-800/50">
-                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">Median Salary</td>
+                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{t("labelMedianSalary")}</td>
                 <td className="py-3 px-4 text-right text-zinc-900 dark:text-white font-medium">
                   {formatCurrency(career.medianSalary)}
                 </td>
                 <td className="py-3 px-4 text-right text-zinc-500">N/A</td>
               </tr>
               <tr>
-                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">AI Resiliency</td>
+                <td className="py-3 px-4 text-zinc-600 dark:text-zinc-400">{t("labelAIResiliency")}</td>
                 <td className="py-3 px-4 text-right text-cyan-700 dark:text-cyan-400 font-bold">
                   {resiliency}/100
                 </td>
