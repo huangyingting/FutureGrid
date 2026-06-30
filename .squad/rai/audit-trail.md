@@ -1,0 +1,88 @@
+# RAI Audit Trail
+
+> Append-only evidence log. Entries are redacted — never contains raw secrets or harmful content.
+
+<!-- Rai appends findings below -->
+
+---
+
+## RAI Audit — 2026-06-30T01:49Z
+
+**Reviewer:** Rai  
+**Requested by:** huangyingting  
+**Scope:** UI/feature upgrade (hero copy, compare feature, charts)  
+**Overall Verdict:** 🟡 Yellow — advisory only, no blockers
+
+### F1 — 🟡 Inaccurate "Real-time intelligence" hero claim
+- **File:** `app/page.tsx:33`
+- **WHAT:** Hero reads *"Real-time intelligence across N occupations…"* but all automation scores, salaries, growth rates, and employment figures are static constants baked into `lib/automation/index.ts` and `lib/data.ts`. The BLS/O*NET API clients exist but are not invoked by any page at runtime.
+- **WHY:** Claiming data is "real-time" when it is pre-computed is a false factual assertion. Under the policy Deceptive Patterns clause, it constitutes an ungrounded claim presented as authoritative.
+- **HOW:** Replace with honest framing, e.g. *"Research-based estimates across…"* or *"Model-derived risk profiles for…"*. Add a data-freshness timestamp once live data is wired in.
+
+### F2 — 🟡 Synthetic employment figures labeled "Current Employment"
+- **Files:** `app/careers/[code]/page.tsx:83`, `lib/data.ts:89`
+- **WHAT:** The career detail stat card labeled **"Current Employment"** displays a value from `deterministicInt(s.socCode, 50000, 2_050_000)` — a hash-derived pseudo-random integer with no connection to real data.
+- **WHY:** Users engaging the new side-by-side compare feature may treat these as official BLS employment counts and make career decisions accordingly. Presenting fabricated statistics as "Current" is materially misleading.
+- **HOW:** Relabel to *"Illustrative"* or *"Estimated (placeholder)"*, or suppress until real BLS data is integrated. A tooltip/asterisk — *"Synthetic placeholder — see methodology"* — would also resolve this.
+
+### F3 — 🟡 Methodology attribution practically invisible; no limitations disclosed
+- **File:** `components/dashboard/Sidebar.tsx:144–147`
+- **WHAT:** The only citation is two lines in the sidebar footer (`Data: BLS & O*NET` / `Frey & Osborne (2013)`) in `text-xs text-zinc-600` — smallest size, very low contrast. No page discloses: (a) that probabilities derive from a 2013 academic model, (b) known model limitations (binary task decomposition, pre-LLM era, no skill-adaptation modeling), or (c) which fields are synthetic placeholders vs. real sourced data.
+- **WHY:** Users see probability bars on career detail pages and compare panels with no indication that these are decade-old model estimates, not current official forecasts. The Transparency principle requires that methodology and limitations be discoverable, not just technically present. Frey & Osborne (2013) outputs are widely critiqued; presenting them without caveat is a material framing risk in this domain.
+- **HOW:** Add a short disclaimer — dismissible banner, persistent footer note, or "ℹ About this data" link near the hero stats. Minimum suggested text: *"Automation risk estimates are based on Frey & Osborne (2013), a research model. These are probabilistic estimates, not official forecasts or guarantees of job displacement."*
+
+### F4 — 🟢 No hardcoded secrets or credentials
+- **Files checked:** `lib/bls/client.ts`, `lib/onet/client.ts`, `.env.example`, `app/**/*.tsx`
+- API keys read from `process.env` at runtime. `.env.example` contains only placeholder strings. No tokens, passwords, or private keys in source.
+
+### F5 — 🟢 No PII
+- All data is aggregate occupational statistics by SOC code. No individual-level records, names, emails, or identifiers present.
+
+### F6 — 🟢 No stigmatizing language or bias
+- Sector/occupation labels use standard BLS/SOC nomenclature. No "low-skill" or derogatory language found. Skill group descriptions are neutral.
+
+### Action items (non-blocking)
+
+| Priority | Finding | Suggested fix |
+|----------|---------|---------------|
+| High | F1 — false "real-time" claim | Reword hero subtitle |
+| High | F2 — synthetic data labeled "Current" | Relabel or suppress employment field |
+| Medium | F3 — no methodology/limitations disclosure | Add "About this data" note near hero stats |
+
+---
+
+## RAI Audit — 2026-06-30T03:18Z (Round 2 — Personal-Risk Framing)
+
+**Reviewer:** Rai  
+**Requested by:** huangyingting  
+**Scope:** Round 2 — `HeroRiskChecker`, `RiskGauge`, `HighlightsBento` (personal-risk framing pass)  
+**Overall Verdict:** 🟡 Yellow — advisory only, no blockers
+
+### R2-F1 — 🟡 Personal-verdict framing in HeroRiskChecker copy
+- **File:** `components/dashboard/HeroRiskChecker.tsx:110`
+- **WHAT:** The search input placeholder reads *"Check your job's AI risk — type an occupation…"* and the section header is *"AI Risk Checker"* (line 81). The result panel then displays a large animated gauge showing `{value}%` with the occupation name as the gauge label and a "Risk band" stat badge — but no inline text contextualises the number as an occupation-level probabilistic estimate rather than a verdict about the individual user.
+- **WHY:** "Your job's AI risk" is possessive/personal. A prominent animated gauge showing e.g. *72%* with a red ring, labelled with the user's occupation name and a "Risk band: Very High" badge, can plausibly be read as a personal prediction: *"your job will be automated"*. This contradicts the probabilistic nature of the Frey & Osborne outputs and risks causing unwarranted anxiety. The existing disclaimer in `app/page.tsx:83–89` is well-positioned (rendered immediately above the checker in the same hero section), which partially mitigates the risk, but the result panel itself carries zero qualifier copy.
+- **HOW:** Two lightweight changes would resolve this: (1) Replace placeholder text with *"Search an occupation to see its AI risk estimate…"* (occupation-scoped, not personal). (2) Add a single short line inside the result panel — e.g. a `<p className="text-xs text-zinc-500">` below the gauge reading *"Estimated automation exposure for this occupation — not a personal forecast."* No structural changes required.
+
+### R2-F2 — 🟢 "Most at Risk" ranking — no stigmatisation found
+- **File:** `components/dashboard/HighlightsBento.tsx:22–28`
+- **WHAT:** The "Most at Risk" panel lists top-5 occupations by automation probability with an `⚠️` icon, a red accent gradient heading, and the `metricLabel` *"automation risk"*. The aria-label is *"Most at Risk occupations"*.
+- **WHY:** The language is standard labour-economics terminology ("at risk" appears in BLS, OECD, and McKinsey reports with this meaning). Critically, the bento is balanced by three co-equal panels — *Fastest Growing*, *Most Resilient*, *Highest Paid* — so no occupation category is singled out negatively. No pejorative or moralising language about workers is present.
+- **HOW:** No change required. If further softening is desired, the `⚠️` icon could become `📊` to de-emphasise alarm, but this is cosmetic preference, not a RAI concern.
+
+### R2-F3 — 🟡 Disclaimer proximity to HighlightsBento
+- **Files:** `app/page.tsx:76–94` (disclaimer + checker), `app/page.tsx:153–160` (HighlightsBento)
+- **WHAT:** The Frey & Osborne disclaimer (`role="note"`) is placed in the hero section, directly above `HeroRiskChecker` — good proximity for the checker. `HighlightsBento` is rendered in the *"Standout Careers"* section, separated from the disclaimer by an `<hr>`, the four summary cards section, and another `<hr>` — roughly 3 visible page sections of scroll distance on desktop.
+- **WHY:** The "Most at Risk" panel surfaces automation percentages as ranked facts. Without a local qualifier, a user who scrolls directly to this section has no in-context signal that these figures are model estimates. This is a weaker version of the F3 finding from Round 1. The disclaimer is on the page and is the legally/methodologically correct location for it, so this is advisory only.
+- **HOW:** Add a short `<p className="text-[10px] text-zinc-600 …">` sub-caption under the *"Standout Careers"* section heading (or inline in the bento header row) — e.g. *"Figures are Frey & Osborne (2013) model estimates."* A single line is sufficient; no structural changes needed.
+
+### R2-F4 — 🟢 No credentials or PII in new files
+- **Files checked:** `components/dashboard/HeroRiskChecker.tsx`, `components/ui/RiskGauge.tsx`, `components/dashboard/HighlightsBento.tsx`
+- No API keys, tokens, secrets, emails, phone numbers, SSNs, or other PII found. Clean.
+
+### Action items (non-blocking)
+
+| Priority | Finding | Suggested fix |
+|----------|---------|---------------|
+| Medium | R2-F1 — "your job's AI risk" personal framing | Reword placeholder + add one-line occupation-scope qualifier in result panel |
+| Low | R2-F3 — disclaimer not proximate to HighlightsBento | Add one-line methodology sub-caption near "Standout Careers" heading |
