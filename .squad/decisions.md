@@ -476,3 +476,45 @@ Each of the 4 issues in batch 5 has associated commits including "Closes #N" tra
 
 ### Outcome
 ✅ **Batch 5 complete. FutureGrid production-ready. All 22 issues closed; 0 open. Multi-year real data sources + theme system + full i18n deployed. Build clean. No regressions.**
+
+---
+
+## Batch 6: Advanced Data Visualization — Shared-File Concurrency Constraint (2026-06-30)
+
+**Requested by:** huangyingting  
+**Status:** Approved (🟢 Complete + Lesson Recorded)  
+**Scope:** 4 new chart components (Beeswarm, Treemap, QuadrantScatter, SkillFlowSankey), /explore showcase, WorldChoropleth enhancements
+
+### Decision: Shared-File Integration Must Be Solo/Sequenced
+
+**Problem Encountered:**  
+5 parallel general-purpose agents (Neo, Switch, Tank, Rai, Scout) simultaneously modified 3 shared files:
+- `components/layout/Sidebar.tsx` (nav route integration for /explore)
+- `package.json` (d3-sankey + @types/d3-sankey dependencies)
+- `app/skills/page.tsx` (SkillFlowSankey component integration)
+
+Result: Last-sync-wins conflict. Only the final agent's edits persisted; 4 other edits were lost.
+
+**Root Cause:**  
+Concurrent general-purpose agents writing to the same files in isolation. No coordination mechanism. Git/file system resolved via "last write wins" — the 5th agent's state became canonical, overwriting the prior 4.
+
+**Solution Applied:**  
+Solo sequential recovery agent re-applied all 5 lost edits in strict sequence (no parallelism) to the shared files. Validated build integrity (exit 0, 103/103 tests pass).
+
+### Durable Decision Record
+
+**Rule: Shared-file integration edits must be performed by a SOLO or sequenced agent — concurrent general-purpose agents sharing the working tree clobber each other's edits to existing files (last-sync-wins). Only newly-created files survive.**
+
+**Implication for Future Batches:**  
+When delegating to concurrent agents, ensure:
+1. **Each agent creates only new files** (no modifications to existing Sidebar, package.json, main route files, etc.)
+2. **OR: Reserve shared-file edits for a solo or strictly sequenced integration agent** at the end of the batch
+3. **OR: Serialize agent execution explicitly** (run agents sequentially for this batch, not in parallel)
+
+**Context:**  
+This lesson applies to high-velocity, multi-agent batches. Single-agent or fully-isolated multi-agent work (each with disjoint file scopes) is unaffected.
+
+### Outcome
+
+✅ **Batch 6 complete. 5 chart components + /explore + enhancements shipped (commit cc49d58).** Build exit 0; 103/103 tests pass; eslint clean. No regressions.  
+✅ **Shared-file concurrency constraint documented and added to architecture guidelines.**
