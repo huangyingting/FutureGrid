@@ -39,6 +39,8 @@ npm run dev
 npm run build
 ```
 
+The production build is a static export written to the `out/` directory, ready for any static host.
+
 ## Tech Stack
 
 - **Frontend**: React / Next.js
