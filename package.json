@@ -14,7 +14,8 @@
     "build:onet": "node scripts/build-onet-enrichment.mjs",
     "build:geo": "node scripts/build-world-geo.mjs",
     "build:global-metrics": "node scripts/build-global-metrics.mjs",
-    "build:og": "node scripts/build-og-image.mjs"
+    "build:og": "node scripts/build-og-image.mjs",
+    "smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {
     "chart.js": "^4.5.1",
