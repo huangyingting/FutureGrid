@@ -18,4 +18,15 @@ export const exploreZh: Record<string, string> = {
   filterVeryHigh: "极高",
   occupationCount: "{total} 个职业中的 {n} 个",
   srSummary: "蜂群图展示 {n} 个职业的AI暴露度。暴露度最高的职业：{top}。",
+  raceTitle: "就业人数条形图赛跑（2019–2025）",
+  raceSubhead:
+    "按就业总人数排名的前15个职业，逐年动态演示。条形颜色表示AI暴露风险等级。",
+  racePlay: "播放",
+  racePause: "暂停",
+  raceReplay: "重播",
+  raceYear: "年份",
+  raceEmployment: "条形宽度 = 就业人数",
+  raceRank: "排名",
+  raceOccupation: "职业",
+  raceNoData: "暂无就业历史数据。",
 };

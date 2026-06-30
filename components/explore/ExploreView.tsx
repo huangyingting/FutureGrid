@@ -6,6 +6,7 @@ import type { CareerInsight } from "@/lib/data";
 import BeeswarmChart from "@/components/charts/BeeswarmChart";
 import TreemapChart from "@/components/charts/TreemapChart";
 import QuadrantScatterChart from "@/components/charts/QuadrantScatterChart";
+import BarChartRace from "@/components/charts/BarChartRace";
 import { useT } from "@/lib/i18n/useT";
 
 // ── Risk bands ────────────────────────────────────────────────────────────────
@@ -180,6 +181,24 @@ export default function ExploreView() {
         </div>
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
           <QuadrantScatterChart />
+        </div>
+      </section>
+
+      {/* ── Bar Chart Race section ──────────────────────────────────────────── */}
+      <section aria-labelledby="race-heading">
+        <div className="mb-4">
+          <h2
+            id="race-heading"
+            className="text-xl font-semibold text-zinc-900 dark:text-white"
+          >
+            {t("raceTitle")}
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            {t("raceSubhead")}
+          </p>
+        </div>
+        <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
+          <BarChartRace />
         </div>
       </section>
     </div>

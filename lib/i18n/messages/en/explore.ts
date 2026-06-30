@@ -21,4 +21,15 @@ export const exploreEn: Record<string, string> = {
   occupationCount: "{n} of {total} occupations",
   srSummary:
     "Beeswarm chart showing {n} occupations by AI exposure. Top exposed: {top}.",
+  raceTitle: "Employment Bar Chart Race (2019–2025)",
+  raceSubhead:
+    "Top 15 occupations by total employment, animated year-by-year. Bar color indicates AI exposure risk.",
+  racePlay: "Play",
+  racePause: "Pause",
+  raceReplay: "Replay",
+  raceYear: "Year",
+  raceEmployment: "bar width = employment",
+  raceRank: "Rank",
+  raceOccupation: "Occupation",
+  raceNoData: "No employment history data available.",
 };
