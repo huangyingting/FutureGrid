@@ -23,3 +23,5 @@
 
 
 **2026-06-30 (Batches 3 & 4 — Autonomous Improvement Loop):** Issues #12 (real heatmap 25×7 getCountryMapData), #13 (branded OG image @resvg/resvg-js + build:og), #18 (404 + error boundaries). All closed, validated (build 0, lint clean, tests 103/103). Loop concluded; diminishing returns reached.
+
+**2026-06-30 (Batch 5 — Theme + GAIRI + OccupationTrend):** #21 light-mode (next-themes, .dark CSS vars, charts re-render via useTheme, WCAG AA), #19 Oxford GAIRI 4th map toggle, #22 OccupationTrendChart (dual-axis wage/employment). Commits include "Closes #21" + "Closes #19" + "Closes #22". All 22 issues CLOSED.
