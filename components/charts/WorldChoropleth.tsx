@@ -3,7 +3,6 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import * as d3 from "d3";
 import type { GeoPermissibleObjects, ExtendedFeatureCollection } from "d3-geo";
-import worldGeo from "@/data/world-countries.geo.json";
 import { getCountryMapData } from "@/lib/data";
 import type { CountryMapDatum } from "@/lib/data";
 
@@ -16,6 +15,9 @@ const NO_DATA_FILL = "#27272a"; // zinc-800
 const PROXY_STROKE = "#f59e0b"; // amber-400
 const BASE_STROKE  = "#52525b"; // zinc-600
 const HOVER_STROKE = "#ffffff";
+
+// Inlined at build time from next.config.ts env block; empty string on localhost.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 // ── Brand ramp: dark-indigo → violet → cyan ────────────────────────────────────
 
@@ -42,6 +44,18 @@ interface CountryPath {
   d: string;
   fill: string;
   hasProxy: boolean;
+}
+
+interface GeoFeature {
+  id: string;
+  type: string;
+  properties: { name: string };
+  geometry: unknown;
+}
+
+interface GeoData {
+  type: "FeatureCollection";
+  features: GeoFeature[];
 }
 
 // ── Tooltip content (module-level to avoid unstable-nested-component lint) ────
@@ -117,6 +131,26 @@ function TooltipContent({ datum, metric }: { datum: CountryMapDatum; metric: Met
   );
 }
 
+// ── Loading skeleton ───────────────────────────────────────────────────────────
+
+function MapSkeleton() {
+  return (
+    <div className="w-full animate-pulse" aria-hidden="true">
+      {/* Map area — matches SVG aspect ratio 960×500 */}
+      <div
+        className="w-full rounded-xl glass opacity-30"
+        style={{ aspectRatio: "960 / 500" }}
+      />
+      {/* Legend row */}
+      <div className="mt-3 flex items-center gap-4 px-1">
+        <div className="h-2.5 w-36 rounded glass opacity-30" />
+        <div className="h-2.5 w-16 rounded glass opacity-30" />
+        <div className="h-2.5 w-24 rounded glass opacity-30" />
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function WorldChoropleth() {
@@ -130,6 +164,30 @@ export default function WorldChoropleth() {
   });
   const [entered,        setEntered]        = useState(false);
   const [containerWidth, setContainerWidth] = useState(W);
+  const [geoData,        setGeoData]        = useState<GeoData | null>(null);
+  const [geoError,       setGeoError]       = useState<string | null>(null);
+
+  // ── Fetch world geometry once on mount ────────────────────────────────────
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${BASE_PATH}/world-countries.geo.json`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<GeoData>;
+      })
+      .then((data) => { if (!cancelled) setGeoData(data); })
+      .catch((err) => { if (!cancelled) setGeoError(String(err)); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Entrance animation — fires once geometry is ready ─────────────────────
+
+  useEffect(() => {
+    if (!geoData) return;
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, [geoData]);
 
   // ── Data ──────────────────────────────────────────────────────────────────
 
@@ -176,22 +234,16 @@ export default function WorldChoropleth() {
   // ── Geo ───────────────────────────────────────────────────────────────────
 
   const pathGen = useMemo(() => {
+    if (!geoData) return null;
     const proj = d3
       .geoNaturalEarth1()
-      .fitSize([W, H], worldGeo as unknown as ExtendedFeatureCollection);
+      .fitSize([W, H], geoData as unknown as ExtendedFeatureCollection);
     return d3.geoPath().projection(proj);
-  }, []);
+  }, [geoData]);
 
   const countryPaths = useMemo<CountryPath[]>(() => {
-    const fc = worldGeo as {
-      features: Array<{
-        id: string;
-        type: string;
-        properties: { name: string };
-        geometry: unknown;
-      }>;
-    };
-    return fc.features.map((feature) => {
+    if (!geoData || !pathGen) return [];
+    return geoData.features.map((feature) => {
       const iso3  = feature.id;
       const datum = dataByIso3.get(iso3) ?? null;
       const dStr  = pathGen(feature as unknown as GeoPermissibleObjects) ?? "";
@@ -200,13 +252,11 @@ export default function WorldChoropleth() {
       let hasProxy: boolean;
 
       if (metric === "readiness") {
-        // China has real readiness data — color it, no proxy styling
         fill     = datum?.aiReadiness != null
           ? readinessColorScale(datum.aiReadiness)
           : NO_DATA_FILL;
         hasProxy = false;
       } else if (metric === "diffusion") {
-        // China has real diffusion data — color it, no proxy styling
         fill     = datum?.diffusionPct != null
           ? diffusionColorScale(datum.diffusionPct)
           : NO_DATA_FILL;
@@ -220,7 +270,7 @@ export default function WorldChoropleth() {
 
       return { iso3, datum, d: dStr, fill, hasProxy };
     });
-  }, [dataByIso3, metric, claudeColorScale, diffusionColorScale, readinessColorScale, pathGen]);
+  }, [geoData, pathGen, dataByIso3, metric, claudeColorScale, diffusionColorScale, readinessColorScale]);
 
   // SR top-15 list — metric-aware
   const srTop15 = useMemo(() => {
@@ -241,13 +291,6 @@ export default function WorldChoropleth() {
       .sort((a, b) => (b.usageIndex ?? 0) - (a.usageIndex ?? 0))
       .slice(0, 15);
   }, [dataByIso3, metric]);
-
-  // ── Entrance animation (rAF-deferred; CSS handles prefers-reduced-motion) ──
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
 
   // ── Track container width for tooltip clamping ───────────────────────────
 
@@ -343,138 +386,153 @@ export default function WorldChoropleth() {
         })}
       </div>
 
-      {/* Accessible list of top countries (screen readers only) */}
-      <ul
-        className="sr-only"
-        aria-label={
-          metric === "claude"
-            ? "Top 15 countries by AI usage index"
-            : metric === "diffusion"
-            ? "Top 15 countries by GenAI diffusion rate"
-            : "Top 15 countries by AI readiness score"
-        }
-      >
-        {srTop15.map(d => (
-          <li key={d.iso3}>
-            {metric === "diffusion"
-              ? `${d.name}: GenAI diffusion ${d.diffusionPct?.toFixed(1)}%`
-              : metric === "readiness"
-              ? `${d.name}: AI readiness ${d.aiReadiness?.toFixed(2)}`
-              : `${d.name}: usage index ${d.usageIndex?.toFixed(2)}${d.usagePct != null ? `, global share ${(d.usagePct * 100).toFixed(2)}%` : ""}`
-            }
-          </li>
-        ))}
-        {metric === "claude" && (
-          <li>
-            Note: China (CHN) is displayed with proxy data from CNNIC and QuestMobile because
-            Claude.ai is unavailable in mainland China. These figures represent general AI
-            adoption, not Claude.ai usage specifically.
-          </li>
-        )}
-      </ul>
-
-      {/* World map SVG */}
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${W} ${H}`}
-        className="choropleth-svg w-full h-auto"
-        role="img"
-        aria-label={svgAriaLabel}
-        style={{
-          opacity:   entered ? 1 : 0,
-          transform: entered ? "scale(1)" : "scale(0.97)",
-        }}
-      >
-        <g>
-          {countryPaths.map(({ iso3, d, fill, hasProxy }) => {
-            const isHovered = hovered === iso3;
-            const dimmed    = hovered !== null && !isHovered;
-
-            return (
-              <path
-                key={iso3}
-                d={d}
-                fill={fill}
-                stroke={isHovered ? HOVER_STROKE : hasProxy ? PROXY_STROKE : BASE_STROKE}
-                strokeWidth={isHovered ? 1.5 : hasProxy ? 1.2 : 0.4}
-                strokeDasharray={hasProxy && !isHovered ? "3 2" : undefined}
-                style={{
-                  opacity:    dimmed ? 0.5 : 1,
-                  filter:     isHovered ? "brightness(1.4)" : undefined,
-                  transition: "opacity 0.12s ease, filter 0.12s ease",
-                  cursor:     "pointer",
-                }}
-                onMouseEnter={e => handleMouseEnter(e, iso3)}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-              />
-            );
-          })}
-        </g>
-      </svg>
-
-      {/* HTML Tooltip */}
-      {tooltip.visible && tooltip.datum && (
-        <div
-          className="glass pointer-events-none absolute z-50 rounded-xl px-3 py-2.5 text-sm shadow-2xl border border-zinc-700/60"
-          style={{
-            left:     Math.min(tooltip.x, containerWidth - 260),
-            top:      Math.max(tooltip.y - 64, 4),
-            maxWidth: 256,
-          }}
-        >
-          <p className="font-semibold text-white leading-tight">{tooltip.datum.name}</p>
-          <TooltipContent datum={tooltip.datum} metric={metric} />
-        </div>
+      {/* Error state */}
+      {geoError && (
+        <p className="text-zinc-500 text-sm py-12 text-center">
+          Map unavailable — could not load world geometry.
+        </p>
       )}
 
-      {/* Legend */}
-      <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-2 px-1">
-        {/* Sequential gradient bar */}
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-zinc-500 uppercase tracking-wide">Low</span>
-            <div
-              className="w-28 h-2.5 rounded"
-              style={{
-                background: `linear-gradient(to right, ${brandRamp(0)}, ${brandRamp(0.33)}, ${brandRamp(0.67)}, ${brandRamp(1)})`,
-              }}
-            />
-            <span className="text-[10px] text-zinc-500 font-mono">
-              {metric === "claude" ? maxIndex.toFixed(1) : metric === "diffusion" ? `${maxDiffusion.toFixed(1)}%` : "0.80"}
-            </span>
-          </div>
-          <p className="text-[10px] text-zinc-600 mt-0.5">
-            {metric === "claude"
-              ? "AI usage index (per-capita)"
-              : metric === "diffusion"
-              ? "GenAI diffusion (% of working-age pop)"
-              : "AI readiness (IMF AIPI, 0–1)"}
-          </p>
-        </div>
+      {/* Loading skeleton */}
+      {!geoData && !geoError && <MapSkeleton />}
 
-        {/* No-data swatch */}
-        <div className="flex items-center gap-1.5 pt-px">
-          <div className="w-4 h-2.5 rounded" style={{ background: NO_DATA_FILL }} />
-          <span className="text-[10px] text-zinc-500">
-            {metric === "claude" ? "No Claude.ai data" : "No data"}
-          </span>
-        </div>
+      {/* Map content — rendered once geometry is loaded */}
+      {geoData && (
+        <>
+          {/* Accessible list of top countries (screen readers only) */}
+          <ul
+            className="sr-only"
+            aria-label={
+              metric === "claude"
+                ? "Top 15 countries by AI usage index"
+                : metric === "diffusion"
+                ? "Top 15 countries by GenAI diffusion rate"
+                : "Top 15 countries by AI readiness score"
+            }
+          >
+            {srTop15.map(d => (
+              <li key={d.iso3}>
+                {metric === "diffusion"
+                  ? `${d.name}: GenAI diffusion ${d.diffusionPct?.toFixed(1)}%`
+                  : metric === "readiness"
+                  ? `${d.name}: AI readiness ${d.aiReadiness?.toFixed(2)}`
+                  : `${d.name}: usage index ${d.usageIndex?.toFixed(2)}${d.usagePct != null ? `, global share ${(d.usagePct * 100).toFixed(2)}%` : ""}`
+                }
+              </li>
+            ))}
+            {metric === "claude" && (
+              <li>
+                Note: China (CHN) is displayed with proxy data from CNNIC and QuestMobile because
+                Claude.ai is unavailable in mainland China. These figures represent general AI
+                adoption, not Claude.ai usage specifically.
+              </li>
+            )}
+          </ul>
 
-        {/* Proxy / restricted swatch — Claude layer only */}
-        {metric === "claude" && (
-          <div className="flex items-center gap-1.5 pt-px">
+          {/* World map SVG */}
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${W} ${H}`}
+            className="choropleth-svg w-full h-auto"
+            role="img"
+            aria-label={svgAriaLabel}
+            style={{
+              opacity:   entered ? 1 : 0,
+              transform: entered ? "scale(1)" : "scale(0.97)",
+            }}
+          >
+            <g>
+              {countryPaths.map(({ iso3, d, fill, hasProxy }) => {
+                const isHovered = hovered === iso3;
+                const dimmed    = hovered !== null && !isHovered;
+
+                return (
+                  <path
+                    key={iso3}
+                    d={d}
+                    fill={fill}
+                    stroke={isHovered ? HOVER_STROKE : hasProxy ? PROXY_STROKE : BASE_STROKE}
+                    strokeWidth={isHovered ? 1.5 : hasProxy ? 1.2 : 0.4}
+                    strokeDasharray={hasProxy && !isHovered ? "3 2" : undefined}
+                    style={{
+                      opacity:    dimmed ? 0.5 : 1,
+                      filter:     isHovered ? "brightness(1.4)" : undefined,
+                      transition: "opacity 0.12s ease, filter 0.12s ease",
+                      cursor:     "pointer",
+                    }}
+                    onMouseEnter={e => handleMouseEnter(e, iso3)}
+                    onMouseMove={handleMouseMove}
+                    onMouseLeave={handleMouseLeave}
+                  />
+                );
+              })}
+            </g>
+          </svg>
+
+          {/* HTML Tooltip */}
+          {tooltip.visible && tooltip.datum && (
             <div
-              className="w-4 h-2.5 rounded border border-dashed"
+              className="glass pointer-events-none absolute z-50 rounded-xl px-3 py-2.5 text-sm shadow-2xl border border-zinc-700/60"
               style={{
-                background:  NO_DATA_FILL,
-                borderColor: PROXY_STROKE,
+                left:     Math.min(tooltip.x, containerWidth - 260),
+                top:      Math.max(tooltip.y - 64, 4),
+                maxWidth: 256,
               }}
-            />
-            <span className="text-[10px] text-zinc-500">Proxy / restricted data</span>
+            >
+              <p className="font-semibold text-white leading-tight">{tooltip.datum.name}</p>
+              <TooltipContent datum={tooltip.datum} metric={metric} />
+            </div>
+          )}
+
+          {/* Legend */}
+          <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-2 px-1">
+            {/* Sequential gradient bar */}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wide">Low</span>
+                <div
+                  className="w-28 h-2.5 rounded"
+                  style={{
+                    background: `linear-gradient(to right, ${brandRamp(0)}, ${brandRamp(0.33)}, ${brandRamp(0.67)}, ${brandRamp(1)})`,
+                  }}
+                />
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  {metric === "claude" ? maxIndex.toFixed(1) : metric === "diffusion" ? `${maxDiffusion.toFixed(1)}%` : "0.80"}
+                </span>
+              </div>
+              <p className="text-[10px] text-zinc-600 mt-0.5">
+                {metric === "claude"
+                  ? "AI usage index (per-capita)"
+                  : metric === "diffusion"
+                  ? "GenAI diffusion (% of working-age pop)"
+                  : "AI readiness (IMF AIPI, 0–1)"}
+              </p>
+            </div>
+
+            {/* No-data swatch */}
+            <div className="flex items-center gap-1.5 pt-px">
+              <div className="w-4 h-2.5 rounded" style={{ background: NO_DATA_FILL }} />
+              <span className="text-[10px] text-zinc-500">
+                {metric === "claude" ? "No Claude.ai data" : "No data"}
+              </span>
+            </div>
+
+            {/* Proxy / restricted swatch — Claude layer only */}
+            {metric === "claude" && (
+              <div className="flex items-center gap-1.5 pt-px">
+                <div
+                  className="w-4 h-2.5 rounded border border-dashed"
+                  style={{
+                    background:  NO_DATA_FILL,
+                    borderColor: PROXY_STROKE,
+                  }}
+                />
+                <span className="text-[10px] text-zinc-500">Proxy / restricted data</span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
