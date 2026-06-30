@@ -3,6 +3,7 @@
 import Reveal from "@/components/ui/Reveal";
 import { useT } from "@/lib/i18n/useT";
 import type { DataSource } from "@/lib/data";
+import DataExport from "@/components/sources/DataExport";
 
 function LicenseBadge({ license }: { license: string }) {
   const isOpen =
@@ -187,6 +188,13 @@ export default function SourcesView({
           </div>
         </Reveal>
       )}
+
+      <hr className="divider-glow" />
+
+      {/* ─── DATA EXPORT ─────────────────────────────────────────────────── */}
+      <Reveal delay={0}>
+        <DataExport />
+      </Reveal>
     </div>
   );
 }
