@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import CommandPalette from "@/components/ui/CommandPalette";
 import { getDataSources } from "@/lib/data";
+import { useT } from "@/lib/i18n/useT";
 
 const _dataAsOf: string | null = (() => {
   try {
@@ -98,6 +99,21 @@ function IconSources() {
   );
 }
 
+function IconExplore() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="6"  cy="6"  r="1.5" />
+      <circle cx="12" cy="4"  r="1.5" />
+      <circle cx="18" cy="8"  r="1.5" />
+      <circle cx="5"  cy="14" r="1.5" />
+      <circle cx="13" cy="12" r="1.5" />
+      <circle cx="19" cy="16" r="1.5" />
+      <circle cx="8"  cy="19" r="1.5" />
+      <circle cx="16" cy="20" r="1.5" />
+    </svg>
+  );
+}
+
 function IconMenu() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -175,13 +191,14 @@ function ThemeToggle() {
 
 // ─── Nav items ─────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { href: "/",        label: "Dashboard", Icon: IconDashboard },
-  { href: "/sectors", label: "Sectors",   Icon: IconSectors   },
-  { href: "/careers", label: "Careers",   Icon: IconCareers   },
-  { href: "/skills",  label: "Skills",    Icon: IconSkills    },
-  { href: "/heatmap", label: "Heatmap",   Icon: IconHeatmap   },
-  { href: "/global",  label: "Global",    Icon: IconGlobe     },
-  { href: "/sources", label: "Sources",   Icon: IconSources   },
+  { href: "/",        labelKey: "dashboard", Icon: IconDashboard },
+  { href: "/sectors", labelKey: "sectors",   Icon: IconSectors   },
+  { href: "/careers", labelKey: "careers",   Icon: IconCareers   },
+  { href: "/skills",  labelKey: "skills",    Icon: IconSkills    },
+  { href: "/explore", labelKey: "explore",   Icon: IconExplore   },
+  { href: "/heatmap", labelKey: "heatmap",   Icon: IconHeatmap   },
+  { href: "/global",  labelKey: "global",    Icon: IconGlobe     },
+  { href: "/sources", labelKey: "sources",   Icon: IconSources   },
 ];
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -225,12 +242,13 @@ function SearchButton({ onNavigate }: { onNavigate?: () => void }) {
 
 // ─── Nav list (shared between desktop sidebar & mobile drawer) ─────────────────
 function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  const t = useT("nav");
   return (
     <>
       <SearchButton onNavigate={onNavigate} />
       <nav className="flex-1 p-3" aria-label="Main navigation">
         <ul className="space-y-0.5">
-          {NAV_ITEMS.map(({ href, label, Icon }) => {
+          {NAV_ITEMS.map(({ href, labelKey, Icon }) => {
             const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <li key={href}>
@@ -254,7 +272,7 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
                     <Icon />
                   </span>
                   <span className={isActive ? "text-gradient font-semibold" : ""}>
-                    {label}
+                    {t(labelKey)}
                   </span>
                 </Link>
               </li>

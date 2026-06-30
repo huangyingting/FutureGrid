@@ -1,0 +1,21 @@
+export const exploreZh: Record<string, string> = {
+  pageHeading: "探索AI暴露度",
+  pageSubhead: "通过交互式蜂群图、树状图等，直观呈现 {n} 个职业的AI影响。",
+  sectionBeeswarm: "职业AI暴露度蜂群图",
+  sectionBeeswarmDesc:
+    "每个点代表一个职业。位置 = AI暴露度，大小 = 就业规模。悬停查看详情，点击深入探索。",
+  sectionTreemap: "行业树状图",
+  sectionTreemapDesc: "按行业划分的就业人数与AI暴露度。",
+  sectionQuadrant: "风险与薪资象限图",
+  sectionQuadrantDesc: "按AI暴露度和工资中位数对职业进行分类。",
+  filterSector: "行业",
+  filterAllSectors: "所有行业",
+  filterRisk: "风险等级",
+  filterAllRisks: "全部风险等级",
+  filterLow: "低",
+  filterMedium: "中",
+  filterHigh: "高",
+  filterVeryHigh: "极高",
+  occupationCount: "{total} 个职业中的 {n} 个",
+  srSummary: "蜂群图展示 {n} 个职业的AI暴露度。暴露度最高的职业：{top}。",
+};

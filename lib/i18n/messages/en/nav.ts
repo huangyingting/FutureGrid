@@ -3,6 +3,7 @@ export const navEn = {
   sectors: "Sectors",
   careers: "Careers",
   skills: "Skills",
+  explore: "Explore",
   heatmap: "Heatmap",
   global: "Global",
   sources: "Sources",
