@@ -41,6 +41,10 @@ npm run build
 
 The production build is a static export written to the `out/` directory, ready for any static host.
 
+### GitHub Pages
+
+Pushes to `main` publish the static export with the `Deploy GitHub Pages` workflow. In the repository settings, set Pages source to `GitHub Actions`.
+
 ### Data Snapshot
 
 ```bash
