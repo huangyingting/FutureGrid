@@ -700,6 +700,14 @@ async function main() {
         usedFor: "Supplemental developer AI-tool usage, AI sentiment, and respondent-country proxy metrics",
       },
       {
+        name: "World Bank Data360 — OECD Artificial Intelligence dataset",
+        publisher: "World Bank Data360 / OECD.AI",
+        year: 2025,
+        url: "https://data360.worldbank.org/en/dataset/OECD_AI",
+        license: "World Bank Data360 / OECD terms",
+        usedFor: "Supplemental country-level AI research activity proxy from AI publication totals",
+      },
+      {
         name: "O*NET 28.3 Skills Database",
         publisher: "U.S. Department of Labor / Employment and Training Administration",
         year: 2024,

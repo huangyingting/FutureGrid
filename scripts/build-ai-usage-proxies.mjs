@@ -5,7 +5,7 @@
  * Run: node scripts/build-ai-usage-proxies.mjs
  */
 
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import https from "https";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -18,6 +18,17 @@ nextEnv.loadEnvConfig(ROOT);
 const DATA_DIR = path.join(ROOT, "data");
 const OUTPUT_FILE = path.join(DATA_DIR, "ai-usage-proxies.json");
 const UA = "FutureGrid-data-bot/1.0 (https://github.com/huangyingting/FutureGrid)";
+
+function loadCountryNamesByIso3() {
+  const file = path.join(DATA_DIR, "country-exposure.json");
+  if (!existsSync(file)) return new Map();
+  try {
+    const countries = JSON.parse(readFileSync(file, "utf8"));
+    return new Map(countries.map((country) => [country.iso3, country.name]));
+  } catch {
+    return new Map();
+  }
+}
 
 function parseCSV(text) {
   const rows = [];
@@ -346,6 +357,61 @@ async function fetchGithubRepoProxy() {
   };
 }
 
+async function buildData360AiResearchActivityMetrics() {
+  const apiBase = "https://data360api.worldbank.org/data360/data?DATABASE_ID=OECD_AI";
+  const firstPage = await fetchJson(apiBase, "World Bank Data360 OECD_AI page 1");
+  const rows = [...(firstPage.value ?? [])];
+  const pageSize = firstPage.value?.length ?? 1000;
+  const total = firstPage.count ?? rows.length;
+
+  for (let skip = pageSize; skip < total; skip += pageSize) {
+    const page = await fetchJson(`${apiBase}&skip=${skip}`, `World Bank Data360 OECD_AI page ${Math.floor(skip / pageSize) + 1}`);
+    rows.push(...(page.value ?? []));
+  }
+
+  const countryNames = loadCountryNamesByIso3();
+  const latestByCountry = new Map();
+  for (const row of rows) {
+    if (row.INDICATOR !== "OECD_AI_PUBS_TOT" || !row.REF_AREA || !row.TIME_PERIOD) continue;
+    const existing = latestByCountry.get(row.REF_AREA);
+    if (!existing || Number(row.TIME_PERIOD) > Number(existing.TIME_PERIOD)) {
+      latestByCountry.set(row.REF_AREA, row);
+    }
+  }
+
+  const countries = Array.from(latestByCountry.values())
+    .map((row) => ({
+      geo: { code: row.REF_AREA, name: countryNames.get(row.REF_AREA) ?? row.REF_AREA },
+      period: row.TIME_PERIOD,
+      value: round(Number(row.OBS_VALUE), 3),
+      unit: row.UNIT_MEASURE,
+      status: row.OBS_STATUS,
+    }))
+    .filter((row) => Number.isFinite(row.value))
+    .sort((a, b) => b.value - a.value);
+
+  return [
+    {
+      id: "world-bank-data360-oecd-ai-publications-latest",
+      metric: "ai_publications_total_latest_available",
+      unit: "publications_count",
+      period: "latest_available_by_country",
+      population: "AI publications by reporting country from the OECD.AI dataset as exposed through World Bank Data360.",
+      source: {
+        name: "World Bank Data360 — OECD Artificial Intelligence dataset",
+        publisher: "World Bank Data360 / OECD.AI",
+        dataset: "OECD_AI",
+        indicator: "OECD_AI_PUBS_TOT",
+        url: "https://data360.worldbank.org/en/dataset/OECD_AI",
+        apiUrl: apiBase,
+      },
+      confidence: "high",
+      comparability: "Country-level AI research activity proxy; not usage/adoption by firms or individuals.",
+      countries,
+    },
+  ];
+}
+
 function buildStaticChinaSurveyMetrics() {
   const source = {
     name: "China's generative AI users double to 515 mln: report",
@@ -575,6 +641,13 @@ function buildSourceCatalog(censusCollected) {
       potentialMetrics: ["developer_ai_tool_usage", "developer_attitudes", "country_split"],
     },
     {
+      name: "World Bank Data360 / OECD.AI",
+      status: "collected",
+      reason: "Collected latest country-level AI publications totals from the OECD_AI dataset exposed by World Bank Data360.",
+      source: "https://data360.worldbank.org/en/dataset/OECD_AI",
+      potentialMetrics: ["ai_publications", "country_split", "time_series"],
+    },
+    {
       name: "CNNIC Statistical Reports",
       status: "source_identified",
       reason: "CNNIC report pages and PDFs are available; specific generative-AI figures were verified via a government-hosted Xinhua summary.",
@@ -601,6 +674,7 @@ async function main() {
   ]);
   const developerSurveyMetrics = await buildStackOverflowDeveloperSurveyMetrics();
   const developerEcosystemProxies = [await fetchGithubRepoProxy()];
+  const aiResearchActivityMetrics = await buildData360AiResearchActivityMetrics();
 
   const dataset = {
     generatedAt,
@@ -615,6 +689,7 @@ async function main() {
     developerSurveyMetrics,
     openModelDownloadProxies,
     developerEcosystemProxies,
+    aiResearchActivityMetrics,
     sourceCatalogForFutureCollection: buildSourceCatalog(usCensusBusinessAIMetrics.length > 0),
   };
 
@@ -625,6 +700,7 @@ async function main() {
   console.log(`  Census sections: ${dataset.usCensusBusinessAIMetrics.length}`);
   console.log(`  Developer survey sections: ${dataset.developerSurveyMetrics.length}`);
   console.log(`  Open model groups: ${dataset.openModelDownloadProxies.length}`);
+  console.log(`  AI research activity sections: ${dataset.aiResearchActivityMetrics.length}`);
 }
 
 main().catch((error) => {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T08:53:20.724Z",
+  "generatedAt": "2026-06-30T09:00:03.522Z",
   "scope": "Supplemental AI adoption and usage proxies outside Anthropic's Claude.ai country usage index.",
   "caveat": "These metrics use different denominators and collection methods. Do not merge them into the Anthropic usageIndex without explicit normalization and labeling.",
   "enterpriseAdoptionMetrics": [
@@ -2270,7 +2270,7 @@
   "openModelDownloadProxies": [
     {
       "provider": "Alibaba Qwen",
-      "capturedAt": "2026-06-30T08:53:37.149Z",
+      "capturedAt": "2026-06-30T09:00:22.745Z",
       "source": "https://huggingface.co/api/models?search=Qwen&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -2304,7 +2304,7 @@
     },
     {
       "provider": "DeepSeek",
-      "capturedAt": "2026-06-30T08:53:37.166Z",
+      "capturedAt": "2026-06-30T09:00:22.742Z",
       "source": "https://huggingface.co/api/models?search=DeepSeek&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -2338,7 +2338,7 @@
     },
     {
       "provider": "Moonshot Kimi",
-      "capturedAt": "2026-06-30T08:53:37.217Z",
+      "capturedAt": "2026-06-30T09:00:22.823Z",
       "source": "https://huggingface.co/api/models?search=Kimi&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -2372,7 +2372,7 @@
     },
     {
       "provider": "Zhipu ChatGLM",
-      "capturedAt": "2026-06-30T08:53:37.219Z",
+      "capturedAt": "2026-06-30T09:00:22.811Z",
       "source": "https://huggingface.co/api/models?search=ChatGLM&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -2406,7 +2406,7 @@
     },
     {
       "provider": "Baichuan",
-      "capturedAt": "2026-06-30T08:53:37.280Z",
+      "capturedAt": "2026-06-30T09:00:22.883Z",
       "source": "https://huggingface.co/api/models?search=Baichuan&sort=downloads&direction=-1&limit=5",
       "metric": "huggingface_model_downloads",
       "entries": [
@@ -2446,12 +2446,1963 @@
       "repository": "huggingface/transformers",
       "stars": 162045,
       "forks": 33668,
-      "openIssues": 2451,
+      "openIssues": 2452,
       "repositoryUpdatedAt": "2026-06-30T08:50:42Z",
-      "capturedAt": "2026-06-30T08:53:40.588Z",
+      "capturedAt": "2026-06-30T09:00:24.755Z",
       "source": "https://api.github.com/repos/huggingface/transformers",
       "confidence": "high",
       "comparability": "Developer ecosystem proxy; no country split and no end-user usage measurement."
+    }
+  ],
+  "aiResearchActivityMetrics": [
+    {
+      "id": "world-bank-data360-oecd-ai-publications-latest",
+      "metric": "ai_publications_total_latest_available",
+      "unit": "publications_count",
+      "period": "latest_available_by_country",
+      "population": "AI publications by reporting country from the OECD.AI dataset as exposed through World Bank Data360.",
+      "source": {
+        "name": "World Bank Data360 — OECD Artificial Intelligence dataset",
+        "publisher": "World Bank Data360 / OECD.AI",
+        "dataset": "OECD_AI",
+        "indicator": "OECD_AI_PUBS_TOT",
+        "url": "https://data360.worldbank.org/en/dataset/OECD_AI",
+        "apiUrl": "https://data360api.worldbank.org/data360/data?DATABASE_ID=OECD_AI"
+      },
+      "confidence": "high",
+      "comparability": "Country-level AI research activity proxy; not usage/adoption by firms or individuals.",
+      "countries": [
+        {
+          "geo": {
+            "code": "CHN",
+            "name": "China"
+          },
+          "period": "2025",
+          "value": 21388.2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "USA",
+            "name": "United States"
+          },
+          "period": "2025",
+          "value": 7668.71,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "IND",
+            "name": "India"
+          },
+          "period": "2025",
+          "value": 6404.57,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KOR",
+            "name": "South Korea"
+          },
+          "period": "2025",
+          "value": 1811.76,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DEU",
+            "name": "Germany"
+          },
+          "period": "2025",
+          "value": 1721.6,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "JPN",
+            "name": "Japan"
+          },
+          "period": "2025",
+          "value": 1712.63,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GBR",
+            "name": "United Kingdom"
+          },
+          "period": "2025",
+          "value": 1625,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ITA",
+            "name": "Italy"
+          },
+          "period": "2025",
+          "value": 1028.58,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CAN",
+            "name": "Canada"
+          },
+          "period": "2025",
+          "value": 986.537,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "FRA",
+            "name": "France"
+          },
+          "period": "2025",
+          "value": 957.613,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TUR",
+            "name": "Turkey"
+          },
+          "period": "2025",
+          "value": 851.538,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "AUS",
+            "name": "Australia"
+          },
+          "period": "2025",
+          "value": 758.772,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "HKG",
+            "name": "HKG"
+          },
+          "period": "2025",
+          "value": 747.402,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SAU",
+            "name": "Saudi Arabia"
+          },
+          "period": "2025",
+          "value": 678.67,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "IDN",
+            "name": "Indonesia"
+          },
+          "period": "2025",
+          "value": 633.349,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "RUS",
+            "name": "RUS"
+          },
+          "period": "2025",
+          "value": 616.145,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TWN",
+            "name": "Taiwan"
+          },
+          "period": "2025",
+          "value": 609.308,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ESP",
+            "name": "Spain"
+          },
+          "period": "2025",
+          "value": 606.252,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SGP",
+            "name": "Singapore"
+          },
+          "period": "2025",
+          "value": 504.848,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BGD",
+            "name": "Bangladesh"
+          },
+          "period": "2025",
+          "value": 495.219,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NLD",
+            "name": "The Netherlands"
+          },
+          "period": "2025",
+          "value": 484.203,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BRA",
+            "name": "Brazil"
+          },
+          "period": "2025",
+          "value": 418.698,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PAK",
+            "name": "Pakistan"
+          },
+          "period": "2025",
+          "value": 366.628,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CHE",
+            "name": "Switzerland"
+          },
+          "period": "2025",
+          "value": 365.626,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MYS",
+            "name": "Malaysia"
+          },
+          "period": "2025",
+          "value": 356.493,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "IRN",
+            "name": "IRN"
+          },
+          "period": "2025",
+          "value": 354.68,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GRC",
+            "name": "Greece"
+          },
+          "period": "2025",
+          "value": 309.711,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "POL",
+            "name": "Poland"
+          },
+          "period": "2025",
+          "value": 292.668,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "EGY",
+            "name": "Egypt"
+          },
+          "period": "2025",
+          "value": 285.79,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "THA",
+            "name": "Thailand"
+          },
+          "period": "2025",
+          "value": 247.009,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MAR",
+            "name": "Morocco"
+          },
+          "period": "2025",
+          "value": 240.566,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "AUT",
+            "name": "Austria"
+          },
+          "period": "2025",
+          "value": 236.025,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MEX",
+            "name": "Mexico"
+          },
+          "period": "2025",
+          "value": 233.891,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ARE",
+            "name": "United Arab Emirates"
+          },
+          "period": "2025",
+          "value": 228.906,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SWE",
+            "name": "Sweden"
+          },
+          "period": "2025",
+          "value": 228.54,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BEL",
+            "name": "Belgium"
+          },
+          "period": "2025",
+          "value": 226.835,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PRT",
+            "name": "Portugal"
+          },
+          "period": "2025",
+          "value": 219.644,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DNK",
+            "name": "Denmark"
+          },
+          "period": "2025",
+          "value": 219.274,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ROU",
+            "name": "Romania"
+          },
+          "period": "2025",
+          "value": 217.291,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ISR",
+            "name": "Israel"
+          },
+          "period": "2025",
+          "value": 184.774,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "FIN",
+            "name": "Finland"
+          },
+          "period": "2025",
+          "value": 181.112,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "IRQ",
+            "name": "Iraq"
+          },
+          "period": "2025",
+          "value": 174.584,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "JOR",
+            "name": "Jordan"
+          },
+          "period": "2025",
+          "value": 166.904,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MAC",
+            "name": "MAC"
+          },
+          "period": "2025",
+          "value": 160.577,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NOR",
+            "name": "Norway"
+          },
+          "period": "2025",
+          "value": 141.915,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KAZ",
+            "name": "Kazakhstan"
+          },
+          "period": "2025",
+          "value": 128.284,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DZA",
+            "name": "Algeria"
+          },
+          "period": "2025",
+          "value": 121.376,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ZAF",
+            "name": "South Africa"
+          },
+          "period": "2025",
+          "value": 120.687,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "IRL",
+            "name": "Ireland"
+          },
+          "period": "2025",
+          "value": 116.885,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "HUN",
+            "name": "Hungary"
+          },
+          "period": "2025",
+          "value": 115.292,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "UKR",
+            "name": "Ukraine"
+          },
+          "period": "2025",
+          "value": 114.98,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CZE",
+            "name": "Czechia"
+          },
+          "period": "2025",
+          "value": 113.878,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TUN",
+            "name": "Tunisia"
+          },
+          "period": "2025",
+          "value": 102.434,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NZL",
+            "name": "New Zealand"
+          },
+          "period": "2025",
+          "value": 99.793,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PHL",
+            "name": "Philippines"
+          },
+          "period": "2025",
+          "value": 98.807,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LKA",
+            "name": "Sri Lanka"
+          },
+          "period": "2025",
+          "value": 93.105,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NGA",
+            "name": "Nigeria"
+          },
+          "period": "2025",
+          "value": 76.787,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CHL",
+            "name": "Chile"
+          },
+          "period": "2025",
+          "value": 66.037,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SVK",
+            "name": "Slovakia"
+          },
+          "period": "2025",
+          "value": 66.032,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "HRV",
+            "name": "Croatia"
+          },
+          "period": "2025",
+          "value": 65.505,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "UZB",
+            "name": "Uzbekistan"
+          },
+          "period": "2025",
+          "value": 65.085,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SRB",
+            "name": "Serbia"
+          },
+          "period": "2025",
+          "value": 61.983,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ETH",
+            "name": "ETH"
+          },
+          "period": "2025",
+          "value": 57.143,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SVN",
+            "name": "Slovenia"
+          },
+          "period": "2025",
+          "value": 55.4,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BGR",
+            "name": "Bulgaria"
+          },
+          "period": "2025",
+          "value": 52.262,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "QAT",
+            "name": "Qatar"
+          },
+          "period": "2025",
+          "value": 51.759,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LBN",
+            "name": "Lebanon"
+          },
+          "period": "2025",
+          "value": 51.497,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "COL",
+            "name": "Colombia"
+          },
+          "period": "2025",
+          "value": 49.293,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "OMN",
+            "name": "Oman"
+          },
+          "period": "2025",
+          "value": 44.837,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PER",
+            "name": "Peru"
+          },
+          "period": "2025",
+          "value": 38.52,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CYP",
+            "name": "Cyprus"
+          },
+          "period": "2025",
+          "value": 37.042,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LUX",
+            "name": "Luxembourg"
+          },
+          "period": "2025",
+          "value": 36.507,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NPL",
+            "name": "Nepal"
+          },
+          "period": "2025",
+          "value": 32.777,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KWT",
+            "name": "Kuwait"
+          },
+          "period": "2025",
+          "value": 32.655,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LTU",
+            "name": "Lithuania"
+          },
+          "period": "2025",
+          "value": 28.765,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KEN",
+            "name": "Kenya"
+          },
+          "period": "2025",
+          "value": 27.743,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BLR",
+            "name": "BLR"
+          },
+          "period": "2025",
+          "value": 25.195,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MMR",
+            "name": "MMR"
+          },
+          "period": "2025",
+          "value": 23.442,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PSE",
+            "name": "Palestinian Territory"
+          },
+          "period": "2025",
+          "value": 23.203,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "EST",
+            "name": "Estonia"
+          },
+          "period": "2025",
+          "value": 22.619,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LVA",
+            "name": "Latvia"
+          },
+          "period": "2025",
+          "value": 20.88,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ARG",
+            "name": "Argentina"
+          },
+          "period": "2025",
+          "value": 19.556,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GHA",
+            "name": "Ghana"
+          },
+          "period": "2025",
+          "value": 18.008,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MNG",
+            "name": "Mongolia"
+          },
+          "period": "2025",
+          "value": 17.552,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "UGA",
+            "name": "Uganda"
+          },
+          "period": "2025",
+          "value": 16.872,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "AZE",
+            "name": "Azerbaijan"
+          },
+          "period": "2025",
+          "value": 15.591,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ECU",
+            "name": "Ecuador"
+          },
+          "period": "2025",
+          "value": 15.315,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BHR",
+            "name": "Bahrain"
+          },
+          "period": "2025",
+          "value": 15.2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TZA",
+            "name": "Tanzania"
+          },
+          "period": "2025",
+          "value": 14.926,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SYR",
+            "name": "SYR"
+          },
+          "period": "2025",
+          "value": 14.669,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MKD",
+            "name": "North Macedonia"
+          },
+          "period": "2025",
+          "value": 13.658,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ARM",
+            "name": "Armenia"
+          },
+          "period": "2025",
+          "value": 13.103,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BIH",
+            "name": "Bosnia and Herzegovina"
+          },
+          "period": "2025",
+          "value": 12.749,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MLT",
+            "name": "Malta"
+          },
+          "period": "2024",
+          "value": 11.684,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "RWA",
+            "name": "Rwanda"
+          },
+          "period": "2025",
+          "value": 10.25,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SDN",
+            "name": "SDN"
+          },
+          "period": "2025",
+          "value": 9.983,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BDI",
+            "name": "Burundi"
+          },
+          "period": "2025",
+          "value": 8.523,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MUS",
+            "name": "Mauritius"
+          },
+          "period": "2025",
+          "value": 8.245,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ALB",
+            "name": "Albania"
+          },
+          "period": "2025",
+          "value": 8.07,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BOL",
+            "name": "Bolivia"
+          },
+          "period": "2024",
+          "value": 8,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CUB",
+            "name": "CUB"
+          },
+          "period": "2025",
+          "value": 7.821,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "URY",
+            "name": "Uruguay"
+          },
+          "period": "2025",
+          "value": 7.615,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LBY",
+            "name": "LBY"
+          },
+          "period": "2025",
+          "value": 7.576,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TJK",
+            "name": "Tajikistan"
+          },
+          "period": "2025",
+          "value": 7.131,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CMR",
+            "name": "Cameroon"
+          },
+          "period": "2025",
+          "value": 6.908,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LIE",
+            "name": "Liechtenstein"
+          },
+          "period": "2024",
+          "value": 6.867,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "XKX",
+            "name": "Kosovo"
+          },
+          "period": "2025",
+          "value": 5.794,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BEN",
+            "name": "Benin"
+          },
+          "period": "2025",
+          "value": 5.348,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ISL",
+            "name": "Iceland"
+          },
+          "period": "2025",
+          "value": 4.576,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KGZ",
+            "name": "Kyrgyzstan"
+          },
+          "period": "2025",
+          "value": 4.457,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KHM",
+            "name": "Cambodia"
+          },
+          "period": "2025",
+          "value": 4.202,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MDA",
+            "name": "Moldova"
+          },
+          "period": "2024",
+          "value": 4.167,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PRI",
+            "name": "Puerto Rico"
+          },
+          "period": "2025",
+          "value": 4.011,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "FSM",
+            "name": "Micronesia"
+          },
+          "period": "2019",
+          "value": 4,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "WSM",
+            "name": "Samoa"
+          },
+          "period": "2022",
+          "value": 4,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GEO",
+            "name": "Georgia"
+          },
+          "period": "2025",
+          "value": 3.693,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TCD",
+            "name": "Chad"
+          },
+          "period": "2024",
+          "value": 3.333,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CYM",
+            "name": "Cayman Islands"
+          },
+          "period": "2025",
+          "value": 3.219,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BRN",
+            "name": "Brunei"
+          },
+          "period": "2025",
+          "value": 3.209,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NAM",
+            "name": "Namibia"
+          },
+          "period": "2024",
+          "value": 3.143,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ERI",
+            "name": "ERI"
+          },
+          "period": "2024",
+          "value": 3,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "JAM",
+            "name": "Jamaica"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MDG",
+            "name": "Madagascar"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CIV",
+            "name": "Ivory Coast"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TTO",
+            "name": "Trinidad and Tobago"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LBR",
+            "name": "Liberia"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SOM",
+            "name": "SOM"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LAO",
+            "name": "Laos"
+          },
+          "period": "2025",
+          "value": 2.674,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MNE",
+            "name": "Montenegro"
+          },
+          "period": "2025",
+          "value": 2.387,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "AFG",
+            "name": "AFG"
+          },
+          "period": "2025",
+          "value": 2.303,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MOZ",
+            "name": "Mozambique"
+          },
+          "period": "2025",
+          "value": 2.228,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BFA",
+            "name": "Burkina Faso"
+          },
+          "period": "2025",
+          "value": 2.228,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PRY",
+            "name": "Paraguay"
+          },
+          "period": "2025",
+          "value": 2.117,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "VGB",
+            "name": "British Virgin Islands"
+          },
+          "period": "2023",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NER",
+            "name": "Niger"
+          },
+          "period": "2023",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "LSO",
+            "name": "Lesotho"
+          },
+          "period": "2020",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "AGO",
+            "name": "Angola"
+          },
+          "period": "2023",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TLS",
+            "name": "Timor Leste"
+          },
+          "period": "2023",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DMA",
+            "name": "Dominica"
+          },
+          "period": "2024",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TKM",
+            "name": "Turkmenistan"
+          },
+          "period": "2024",
+          "value": 2,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MLI",
+            "name": "MLI"
+          },
+          "period": "2023",
+          "value": 1.917,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "HND",
+            "name": "Honduras"
+          },
+          "period": "2025",
+          "value": 1.835,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MDV",
+            "name": "Maldives"
+          },
+          "period": "2025",
+          "value": 1.783,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "FJI",
+            "name": "Fiji"
+          },
+          "period": "2024",
+          "value": 1.667,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SSD",
+            "name": "SSD"
+          },
+          "period": "2025",
+          "value": 1.448,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SEN",
+            "name": "Senegal"
+          },
+          "period": "2025",
+          "value": 1.426,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CRI",
+            "name": "Costa Rica"
+          },
+          "period": "2025",
+          "value": 1.389,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DJI",
+            "name": "Djibouti"
+          },
+          "period": "2024",
+          "value": 1.333,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GUF",
+            "name": "GUF"
+          },
+          "period": "2022",
+          "value": 1.333,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PNG",
+            "name": "Papua New Guinea"
+          },
+          "period": "2025",
+          "value": 1.114,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BRB",
+            "name": "Barbados"
+          },
+          "period": "2024",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GAB",
+            "name": "Gabon"
+          },
+          "period": "2023",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PLW",
+            "name": "Palau"
+          },
+          "period": "2024",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MSR",
+            "name": "MSR"
+          },
+          "period": "2015",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BLZ",
+            "name": "Belize"
+          },
+          "period": "2013",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KIR",
+            "name": "Kiribati"
+          },
+          "period": "2015",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "CUW",
+            "name": "Curacao"
+          },
+          "period": "2024",
+          "value": 1,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SLV",
+            "name": "El Salvador"
+          },
+          "period": "2025",
+          "value": 0.944,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PRK",
+            "name": "PRK"
+          },
+          "period": "2025",
+          "value": 0.891,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GIN",
+            "name": "Guinea"
+          },
+          "period": "2025",
+          "value": 0.891,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BMU",
+            "name": "Bermuda"
+          },
+          "period": "2020",
+          "value": 0.857,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MRT",
+            "name": "Mauritania"
+          },
+          "period": "2024",
+          "value": 0.8,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SWZ",
+            "name": "Eswatini"
+          },
+          "period": "2024",
+          "value": 0.733,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MAF",
+            "name": "Saint Martin"
+          },
+          "period": "2024",
+          "value": 0.714,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PAN",
+            "name": "Panama"
+          },
+          "period": "2025",
+          "value": 0.668,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GTM",
+            "name": "Guatemala"
+          },
+          "period": "2025",
+          "value": 0.668,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SLE",
+            "name": "Sierra Leone"
+          },
+          "period": "2024",
+          "value": 0.667,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GUM",
+            "name": "Guam"
+          },
+          "period": "2022",
+          "value": 0.667,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "HTI",
+            "name": "Haiti"
+          },
+          "period": "2018",
+          "value": 0.667,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NIU",
+            "name": "NIU"
+          },
+          "period": "2024",
+          "value": 0.667,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BTN",
+            "name": "Bhutan"
+          },
+          "period": "2024",
+          "value": 0.5,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "KNA",
+            "name": "Saint Kitts and Nevis"
+          },
+          "period": "2013",
+          "value": 0.5,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MCO",
+            "name": "Monaco"
+          },
+          "period": "2020",
+          "value": 0.5,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BHS",
+            "name": "Bahamas"
+          },
+          "period": "2023",
+          "value": 0.458,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "BWA",
+            "name": "Botswana"
+          },
+          "period": "2025",
+          "value": 0.446,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NIC",
+            "name": "NIC"
+          },
+          "period": "2025",
+          "value": 0.446,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "FRO",
+            "name": "Faroe Islands"
+          },
+          "period": "2024",
+          "value": 0.4,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GUY",
+            "name": "Guyana"
+          },
+          "period": "2024",
+          "value": 0.4,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "COD",
+            "name": "COD"
+          },
+          "period": "2025",
+          "value": 0.357,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GLP",
+            "name": "GLP"
+          },
+          "period": "2024",
+          "value": 0.333,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "PYF",
+            "name": "French Polynesia"
+          },
+          "period": "2024",
+          "value": 0.333,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MWI",
+            "name": "Malawi"
+          },
+          "period": "2025",
+          "value": 0.328,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "TGO",
+            "name": "Togo"
+          },
+          "period": "2025",
+          "value": 0.267,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GRD",
+            "name": "Grenada"
+          },
+          "period": "2024",
+          "value": 0.25,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "ATG",
+            "name": "Antigua and Barbuda"
+          },
+          "period": "2011",
+          "value": 0.25,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "MTQ",
+            "name": "MTQ"
+          },
+          "period": "2020",
+          "value": 0.167,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "REU",
+            "name": "REU"
+          },
+          "period": "2023",
+          "value": 0.125,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "COG",
+            "name": "Republic of the Congo"
+          },
+          "period": "2024",
+          "value": 0.111,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "NCL",
+            "name": "New Caledonia"
+          },
+          "period": "2025",
+          "value": 0.107,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "DOM",
+            "name": "Dominican Republic"
+          },
+          "period": "2025",
+          "value": 0.105,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "SMR",
+            "name": "San Marino"
+          },
+          "period": "2023",
+          "value": 0.083,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GMB",
+            "name": "Gambia"
+          },
+          "period": "2025",
+          "value": 0,
+          "unit": "NUMBER",
+          "status": "A"
+        },
+        {
+          "geo": {
+            "code": "GRL",
+            "name": "Greenland"
+          },
+          "period": "2004",
+          "value": 0,
+          "unit": "NUMBER",
+          "status": "A"
+        }
+      ]
     }
   ],
   "sourceCatalogForFutureCollection": [
@@ -2513,6 +4464,17 @@
         "developer_ai_tool_usage",
         "developer_attitudes",
         "country_split"
+      ]
+    },
+    {
+      "name": "World Bank Data360 / OECD.AI",
+      "status": "collected",
+      "reason": "Collected latest country-level AI publications totals from the OECD_AI dataset exposed by World Bank Data360.",
+      "source": "https://data360.worldbank.org/en/dataset/OECD_AI",
+      "potentialMetrics": [
+        "ai_publications",
+        "country_split",
+        "time_series"
       ]
     },
     {

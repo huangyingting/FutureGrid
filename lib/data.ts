@@ -323,6 +323,7 @@ export interface AIUsageProxyDataset {
   developerSurveyMetrics: Record<string, unknown>[];
   openModelDownloadProxies: Record<string, unknown>[];
   developerEcosystemProxies: Record<string, unknown>[];
+  aiResearchActivityMetrics: Record<string, unknown>[];
   sourceCatalogForFutureCollection: Record<string, unknown>[];
 }
 
