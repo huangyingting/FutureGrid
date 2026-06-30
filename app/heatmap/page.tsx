@@ -1,13 +1,13 @@
 import HeatmapChart from "@/components/charts/HeatmapChart";
 import { getSectorAggregatesExtended } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 
 const RISK_LEGEND = [
-  { label: "Low Risk",       color: "#22c55e", range: "< 30%"  },
-  { label: "Medium Risk",    color: "#eab308", range: "30–60%" },
-  { label: "High Risk",      color: "#f97316", range: "60–85%" },
-  { label: "Very High Risk", color: "#ef4444", range: "> 85%"  },
+  { label: "Low AI Exposure",       color: "#22c55e", range: "< 30%"  },
+  { label: "Medium AI Exposure",    color: "#eab308", range: "30–60%" },
+  { label: "High AI Exposure",      color: "#f97316", range: "60–85%" },
+  { label: "Very High AI Exposure", color: "#ef4444", range: "> 85%"  },
 ] as const;
 
 function riskLabel(r: number): "Low" | "Medium" | "High" | "Very High" {
@@ -28,14 +28,14 @@ export default function HeatmapPage() {
           AI Disruption Heatmap
         </h1>
         <p className="text-zinc-400 mt-1">
-          Visualize automation risk across sectors and geographic regions.
+          Visualize AI exposure across sectors and geographic regions.
         </p>
       </div>
 
       {/* Legend */}
       <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl px-5 py-4">
         <h2 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-          Risk Legend
+          AI Exposure Legend
         </h2>
         <div className="flex flex-wrap gap-4">
           {RISK_LEGEND.map(({ label, color, range }) => (
@@ -102,19 +102,15 @@ export default function HeatmapPage() {
                   {/* Stats */}
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Growth</span>
-                      <span
-                        className={
-                          s.avgGrowth >= 0 ? "text-green-400 font-medium" : "text-red-400 font-medium"
-                        }
-                      >
-                        {formatPercent(s.avgGrowth)}
+                      <span className="text-zinc-500">Bright Outlook</span>
+                      <span className="text-green-400 font-medium">
+                        {(s.brightShare * 100).toFixed(0)}%
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Avg Salary</span>
                       <span className="text-white font-medium">
-                        {formatCurrency(s.avgSalary)}
+                        {s.avgSalary != null ? formatCurrency(s.avgSalary) : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -127,7 +123,7 @@ export default function HeatmapPage() {
                 {/* Hover tooltip overlay */}
                 <div className="absolute inset-x-0 bottom-0 h-0 group-hover:h-auto overflow-hidden transition-all duration-200">
                   <div className="bg-zinc-900/95 border-t border-zinc-700/50 px-4 py-2 text-xs text-zinc-400 invisible group-hover:visible">
-                    Employment: {s.totalEmployment.toLocaleString()} &middot; Risk: {rl}
+                    Employment: {s.totalEmployment != null ? s.totalEmployment.toLocaleString() : "—"} &middot; Exposure: {rl}
                   </div>
                 </div>
               </Link>

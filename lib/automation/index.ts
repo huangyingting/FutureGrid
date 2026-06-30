@@ -25,11 +25,16 @@ const AUTOMATION_SCORES: Map<string, AutomationScore> = new Map(
   ])
 );
 
+// Percentile-calibrated thresholds matching the build pipeline (computed from 756-occ AEI distribution):
+// Very High = top ~8%  (aiExposure > 0.3104 / p92)
+// High      = next ~12% (aiExposure > 0.1378 / p80)
+// Medium    = next ~25% (aiExposure > 0.0080 / p55)
+// Low       = remainder (≤ p55, includes ~0-exposure occupations)
 export function classifyRisk(probability: number): AutomationScore["riskLevel"] {
-  if (probability < 0.3) return "Low";
-  if (probability < 0.6) return "Medium";
-  if (probability < 0.85) return "High";
-  return "Very High";
+  if (probability > 0.3104) return "Very High";
+  if (probability > 0.1378) return "High";
+  if (probability > 0.0080) return "Medium";
+  return "Low";
 }
 
 export function getAutomationScore(socCode: string): AutomationScore | undefined {

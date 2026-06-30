@@ -90,7 +90,7 @@ export default function RiskGauge({
   const labelFontSize = Math.max(10, size * 0.10);
   const sublabelFontSize = Math.max(9, size * 0.085);
 
-  const ariaLabel = `${label ?? "Automation risk"}: ${value}% — ${bandLabel(value)} risk${
+  const ariaLabel = `${label ?? "AI exposure"}: ${value}% — ${bandLabel(value)} exposure${
     sublabel ? `, ${sublabel}` : ""
   }`;
 

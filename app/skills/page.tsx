@@ -24,7 +24,7 @@ const GROUP_DESCRIPTIONS: Record<string, string> = {
   Management:     "Leadership, strategy, and people-management capabilities.",
 };
 
-type SkillSortKey = "risk-desc" | "risk-asc" | "salary" | "growth";
+type SkillSortKey = "risk-desc" | "risk-asc" | "salary" | "openings";
 
 export default function SkillsPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("Technical");
@@ -41,7 +41,7 @@ export default function SkillsPage() {
         case "risk-desc": return b.automationProbability - a.automationProbability;
         case "risk-asc":  return a.automationProbability - b.automationProbability;
         case "salary":    return b.medianSalary - a.medianSalary;
-        case "growth":    return b.growthRate - a.growthRate;
+        case "openings":  return (b.projectedOpenings ?? -Infinity) - (a.projectedOpenings ?? -Infinity);
       }
     });
   }, [selectedGroup, sortKey, allInsights]);
@@ -54,7 +54,7 @@ export default function SkillsPage() {
           Skill Transition Pathways
         </h1>
         <p className="text-zinc-400 mt-1">
-          Identify skill-based pathways from high-risk to low-risk occupations.
+          Identify skill-based pathways from high-exposure to low-exposure occupations.
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export default function SkillsPage() {
               { key: "risk-asc",  label: "Safest First"  },
               { key: "risk-desc", label: "Most at Risk"  },
               { key: "salary",    label: "Highest Pay"   },
-              { key: "growth",    label: "Fastest Growth"},
+              { key: "openings",  label: "Most Openings" },
             ] as { key: SkillSortKey; label: string }[]
           ).map(({ key, label }) => (
             <button

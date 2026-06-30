@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { generateAllCareerInsights } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import JobImpactChart from "@/components/charts/JobImpactChart";
 import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
@@ -30,9 +30,9 @@ export default function SectorDetailPage() {
   }
 
   const avgRisk = sectorInsights.reduce((s, i) => s + i.automationProbability, 0) / sectorInsights.length;
-  const avgGrowth = sectorInsights.reduce((s, i) => s + i.growthRate, 0) / sectorInsights.length;
+  const brightCount = sectorInsights.filter((i) => i.outlook === "Bright").length;
+  const brightShare = sectorInsights.length > 0 ? brightCount / sectorInsights.length : 0;
   const avgSalary = sectorInsights.reduce((s, i) => s + i.medianSalary, 0) / sectorInsights.length;
-  const totalEmp = sectorInsights.reduce((s, i) => s + i.totalEmployment, 0);
 
   const riskLabel =
     avgRisk < 0.3 ? "Low" : avgRisk < 0.6 ? "Medium" : avgRisk < 0.85 ? "High" : "Very High";
@@ -62,17 +62,13 @@ export default function SectorDetailPage() {
           <div className="text-2xl font-bold" style={{ color: riskColor }}>
             {(avgRisk * 100).toFixed(1)}%
           </div>
-          <div className="text-xs text-zinc-400 mt-1">Avg Automation Risk</div>
+          <div className="text-xs text-zinc-400 mt-1">Avg AI Exposure</div>
         </div>
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
-          <div
-            className={`text-2xl font-bold ${
-              avgGrowth >= 0 ? "text-green-400" : "text-red-400"
-            }`}
-          >
-            {formatPercent(avgGrowth)}
+          <div className="text-2xl font-bold text-green-400">
+            {(brightShare * 100).toFixed(0)}%
           </div>
-          <div className="text-xs text-zinc-400 mt-1">Avg Growth Rate</div>
+          <div className="text-xs text-zinc-400 mt-1">Bright Outlook</div>
         </div>
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-cyan-400">
@@ -81,20 +77,24 @@ export default function SectorDetailPage() {
           <div className="text-xs text-zinc-400 mt-1">Avg Median Salary</div>
         </div>
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
-          <div className="text-2xl font-bold text-white">{totalEmp.toLocaleString()}</div>
-          <div className="text-xs text-zinc-400 mt-1">Est. Total Employment</div>
+          <div className="text-2xl font-bold text-white">{sectorInsights.length}</div>
+          <div className="text-xs text-zinc-400 mt-1">Occupations Analyzed</div>
         </div>
       </div>
       <p className="text-xs text-zinc-500 italic -mt-4">
-        Employment figures are illustrative estimates; automation-risk reflects the Frey &amp; Osborne (2013) model.
+        AI exposure from the Anthropic Economic Index (2025); salary from BLS; skills from O*NET.{" "}
+        <Link href="/sources" className="underline underline-offset-2 hover:text-zinc-400">
+          See /sources
+        </Link>
+        .
       </p>
 
       {/* Risk overview bar */}
       <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-5">
         <div className="flex items-center justify-between mb-2 text-sm">
-          <span className="text-zinc-400">Sector Average AI Risk</span>
+          <span className="text-zinc-400">Sector Avg AI Exposure</span>
           <span className="font-bold" style={{ color: riskColor }}>
-            {(avgRisk * 100).toFixed(1)}% &mdash; {riskLabel}
+            {(avgRisk * 100).toFixed(1)}% AI Exposure &mdash; {riskLabel}
           </span>
         </div>
         <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
@@ -127,8 +127,8 @@ export default function SectorDetailPage() {
             <thead>
               <tr className="border-b border-zinc-800 text-zinc-400">
                 <th className="text-left py-3 px-4">Occupation</th>
-                <th className="text-right py-3 px-4">AI Risk</th>
-                <th className="text-right py-3 px-4">Growth</th>
+              <th className="text-right py-3 px-4">AI Exposure</th>
+              <th className="text-right py-3 px-4">Outlook</th>
                 <th className="text-right py-3 px-4">Median Salary</th>
                 <th className="text-left py-3 px-4">Top Skills</th>
               </tr>
@@ -159,11 +159,17 @@ export default function SectorDetailPage() {
                     </span>
                   </td>
                   <td
-                    className={`py-3 px-4 text-right font-medium ${
-                      i.growthRate >= 0 ? "text-green-400" : "text-red-400"
-                    }`}
+                    className="py-3 px-4 text-right"
                   >
-                    {formatPercent(i.growthRate)}
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
+                        i.outlook === "Bright"
+                          ? "bg-green-500/10 text-green-400 border-green-500/20"
+                          : "bg-zinc-700/30 text-zinc-400 border-zinc-700/30"
+                      }`}
+                    >
+                      {i.outlook === "Bright" ? "Bright ↗" : "Average"}
+                    </span>
                   </td>
                   <td className="py-3 px-4 text-right text-white">
                     {formatCurrency(i.medianSalary)}

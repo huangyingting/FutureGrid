@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import RiskGauge from "@/components/ui/RiskGauge";
 import { searchInsights, computeResiliencyScore } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import type { CareerInsight } from "@/lib/data";
 
 // ── Sub-component ─────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export default function HeroRiskChecker() {
   return (
     <div className="glass rounded-2xl p-6 sm:p-8 max-w-3xl">
       <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-        AI Risk Checker
+        AI Exposure Checker
       </p>
 
       {/* ── Search input ─────────────────────────────────────────────────── */}
@@ -118,9 +118,9 @@ export default function HeroRiskChecker() {
             if (blurTimerRef.current !== null) clearTimeout(blurTimerRef.current);
             blurTimerRef.current = setTimeout(() => setShowDropdown(false), 160);
           }}
-          placeholder="Search an occupation to see its AI risk estimate…"
+          placeholder="Search an occupation to see its AI exposure…"
           role="combobox"
-          aria-label="Search occupations to check AI risk"
+          aria-label="Search occupations to check AI exposure"
           aria-haspopup="listbox"
           aria-expanded={showDropdown}
           aria-autocomplete="list"
@@ -203,12 +203,12 @@ export default function HeroRiskChecker() {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <StatBadge label="Risk band" value={selected.automationRisk} color={riskColor} />
+              <StatBadge label="Exposure band" value={selected.automationRisk} color={riskColor} />
               <StatBadge label="Resiliency" value={`${resiliency}/100`} color="#8b5cf6" />
               <StatBadge
-                label="Growth rate"
-                value={formatPercent(selected.growthRate)}
-                color={selected.growthRate >= 0 ? "#22c55e" : "#ef4444"}
+                label="Outlook"
+                value={selected.outlook === "Bright" ? "Bright ↗" : "Average"}
+                color={selected.outlook === "Bright" ? "#22c55e" : "#6b7280"}
               />
               <StatBadge
                 label="Median salary"
@@ -216,6 +216,14 @@ export default function HeroRiskChecker() {
                 color="#f59e0b"
               />
             </div>
+            {selected.projectedOpenings != null && (
+              <p className="text-xs text-zinc-500 mt-1">
+                Projected annual openings:{" "}
+                <span className="text-zinc-300 font-medium">
+                  {selected.projectedOpenings.toLocaleString()}
+                </span>
+              </p>
+            )}
 
             <p className="text-[11px] text-zinc-500 leading-snug">
               Estimated automation exposure for this occupation — not a personal forecast.

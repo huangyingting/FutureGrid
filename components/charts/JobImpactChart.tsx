@@ -142,7 +142,7 @@ export default function JobImpactChart({ selectedSector }: JobImpactChartProps) 
       .attr("x", -(H / 2)).attr("y", 15)
       .attr("text-anchor", "middle")
       .attr("fill", "#52525b").attr("font-size", "12px")
-      .text("Automation Probability");
+      .text("AI Exposure");
 
     // --- Bars ---
     type Datum = (typeof filtered)[number];

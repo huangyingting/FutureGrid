@@ -2,7 +2,7 @@
 
 import { generateAllCareerInsights, computeResiliencyScore } from "@/lib/data";
 import type { CareerInsight } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import { useState, useMemo, useCallback } from "react";
 
@@ -11,7 +11,7 @@ const MAX_COMPARE = 3;
 export default function CareersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"risk" | "growth" | "salary">("risk");
+  const [sortBy, setSortBy] = useState<"risk" | "openings" | "salary">("risk");
   const [compareList, setCompareList] = useState<CareerInsight[]>([]);
   const [showComparePanel, setShowComparePanel] = useState(false);
 
@@ -32,7 +32,7 @@ export default function CareersPage() {
     }
     return [...result].sort((a, b) => {
       if (sortBy === "risk") return b.automationProbability - a.automationProbability;
-      if (sortBy === "growth") return b.growthRate - a.growthRate;
+      if (sortBy === "openings") return (b.projectedOpenings ?? -Infinity) - (a.projectedOpenings ?? -Infinity);
       return b.medianSalary - a.medianSalary;
     });
   }, [searchQuery, riskFilter, sortBy, allInsights]);
@@ -55,7 +55,7 @@ export default function CareersPage() {
       <div className="animate-fade-up">
         <h1 className="text-3xl font-bold tracking-tight text-gradient">Career Explorer</h1>
         <p className="text-zinc-400 mt-1">
-          Browse {allInsights.length} occupations and their AI automation risk profiles.
+          Browse {allInsights.length} occupations and their AI exposure profiles.
         </p>
       </div>
 
@@ -83,12 +83,12 @@ export default function CareersPage() {
         </select>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "risk" | "growth" | "salary")}
+          onChange={(e) => setSortBy(e.target.value as "risk" | "openings" | "salary")}
           aria-label="Sort occupations"
           className="bg-zinc-900/80 border border-zinc-700/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-violet-500 transition-colors"
         >
-          <option value="risk">Sort by Risk</option>
-          <option value="growth">Sort by Growth</option>
+          <option value="risk">Sort by AI Exposure</option>
+          <option value="openings">Sort by Openings</option>
           <option value="salary">Sort by Salary</option>
         </select>
       </div>
@@ -198,25 +198,27 @@ export default function CareersPage() {
 
                   {/* Metrics */}
                   <div className="space-y-1.5 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-zinc-500">Growth</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-500">Outlook</span>
                       <span
-                        className={
-                          i.growthRate >= 0 ? "text-green-400" : "text-red-400"
-                        }
+                        className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
+                          i.outlook === "Bright"
+                            ? "bg-green-500/10 text-green-400 border-green-500/20"
+                            : "bg-zinc-700/30 text-zinc-400 border-zinc-700/30"
+                        }`}
                       >
-                        {formatPercent(i.growthRate)}
+                        {i.outlook === "Bright" ? "Bright ↗" : "Average"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Proj. Openings</span>
+                      <span className="text-white">
+                        {i.projectedOpenings != null ? i.projectedOpenings.toLocaleString() : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Median Salary</span>
                       <span className="text-white">{formatCurrency(i.medianSalary)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-zinc-500">Employment</span>
-                      <span className="text-white">
-                        {i.totalEmployment.toLocaleString()}
-                      </span>
                     </div>
                   </div>
                 </Link>
@@ -325,7 +327,7 @@ export default function CareersPage() {
                   </thead>
                   <tbody className="divide-y divide-zinc-800/60">
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">AI Risk</td>
+                     <td className="py-2 px-3 text-zinc-500">AI Exposure</td>
                       {compareList.map((c) => (
                         <td key={c.occupationCode} className="py-2 px-3">
                           <span
@@ -342,17 +344,28 @@ export default function CareersPage() {
                       ))}
                     </tr>
                     <tr>
-                      <td className="py-2 px-3 text-zinc-500">Growth</td>
+                     <td className="py-2 px-3 text-zinc-500">Outlook</td>
                       {compareList.map((c) => (
-                        <td
-                          key={c.occupationCode}
-                          className={`py-2 px-3 font-semibold ${
-                            c.growthRate >= 0 ? "text-green-400" : "text-red-400"
-                          }`}
-                        >
-                          {formatPercent(c.growthRate)}
-                        </td>
-                      ))}
+                       <td key={c.occupationCode} className="py-2 px-3">
+                         <span
+                           className={`px-1.5 py-0.5 rounded text-xs font-semibold border ${
+                             c.outlook === "Bright"
+                               ? "bg-green-500/10 text-green-400 border-green-500/20"
+                               : "bg-zinc-700/30 text-zinc-400 border-zinc-700/30"
+                           }`}
+                         >
+                           {c.outlook === "Bright" ? "Bright ↗" : "Average"}
+                         </span>
+                       </td>
+                     ))}
+                    </tr>
+                    <tr>
+                     <td className="py-2 px-3 text-zinc-500">Proj. Openings</td>
+                     {compareList.map((c) => (
+                       <td key={c.occupationCode} className="py-2 px-3 text-white">
+                         {c.projectedOpenings != null ? c.projectedOpenings.toLocaleString() : "—"}
+                       </td>
+                     ))}
                     </tr>
                     <tr>
                       <td className="py-2 px-3 text-zinc-500">Median Salary</td>
@@ -369,7 +382,7 @@ export default function CareersPage() {
                       <td className="py-2 px-3 text-zinc-500">Est. Employment</td>
                       {compareList.map((c) => (
                         <td key={c.occupationCode} className="py-2 px-3 text-white">
-                          {c.totalEmployment.toLocaleString()}
+                          {c.totalEmployment != null ? c.totalEmployment.toLocaleString() : "—"}
                         </td>
                       ))}
                     </tr>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T05:53:52.111Z",
+  "generatedAt": "2026-06-30T06:20:30.515Z",
   "license": "CC-BY 4.0 (Anthropic Economic Index); CC BY 4.0 (O*NET, USDOL/ETA); Public Domain (BLS)",
   "attribution": "Anthropic Economic Index (Anthropic, 2025); O*NET 28.3 (U.S. Department of Labor/ETA); BLS Employment Statistics (U.S. Bureau of Labor Statistics, 2023)",
   "sources": [
@@ -68,5 +68,5 @@
       "usedFor": "Context/validation reference only — not directly loaded"
     }
   ],
-  "note": "Automation risk bands: Low < 0.30, Medium 0.30–0.60, High 0.60–0.85, Very High > 0.85. aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). O*NET skills are best-effort: successfully loaded"
+  "note": "automationRisk bands are percentile-calibrated from the aiExposure distribution (756 occupations): Very High = top ~8% (aiExposure > 0.3104), High = next ~12% (> 0.1378), Medium = next ~25% (> 0.0080), Low = remainder (≤ 0.0080). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment is null (BLS file contains only major-group totals). growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: successfully loaded"
 }

@@ -5,10 +5,10 @@ import JobImpactChart from "@/components/charts/JobImpactChart";
 import { getSectorAggregatesExtended } from "@/lib/data";
 import type { SectorAggregate } from "@/lib/data";
 import Link from "next/link";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import { useState, useMemo } from "react";
 
-type SortKey = "risk" | "growth" | "size" | "salary";
+type SortKey = "risk" | "brightOutlook" | "size" | "salary";
 
 function riskLabel(avgRisk: number): "Low" | "Medium" | "High" | "Very High" {
   if (avgRisk < 0.3) return "Low";
@@ -24,10 +24,10 @@ export default function SectorsPage() {
   const sorted = useMemo((): SectorAggregate[] => {
     return [...allSectors].sort((a, b) => {
       switch (sortBy) {
-        case "risk":    return b.avgRisk - a.avgRisk;
-        case "growth":  return b.avgGrowth - a.avgGrowth;
-        case "size":    return b.occupationCount - a.occupationCount;
-        case "salary":  return b.avgSalary - a.avgSalary;
+        case "risk":          return b.avgRisk - a.avgRisk;
+        case "brightOutlook": return b.brightShare - a.brightShare;
+        case "size":          return b.occupationCount - a.occupationCount;
+        case "salary":        return (b.avgSalary ?? 0) - (a.avgSalary ?? 0);
       }
     });
   }, [sortBy, allSectors]);
@@ -40,7 +40,7 @@ export default function SectorsPage() {
           AI Disruption by Sector
         </h1>
         <p className="text-zinc-400 mt-1">
-          Compare automation risk, employment growth, and occupation counts across major industry sectors.
+          Compare AI exposure, Bright Outlook share, and occupation counts across major industry sectors.
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export default function SectorsPage() {
 
       <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-4">
-          Top Occupations by Automation Risk
+          Top Occupations by AI Exposure
         </h2>
         <JobImpactChart />
       </div>
@@ -67,18 +67,25 @@ export default function SectorsPage() {
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-500">Sort by</span>
-            {(["risk", "growth", "size", "salary"] as SortKey[]).map((k) => (
+            {(
+              [
+                { key: "risk",          label: "Risk"    },
+                { key: "brightOutlook", label: "Outlook" },
+                { key: "size",          label: "Size"    },
+                { key: "salary",        label: "Salary"  },
+              ] as { key: SortKey; label: string }[]
+            ).map(({ key, label }) => (
               <button
-                key={k}
-                onClick={() => setSortBy(k)}
-                aria-pressed={sortBy === k}
+                key={key}
+                onClick={() => setSortBy(key)}
+                aria-pressed={sortBy === key}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                  sortBy === k
+                  sortBy === key
                     ? "brand-grad text-white"
                     : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
                 }`}
               >
-                {k.charAt(0).toUpperCase() + k.slice(1)}
+                {label}
               </button>
             ))}
           </div>
@@ -130,19 +137,15 @@ export default function SectorsPage() {
                 {/* Stats */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Growth Rate</span>
-                    <span
-                      className={`font-medium ${
-                        s.avgGrowth >= 0 ? "text-green-400" : "text-red-400"
-                      }`}
-                    >
-                      {formatPercent(s.avgGrowth)}
+                    <span className="text-zinc-400">Bright Outlook</span>
+                    <span className="font-medium text-green-400">
+                      {(s.brightShare * 100).toFixed(0)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Avg Salary</span>
                     <span className="font-medium text-white">
-                      {formatCurrency(s.avgSalary)}
+                      {s.avgSalary != null ? formatCurrency(s.avgSalary) : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">

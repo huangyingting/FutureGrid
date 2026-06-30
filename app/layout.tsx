@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FutureGrid — AI & the Future of Work",
   description:
-    "Explore how artificial intelligence is reshaping careers, automation risk, and growth opportunities across 22 industry sectors.",
+    "Explore how artificial intelligence is reshaping careers — see AI exposure levels, Bright Outlook occupations, and salary data across 22 industry sectors.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

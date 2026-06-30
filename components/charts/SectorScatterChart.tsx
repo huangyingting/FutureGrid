@@ -34,7 +34,7 @@ interface TooltipState {
 }
 
 const EMPTY_ITEM: SectorAggregate = {
-  sector: "", avgRisk: 0, avgGrowth: 0, avgSalary: 0, totalEmployment: 0, occupationCount: 0,
+  sector: "", avgRisk: 0, avgGrowth: null, avgSalary: null, totalEmployment: null, brightShare: 0, occupationCount: 0,
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -57,11 +57,12 @@ export default function SectorScatterChart() {
   const data = useMemo((): SectorAggregate[] => {
     const extended = getSectorAggregatesExtended();
     if (extended.length > 0) return extended;
-    // Fallback to basic aggregates (adds synthetic employment)
+    // Fallback to basic aggregates
     return getSectorAggregates().map((s) => ({
       ...s,
-      avgSalary: 0,
-      totalEmployment: s.occupationCount * 100_000,
+      avgSalary: null,
+      totalEmployment: null,
+      brightShare: 0,
     }));
   }, []);
 
@@ -92,20 +93,19 @@ export default function SectorScatterChart() {
       .range([margin.left, W - margin.right])
       .nice();
 
-    const yExtent   = d3.extent(data, (d) => d.avgGrowth) as [number, number];
+    const yExtent   = d3.extent(data, (d) => d.brightShare * 100) as [number, number];
     const yPadding  = Math.max(3, (yExtent[1] - yExtent[0]) * 0.18);
     const yScale    = d3.scaleLinear()
-      .domain([yExtent[0] - yPadding, yExtent[1] + yPadding])
+      .domain([Math.max(0, yExtent[0] - yPadding), Math.min(100, yExtent[1] + yPadding)])
       .range([H - margin.bottom, margin.top])
       .nice();
 
-    const maxEmp = d3.max(data, (d) => d.totalEmployment || d.occupationCount * 100_000) ?? 1;
+    const maxCount = d3.max(data, (d) => d.occupationCount) ?? 1;
     const rScale = d3.scaleSqrt()
-      .domain([0, maxEmp])
+      .domain([0, maxCount])
       .range([9, 40]);
 
-    const bubbleR = (d: SectorAggregate) =>
-      rScale(d.totalEmployment || d.occupationCount * 100_000);
+    const bubbleR = (d: SectorAggregate) => rScale(d.occupationCount);
 
     // ── Grid lines ──────────────────────────────────────────────────────────
 
@@ -154,7 +154,7 @@ export default function SectorScatterChart() {
       .attr("text-anchor", "middle")
       .attr("fill", "#71717a")
       .attr("font-size", "11px")
-      .text("Automation Risk →");
+      .text("AI Exposure →");
 
     const yAxisG = svg.append("g")
       .attr("transform", `translate(${margin.left},0)`)
@@ -174,7 +174,7 @@ export default function SectorScatterChart() {
       .attr("text-anchor", "middle")
       .attr("fill", "#71717a")
       .attr("font-size", "11px")
-      .text("Growth Rate →");
+      .text("Bright-Outlook Share →");
 
     // ── Bubbles ─────────────────────────────────────────────────────────────
 
@@ -184,7 +184,7 @@ export default function SectorScatterChart() {
       .join("g")
       .attr("class", "sc-bubble")
       .attr("transform", (d) =>
-        `translate(${xScale(d.avgRisk * 100)},${yScale(d.avgGrowth)})`
+        `translate(${xScale(d.avgRisk * 100)},${yScale(d.brightShare * 100)})`
       )
       .style("cursor", "pointer");
 
@@ -226,7 +226,7 @@ export default function SectorScatterChart() {
 
     if (!reduced) {
       const tX = (d: SectorAggregate) => xScale(d.avgRisk * 100);
-      const tY = (d: SectorAggregate) => yScale(d.avgGrowth);
+      const tY = (d: SectorAggregate) => yScale(d.brightShare * 100);
 
       bubbles
         .attr("transform", (d) => `translate(${tX(d)},${tY(d)}) scale(0)`)
@@ -282,7 +282,7 @@ export default function SectorScatterChart() {
         ref={svgRef}
         className="w-full h-auto"
         style={{ minHeight: 280 }}
-        aria-label="Sector scatter chart: automation risk vs growth rate"
+        aria-label="Sector scatter chart: AI exposure vs bright-outlook share"
         role="img"
       />
 
@@ -316,7 +316,7 @@ export default function SectorScatterChart() {
           </p>
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between gap-4">
-              <span className="text-zinc-500">Automation Risk</span>
+              <span className="text-zinc-500">AI Exposure</span>
               <span
                 className="font-semibold"
                 style={{ color: bandColor(tooltip.item.avgRisk) }}
@@ -326,24 +326,11 @@ export default function SectorScatterChart() {
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-zinc-500">Growth Rate</span>
-              <span
-                className={`font-semibold ${
-                  tooltip.item.avgGrowth >= 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {tooltip.item.avgGrowth >= 0 ? "+" : ""}
-                {tooltip.item.avgGrowth.toFixed(1)}%
+              <span className="text-zinc-500">Bright Outlook</span>
+              <span className="font-semibold text-green-400">
+                {(tooltip.item.brightShare * 100).toFixed(1)}%
               </span>
             </div>
-            {tooltip.item.totalEmployment > 0 && (
-              <div className="flex justify-between gap-4">
-                <span className="text-zinc-500">Est. Employment</span>
-                <span className="text-white font-medium">
-                  {tooltip.item.totalEmployment.toLocaleString()}
-                </span>
-              </div>
-            )}
             <div className="flex justify-between gap-4">
               <span className="text-zinc-500">Occupations</span>
               <span className="text-white font-medium">{tooltip.item.occupationCount}</span>
@@ -371,7 +358,7 @@ export default function SectorScatterChart() {
             {lbl}
           </span>
         ))}
-        <span className="ml-1 text-zinc-700">bubble = employment</span>
+        <span className="ml-1 text-zinc-700">bubble = occupations</span>
       </div>
     </div>
   );

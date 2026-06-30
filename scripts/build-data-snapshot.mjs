@@ -170,12 +170,7 @@ function onetToSoc6(code) {
   return m ? m[1] : code;
 }
 
-function classifyRisk(exposure) {
-  if (exposure < 0.3) return "Low";
-  if (exposure < 0.6) return "Medium";
-  if (exposure < 0.85) return "High";
-  return "Very High";
-}
+// classifyRisk is defined inside main() using percentile thresholds from the actual distribution
 
 // ─── Main pipeline ─────────────────────────────────────────────────────────────
 async function main() {
@@ -189,6 +184,26 @@ async function main() {
   );
   const exposureRows = parseCSV(exposureText);
   console.log(`  → ${exposureRows.length} rows`);
+
+  // ── Percentile-based risk thresholds from actual distribution ──────────────
+  const allExposures = exposureRows
+    .map((r) => parseFloat(r["observed_exposure"] || r["aiExposure"] || ""))
+    .filter((v) => !isNaN(v))
+    .sort((a, b) => a - b);
+  const en = allExposures.length;
+  const pctVal = (p) => allExposures[Math.floor(p / 100 * (en - 1))];
+  // Very High = top ~8% (above p92), High = next ~12% (p80–p92),
+  // Medium = next ~25% (p55–p80), Low = bottom ~55% (≤ p55)
+  const VH_THRESHOLD   = pctVal(92);
+  const HIGH_THRESHOLD = pctVal(80);
+  const MED_THRESHOLD  = pctVal(55);
+  function classifyRisk(exposure) {
+    if (exposure > VH_THRESHOLD)   return "Very High";
+    if (exposure > HIGH_THRESHOLD) return "High";
+    if (exposure > MED_THRESHOLD)  return "Medium";
+    return "Low";
+  }
+  console.log(`  Percentile thresholds — VH > ${VH_THRESHOLD.toFixed(4)}, High > ${HIGH_THRESHOLD.toFixed(4)}, Med > ${MED_THRESHOLD.toFixed(4)}`);
 
   console.log("\n[2/5] Fetching AEI wage_data.csv …");
   const wageText = await fetchText(
@@ -323,25 +338,14 @@ async function main() {
     const title = (row["title"] || "").trim();
     const wage = wageMap.get(soc6);
 
-    // employment: try bls by title match
-    const titleLower = title.toLowerCase();
-    const employment = blsTitleMap.get(titleLower) || blsTitleMap.get((wage?.jobName || "").toLowerCase()) || 0;
+    // employment: BLS file only has major-group totals, not individual SOC titles — null
+    const employment = null;
 
-    // growth: if we have forecast (projected employment %) and current employment, compute growth
-    // forecast in wage_data appears to be projected employment or % change — use as-is
-    let growthRate = 0;
-    if (wage?.forecast && employment > 0) {
-      // forecast might be projected total employment (not %)
-      // if it's >100 it's likely an employment count, not a percentage
-      if (Math.abs(wage.forecast) <= 100) {
-        growthRate = wage.forecast;
-      } else {
-        // projected employment total: compute % change
-        growthRate = ((wage.forecast - employment) / employment) * 100;
-      }
-    } else if (wage?.forecast) {
-      growthRate = Math.abs(wage.forecast) <= 100 ? wage.forecast : 0;
-    }
+    // projectedOpenings: from wage_data.JobForecast where > 0 (-1 and blank = no data)
+    const projectedOpenings = (wage?.forecast && wage.forecast > 0) ? Math.round(wage.forecast) : null;
+
+    // growth: no reliable per-occupation % growth source in AEI files — null, not fabricated
+    const growthRate = null;
 
     // sector: from wage_data JobFamily, fallback to SOC major group
     const majorGroup = soc6.slice(0, 2);
@@ -372,10 +376,12 @@ async function main() {
       automationRisk: classifyRisk(aiExposure),
       automationProbability: Math.round(aiExposure * 10000) / 10000,
       medianSalary,
-      employment: Math.round(employment),
-      growthRate: Math.round(growthRate * 100) / 100,
+      employment,
+      projectedOpenings,
+      growthRate,
       jobZone: wage?.jobZone ?? 0,
       brightOutlook: wage?.bright ?? false,
+      outlook: (wage?.bright ?? false) ? "Bright" : "Average",
       skills,
     });
   }
@@ -476,7 +482,7 @@ async function main() {
         usedFor: "Context/validation reference only — not directly loaded",
       },
     ],
-    note: "Automation risk bands: Low < 0.30, Medium 0.30–0.60, High 0.60–0.85, Very High > 0.85. aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). O*NET skills are best-effort: " + (onetSkillsFailed ? "FAILED — default skills used" : "successfully loaded"),
+    note: `automationRisk bands are percentile-calibrated from the aiExposure distribution (${en} occupations): Very High = top ~8% (aiExposure > ${VH_THRESHOLD.toFixed(4)}), High = next ~12% (> ${HIGH_THRESHOLD.toFixed(4)}), Medium = next ~25% (> ${MED_THRESHOLD.toFixed(4)}), Low = remainder (≤ ${MED_THRESHOLD.toFixed(4)}). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment is null (BLS file contains only major-group totals). growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: ` + (onetSkillsFailed ? "FAILED — default skills used" : "successfully loaded"),
   };
 
   // ─── Write JSON files ──────────────────────────────────────────────────────

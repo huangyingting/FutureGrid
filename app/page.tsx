@@ -7,11 +7,11 @@ import Reveal from "@/components/ui/Reveal";
 import HeroRiskChecker from "@/components/dashboard/HeroRiskChecker";
 import HighlightsBento from "@/components/dashboard/HighlightsBento";
 import SectorScatterChart from "@/components/charts/SectorScatterChart";
-import { generateAllCareerInsights, getSectorAggregates } from "@/lib/data";
+import { generateAllCareerInsights, getSectorAggregatesExtended } from "@/lib/data";
 
 export default function HomePage() {
   const insights = generateAllCareerInsights();
-  const sectors = getSectorAggregates();
+  const sectors = getSectorAggregatesExtended();
   const highRiskCount = insights.filter(
     (i) => i.automationRisk === "High" || i.automationRisk === "Very High"
   ).length;
@@ -59,7 +59,7 @@ export default function HomePage() {
                 durationMs={1400}
                 className="text-4xl sm:text-5xl font-extrabold text-gradient tabular-nums"
               />
-              <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">Avg AI risk</p>
+              <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">Avg AI exposure</p>
             </div>
             <div className="hidden sm:block w-px h-10 bg-zinc-800" aria-hidden="true" />
             <div>
@@ -68,7 +68,7 @@ export default function HomePage() {
                 durationMs={1400}
                 className="text-4xl sm:text-5xl font-extrabold text-gradient tabular-nums"
               />
-              <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">High-risk roles</p>
+              <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">High-exposure roles</p>
             </div>
           </div>
         </Reveal>
@@ -81,10 +81,13 @@ export default function HomePage() {
           >
             <span aria-hidden="true" className="text-zinc-500 shrink-0 mt-px select-none">ℹ</span>
             <p>
-              Automation-risk figures are probabilistic estimates from the{" "}
-              <span className="text-zinc-300">Frey &amp; Osborne (2013)</span> research model —
-              not official forecasts or guarantees of job loss. Some employment figures are
-              illustrative.
+              AI-exposure figures reflect observed AI (LLM) usage from the{" "}
+              <span className="text-zinc-300">Anthropic Economic Index (2025)</span>, mapped to
+              O*NET tasks — a relative exposure measure, not a prediction of job loss.{" "}
+              <Link href="/sources" className="text-zinc-500 underline underline-offset-2 hover:text-zinc-400">
+                See Sources
+              </Link>
+              .
             </p>
           </div>
         </Reveal>
@@ -118,22 +121,22 @@ export default function HomePage() {
             href="/careers"
           />
           <SummaryCard
-            title="Average AI Risk"
+            title="Average AI Exposure"
             value={`${(avgRiskAll * 100).toFixed(1)}%`}
             numericValue={avgRiskAll * 100}
             numericDecimals={1}
             numericSuffix="%"
-            subtitle="Automation probability"
+            subtitle="AI usage exposure"
             trend={avgRiskAll > 0.5 ? "Above 50% threshold" : "Below 50% threshold"}
             trendUp={avgRiskAll > 0.5}
             color="#f59e0b"
             href="/sectors"
           />
           <SummaryCard
-            title="High Risk Occupations"
+            title="High AI-Exposure Roles"
             value={highRiskCount.toString()}
             numericValue={highRiskCount}
-            subtitle="High or Very High automation risk"
+            subtitle="High or Very High AI exposure"
             color="#ef4444"
             href="/careers?risk=high"
           />
@@ -141,7 +144,7 @@ export default function HomePage() {
             title="AI-Resilient Careers"
             value={lowRiskCount.toString()}
             numericValue={lowRiskCount}
-            subtitle="Low automation probability"
+            subtitle="Low AI exposure"
             color="#22c55e"
             href="/careers?risk=low"
           />
@@ -154,7 +157,10 @@ export default function HomePage() {
       <Reveal delay={80}>
         <div>
           <h2 className="text-xl font-bold text-gradient mb-1">Standout Careers</h2>
-          <p className="text-xs text-zinc-600 mb-2">Figures are Frey &amp; Osborne (2013) model estimates.</p>
+          <p className="text-[10px] text-zinc-600 mb-2">
+            AI-exposure from the Anthropic Economic Index (2025); outlook from O*NET.{" "}
+            <Link href="/sources" className="text-zinc-500 underline underline-offset-2 hover:text-zinc-400">Sources</Link>.
+          </p>
           <hr className="divider-glow mb-6" />
           <HighlightsBento />
         </div>
@@ -169,7 +175,7 @@ export default function HomePage() {
           <hr className="divider-glow mb-6" />
           <div className="glass p-6">
             <p className="text-xs text-zinc-500 mb-4 uppercase tracking-widest">
-              Automation risk × growth rate × employment (bubble size) — click a sector to explore
+              AI exposure × Bright-Outlook share × sector size (bubble) — click a sector to explore
             </p>
             <SectorScatterChart />
           </div>
@@ -186,13 +192,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="glass p-6">
               <h3 className="text-xs font-semibold text-zinc-400 mb-4 uppercase tracking-wider">
-                Top 20 Occupations by Automation Risk
+                Top 20 Occupations by AI Exposure
               </h3>
               <JobImpactChart />
             </div>
             <div className="glass p-6">
               <h3 className="text-xs font-semibold text-zinc-400 mb-4 uppercase tracking-wider">
-                Employment Projections with AI Impact
+                Employment Projections &amp; AI Exposure
               </h3>
               <PredictiveChart />
             </div>
@@ -219,17 +225,14 @@ export default function HomePage() {
                         : "bg-red-500/10 text-red-400 border-red-500/20"
                     }`}
                   >
-                    {(s.avgRisk * 100).toFixed(0)}% risk
+                    {(s.avgRisk * 100).toFixed(0)}% exposure
                   </span>
                 </div>
                 <div className="text-sm text-zinc-400 space-y-0.5">
                   <div>{s.occupationCount} occupations</div>
                   <div>
-                    <span className={s.avgGrowth >= 0 ? "text-green-400" : "text-red-400"}>
-                      {s.avgGrowth >= 0 ? "+" : ""}
-                      {s.avgGrowth.toFixed(1)}%
-                    </span>{" "}
-                    growth rate
+                    <span className="text-green-400">{(s.brightShare * 100).toFixed(0)}%</span>{" "}
+                    Bright Outlook
                   </div>
                 </div>
               </div>

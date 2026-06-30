@@ -173,7 +173,9 @@ export default function HeatmapChart() {
       .attr("x", W / 2).attr("y", H - 10)
       .attr("text-anchor", "middle")
       .attr("fill", "#52525b").attr("font-size", "11px")
-      .text("AI Disruption Heatmap — green = low risk · red = high risk");
+      .text("AI Exposure Heatmap — green = low · red = high");
+
+    return () => { svg.selectAll("*").interrupt(); };
   }, [data]);
 
   return (
@@ -204,7 +206,7 @@ export default function HeatmapChart() {
             >
               {(tooltip.risk * 100).toFixed(1)}%
             </span>
-            <span className="text-xs text-zinc-400">automation risk</span>
+            <span className="text-xs text-zinc-400">AI exposure</span>
           </div>
         </div>
       )}

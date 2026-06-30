@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getHighlights } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import type { HighlightEntry, Highlights } from "@/lib/data";
 
 // ── Panel config ──────────────────────────────────────────────────────────────
@@ -19,22 +19,22 @@ type PanelConfig = {
 const PANELS: PanelConfig[] = [
   {
     key: "mostAtRisk",
-    title: "Most at Risk",
+    title: "Most AI-Exposed",
     icon: "⚠️",
     accent: "#ef4444",
     metric: (e) => `${Math.round(e.automationProbability * 100)}%`,
-    metricLabel: "automation risk",
+    metricLabel: "AI exposure",
     barValue: (e) => e.automationProbability,
     barColor: (e) => colorForRisk(e.automationRisk),
   },
   {
-    key: "fastestGrowing",
-    title: "Fastest Growing",
+    key: "brightOutlook",
+    title: "Bright Outlook",
     icon: "📈",
     accent: "#22c55e",
-    metric: (e) => formatPercent(e.growthRate),
-    metricLabel: "growth rate",
-    barValue: (e) => Math.max(0, e.growthRate),
+    metric: (e) => e.projectedOpenings != null ? e.projectedOpenings.toLocaleString() : "Bright ↗",
+    metricLabel: "proj. annual openings",
+    barValue: (e) => e.projectedOpenings ?? 0,
     barColor: () => "#22c55e",
   },
   {
@@ -65,83 +65,92 @@ export default function HighlightsBento() {
   const highlights = getHighlights(5);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {PANELS.map(({ key, title, icon, accent, metric, metricLabel, barValue, barColor }) => {
-        const entries = highlights[key];
-        const maxBar = Math.max(...entries.map((e) => barValue(e)));
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {PANELS.map(({ key, title, icon, accent, metric, metricLabel, barValue, barColor }) => {
+          const entries = highlights[key];
+          const maxBar = Math.max(...entries.map((e) => barValue(e)));
 
-        return (
-          <div
-            key={key}
-            className="glass rounded-2xl p-5 flex flex-col gap-0"
-            style={{ borderTop: `2px solid ${accent}33` }}
-          >
-            {/* Header */}
-            <div className="flex items-center gap-2 mb-1">
-              <span aria-hidden="true" className="text-lg leading-none">
-                {icon}
-              </span>
-              <h3
-                className="font-bold text-sm"
-                style={{
-                  background: `linear-gradient(90deg, ${accent}, ${accent}99)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {title}
-              </h3>
-            </div>
-            <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-3">
-              {metricLabel}
-            </p>
+          return (
+            <div
+              key={key}
+              className="glass rounded-2xl p-5 flex flex-col gap-0"
+              style={{ borderTop: `2px solid ${accent}33` }}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-1">
+                <span aria-hidden="true" className="text-lg leading-none">
+                  {icon}
+                </span>
+                <h3
+                  className="font-bold text-sm"
+                  style={{
+                    background: `linear-gradient(90deg, ${accent}, ${accent}99)`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {title}
+                </h3>
+              </div>
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest mb-3">
+                {metricLabel}
+              </p>
 
-            {/* Ranked list */}
-            <ol className="space-y-2" aria-label={`${title} occupations`}>
-              {entries.map((e, i) => {
-                const pct = maxBar > 0 ? (barValue(e) / maxBar) * 100 : 0;
-                const color = barColor(e);
-                return (
-                  <li key={e.occupationCode}>
-                    <Link
-                      href={`/careers/${e.occupationCode}`}
-                      className="glass-hover block rounded-lg px-2 py-1.5 -mx-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <span className="flex items-start gap-1.5 min-w-0">
+              {/* Ranked list */}
+              <ol className="space-y-2" aria-label={`${title} occupations`}>
+                {entries.map((e, i) => {
+                  const pct = maxBar > 0 ? (barValue(e) / maxBar) * 100 : 0;
+                  const color = barColor(e);
+                  return (
+                    <li key={e.occupationCode}>
+                      <Link
+                        href={`/careers/${e.occupationCode}`}
+                        className="glass-hover block rounded-lg px-2 py-1.5 -mx-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <span className="flex items-start gap-1.5 min-w-0">
+                            <span
+                              className="text-[10px] font-bold tabular-nums shrink-0 mt-px"
+                              style={{ color: accent }}
+                            >
+                              {i + 1}.
+                            </span>
+                            <span className="text-xs text-zinc-200 leading-tight font-medium line-clamp-2">
+                              {e.occupationName}
+                            </span>
+                          </span>
                           <span
-                            className="text-[10px] font-bold tabular-nums shrink-0 mt-px"
-                            style={{ color: accent }}
+                            className="shrink-0 text-xs font-semibold tabular-nums whitespace-nowrap"
+                            style={{ color }}
                           >
-                            {i + 1}.
+                            {metric(e)}
                           </span>
-                          <span className="text-xs text-zinc-200 leading-tight font-medium line-clamp-2">
-                            {e.occupationName}
-                          </span>
-                        </span>
-                        <span
-                          className="shrink-0 text-xs font-semibold tabular-nums whitespace-nowrap"
-                          style={{ color }}
-                        >
-                          {metric(e)}
-                        </span>
-                      </div>
-                      {/* Mini bar */}
-                      <div className="h-0.5 rounded-full bg-zinc-800/80 overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${pct}%`, background: color }}
-                        />
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        );
-      })}
-    </div>
+                        </div>
+                        {/* Mini bar */}
+                        <div className="h-0.5 rounded-full bg-zinc-800/80 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${pct}%`, background: color }}
+                          />
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[10px] text-zinc-600 mt-4 leading-relaxed">
+        AI-exposure figures reflect observed AI (LLM) usage from the Anthropic Economic Index (2025), mapped to O*NET tasks — a relative exposure measure, not a prediction of job loss.{" "}
+        <Link href="/sources" className="text-zinc-500 hover:text-zinc-400 underline underline-offset-2">
+          See Sources
+        </Link>
+        .
+      </p>
+    </>
   );
 }

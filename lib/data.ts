@@ -7,9 +7,11 @@ export interface CareerInsight {
   occupationName: string;
   automationRisk: "Low" | "Medium" | "High" | "Very High";
   automationProbability: number;
-  growthRate: number;
+  growthRate: number | null;
   medianSalary: number;
-  totalEmployment: number;
+  totalEmployment: number | null;
+  projectedOpenings: number | null;
+  outlook: "Bright" | "Average";
   sectorName: string;
   skills: string[];
 }
@@ -22,10 +24,12 @@ type SnapshotRow = {
   automationRisk: "Low" | "Medium" | "High" | "Very High";
   automationProbability: number;
   medianSalary: number;
-  employment: number;
-  growthRate: number;
+  employment: number | null;
+  projectedOpenings: number | null;
+  growthRate: number | null;
   jobZone: number;
   brightOutlook: boolean;
+  outlook: "Bright" | "Average";
   skills: string[];
 };
 
@@ -43,26 +47,28 @@ export function generateAllCareerInsights(): CareerInsight[] {
     growthRate: row.growthRate,
     medianSalary: row.medianSalary,
     totalEmployment: row.employment,
+    projectedOpenings: row.projectedOpenings ?? null,
+    outlook: row.outlook ?? (row.brightOutlook ? "Bright" : "Average"),
     sectorName: row.sector,
     skills: row.skills,
   }));
   return _insightsCache;
 }
 
-export function getSectorAggregates(): { sector: string; avgRisk: number; avgGrowth: number; occupationCount: number }[] {
+export function getSectorAggregates(): { sector: string; avgRisk: number; avgGrowth: number | null; occupationCount: number }[] {
   const insights = generateAllCareerInsights();
-  const map = new Map<string, { riskSum: number; growthSum: number; count: number }>();
+  const map = new Map<string, { riskSum: number; growthSum: number; growthCnt: number; count: number }>();
   for (const i of insights) {
-    const e = map.get(i.sectorName) ?? { riskSum: 0, growthSum: 0, count: 0 };
+    const e = map.get(i.sectorName) ?? { riskSum: 0, growthSum: 0, growthCnt: 0, count: 0 };
     e.riskSum += i.automationProbability;
-    e.growthSum += i.growthRate;
+    if (i.growthRate != null) { e.growthSum += i.growthRate; e.growthCnt++; }
     e.count++;
     map.set(i.sectorName, e);
   }
   return Array.from(map.entries()).map(([sector, d]) => ({
     sector,
     avgRisk: d.riskSum / d.count,
-    avgGrowth: d.growthSum / d.count,
+    avgGrowth: d.growthCnt > 0 ? d.growthSum / d.growthCnt : null,
     occupationCount: d.count,
   }));
 }
@@ -72,9 +78,10 @@ export function getSectorAggregates(): { sector: string; avgRisk: number; avgGro
 export interface SectorAggregate {
   sector: string;
   avgRisk: number;
-  avgGrowth: number;
-  avgSalary: number;
-  totalEmployment: number;
+  avgGrowth: number | null;
+  avgSalary: number | null;
+  totalEmployment: number | null;
+  brightShare: number;
   occupationCount: number;
 }
 
@@ -82,25 +89,27 @@ export function getSectorAggregatesExtended(): SectorAggregate[] {
   const insights = generateAllCareerInsights();
   const map = new Map<
     string,
-    { riskSum: number; growthSum: number; salarySum: number; salaryCnt: number; employmentSum: number; count: number }
+    { riskSum: number; growthSum: number; growthCnt: number; salarySum: number; salaryCnt: number; empSum: number; empCnt: number; brightCnt: number; count: number }
   >();
   for (const i of insights) {
     const e = map.get(i.sectorName) ?? {
-      riskSum: 0, growthSum: 0, salarySum: 0, salaryCnt: 0, employmentSum: 0, count: 0,
+      riskSum: 0, growthSum: 0, growthCnt: 0, salarySum: 0, salaryCnt: 0, empSum: 0, empCnt: 0, brightCnt: 0, count: 0,
     };
     e.riskSum += i.automationProbability;
-    e.growthSum += i.growthRate;
+    if (i.growthRate != null) { e.growthSum += i.growthRate; e.growthCnt++; }
     if (i.medianSalary > 0) { e.salarySum += i.medianSalary; e.salaryCnt++; }
-    e.employmentSum += i.totalEmployment;
+    if (i.totalEmployment != null && i.totalEmployment > 0) { e.empSum += i.totalEmployment; e.empCnt++; }
+    if (i.outlook === "Bright") e.brightCnt++;
     e.count++;
     map.set(i.sectorName, e);
   }
   return Array.from(map.entries()).map(([sector, d]) => ({
     sector,
     avgRisk: d.riskSum / d.count,
-    avgGrowth: d.growthSum / d.count,
-    avgSalary: d.salaryCnt > 0 ? d.salarySum / d.salaryCnt : 0,
-    totalEmployment: d.employmentSum,
+    avgGrowth: d.growthCnt > 0 ? d.growthSum / d.growthCnt : null,
+    avgSalary: d.salaryCnt > 0 ? d.salarySum / d.salaryCnt : null,
+    totalEmployment: d.empCnt > 0 ? d.empSum : null,
+    brightShare: d.count > 0 ? d.brightCnt / d.count : 0,
     occupationCount: d.count,
   }));
 }
@@ -112,14 +121,17 @@ export interface HighlightEntry {
   occupationName: string;
   automationRisk: CareerInsight["automationRisk"];
   automationProbability: number;
-  growthRate: number;
+  growthRate: number | null;
+  projectedOpenings: number | null;
+  outlook: "Bright" | "Average";
   medianSalary: number;
   sectorName: string;
 }
 
 export interface Highlights {
   mostAtRisk: HighlightEntry[];
-  fastestGrowing: HighlightEntry[];
+  /** Replaces fastestGrowing: top Bright Outlook occupations by AI exposure */
+  brightOutlook: HighlightEntry[];
   mostResilient: HighlightEntry[];
   highestPaid: HighlightEntry[];
 }
@@ -131,6 +143,8 @@ function toHighlightEntry(c: CareerInsight): HighlightEntry {
     automationRisk: c.automationRisk,
     automationProbability: c.automationProbability,
     growthRate: c.growthRate,
+    projectedOpenings: c.projectedOpenings,
+    outlook: c.outlook,
     medianSalary: c.medianSalary,
     sectorName: c.sectorName,
   };
@@ -143,9 +157,9 @@ export function getHighlights(topN = 5): Highlights {
       .sort((a, b) => b.automationProbability - a.automationProbability)
       .slice(0, topN)
       .map(toHighlightEntry),
-    fastestGrowing: [...insights]
-      .filter((i) => i.growthRate !== 0)
-      .sort((a, b) => b.growthRate - a.growthRate)
+    brightOutlook: [...insights]
+      .filter((i) => i.outlook === "Bright")
+      .sort((a, b) => b.automationProbability - a.automationProbability)
       .slice(0, topN)
       .map(toHighlightEntry),
     mostResilient: [...insights]

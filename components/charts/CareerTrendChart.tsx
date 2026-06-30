@@ -46,7 +46,7 @@ export default function CareerTrendChart() {
       },
       title: {
         display: true,
-        text: "Average AI Automation Risk by Sector",
+        text: "Average AI Exposure by Sector",
         color: "#d4d4d8",
         font: { size: 14, weight: 500 },
         padding: { bottom: 14 },
@@ -61,7 +61,7 @@ export default function CareerTrendChart() {
         cornerRadius: 8,
         callbacks: {
           label: (ctx: { parsed: { y: number | null } }) =>
-            `  Automation Risk: ${((ctx.parsed.y ?? 0) * 100).toFixed(1)}%`,
+            `  AI Exposure: ${((ctx.parsed.y ?? 0) * 100).toFixed(1)}%`,
         },
       },
     },
@@ -90,7 +90,7 @@ export default function CareerTrendChart() {
     labels: sectors.map((s) => s.sector),
     datasets: [
       {
-        label: "Automation Risk",
+        label: "AI Exposure",
         data: sectors.map((s) => s.avgRisk),
         backgroundColor:     sectors.map((s) => riskFill(s.avgRisk, 0.75)),
         borderColor:         sectors.map((s) => riskFill(s.avgRisk, 1.00)),

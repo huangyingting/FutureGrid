@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { generateAllCareerInsights, getSectorAggregates, computeResiliencyScore } from "@/lib/data";
-import { colorForRisk, formatCurrency, formatPercent } from "@/lib/utils";
+import { generateAllCareerInsights, getSectorAggregatesExtended, computeResiliencyScore } from "@/lib/data";
+import { colorForRisk, formatCurrency } from "@/lib/utils";
 import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -14,7 +14,7 @@ export default function CareerDetailPage() {
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
   const career = allInsights.find((i) => i.occupationCode === code);
   const sectorAgg = useMemo(
-    () => getSectorAggregates().find((s) => s.sector === career?.sectorName),
+    () => getSectorAggregatesExtended().find((s) => s.sector === career?.sectorName),
     [career],
   );
 
@@ -60,7 +60,7 @@ export default function CareerDetailPage() {
               color: riskColor,
             }}
           >
-            {(career.automationProbability * 100).toFixed(1)}% AI Risk &mdash; {career.automationRisk}
+            {(career.automationProbability * 100).toFixed(1)}% AI Exposure &mdash; {career.automationRisk}
           </span>
         </div>
       </div>
@@ -74,13 +74,13 @@ export default function CareerDetailPage() {
             className: "text-white",
           },
           {
-            value: formatPercent(career.growthRate),
-            label: "10-Year Growth",
-            className: career.growthRate >= 0 ? "text-green-400" : "text-red-400",
+            value: career.outlook === "Bright" ? "Bright ↗" : "Average",
+            label: "O*NET Outlook",
+            className: career.outlook === "Bright" ? "text-green-400" : "text-zinc-400",
           },
           {
-            value: career.totalEmployment.toLocaleString(),
-            label: "Est. Employment",
+            value: career.projectedOpenings != null ? career.projectedOpenings.toLocaleString() : "—",
+            label: "Proj. Annual Openings",
             className: "text-white",
           },
           {
@@ -105,17 +105,21 @@ export default function CareerDetailPage() {
         ))}
       </div>
       <p className="text-xs text-zinc-500 italic -mt-4">
-        Employment figures are illustrative estimates; automation-risk reflects the Frey &amp; Osborne (2013) model.
+        AI exposure from the Anthropic Economic Index (2025); salary from BLS; skills from O*NET.{" "}
+        <Link href="/sources" className="underline underline-offset-2 hover:text-zinc-400">
+          See /sources
+        </Link>
+        .
       </p>
 
       {/* Risk analysis + skills */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Risk Analysis</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">AI Exposure Analysis</h2>
           <div className="space-y-5">
             <div>
               <div className="flex justify-between text-sm mb-1.5">
-                <span className="text-zinc-400">Automation Probability</span>
+                <span className="text-zinc-400">AI Exposure</span>
                 <span className="font-semibold" style={{ color: riskColor }}>
                   {(career.automationProbability * 100).toFixed(1)}%
                 </span>
@@ -147,13 +151,13 @@ export default function CareerDetailPage() {
             </div>
             <div className="pt-2 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-zinc-400">Risk Category</span>
+                <span className="text-zinc-400">Exposure Band</span>
                 <span style={{ color: riskColor }} className="font-semibold">
                   {career.automationRisk}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-400">Sector Average Risk</span>
+                <span className="text-zinc-400">Sector Avg. Exposure</span>
                 <span className="text-white">
                   {sectorAgg ? `${(sectorAgg.avgRisk * 100).toFixed(1)}%` : "N/A"}
                 </span>
@@ -184,7 +188,7 @@ export default function CareerDetailPage() {
       {/* Predictive chart */}
       <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-4">
-          Employment Projections with AI Impact
+          Employment Projections &amp; AI Exposure
         </h2>
         <PredictiveChart selectedSector={career.sectorName} />
       </div>
@@ -203,7 +207,7 @@ export default function CareerDetailPage() {
             </thead>
             <tbody>
               <tr className="border-b border-zinc-800/50">
-                <td className="py-3 px-4 text-zinc-400">Automation Risk</td>
+                <td className="py-3 px-4 text-zinc-400">AI Exposure</td>
                 <td className="py-3 px-4 text-right" style={{ color: riskColor }}>
                   {(career.automationProbability * 100).toFixed(1)}%
                 </td>
@@ -212,16 +216,16 @@ export default function CareerDetailPage() {
                 </td>
               </tr>
               <tr className="border-b border-zinc-800/50">
-                <td className="py-3 px-4 text-zinc-400">Growth Rate</td>
+                <td className="py-3 px-4 text-zinc-400">Outlook</td>
                 <td
                   className={`py-3 px-4 text-right font-medium ${
-                    career.growthRate >= 0 ? "text-green-400" : "text-red-400"
+                    career.outlook === "Bright" ? "text-green-400" : "text-zinc-400"
                   }`}
                 >
-                  {formatPercent(career.growthRate)}
+                  {career.outlook === "Bright" ? "Bright ↗" : "Average"}
                 </td>
                 <td className="py-3 px-4 text-right text-white">
-                  {sectorAgg ? formatPercent(sectorAgg.avgGrowth) : "N/A"}
+                  {sectorAgg ? `${(sectorAgg.brightShare * 100).toFixed(0)}% Bright` : "N/A"}
                 </td>
               </tr>
               <tr className="border-b border-zinc-800/50">
