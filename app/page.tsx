@@ -7,12 +7,13 @@ import Reveal from "@/components/ui/Reveal";
 import HeroRiskChecker from "@/components/dashboard/HeroRiskChecker";
 import HighlightsBento from "@/components/dashboard/HighlightsBento";
 import SectorScatterChart from "@/components/charts/SectorScatterChart";
-import { generateAllCareerInsights, getSectorAggregatesExtended, getTotalWorkforce } from "@/lib/data";
+import { generateAllCareerInsights, getSectorAggregatesExtended, getTotalWorkforce, getWorkforceExposure } from "@/lib/data";
 
 export default function HomePage() {
   const insights = generateAllCareerInsights();
   const sectors = getSectorAggregatesExtended();
   const totalWorkforce = getTotalWorkforce();
+  const workforceExposure = getWorkforceExposure();
   const highRiskCount = insights.filter(
     (i) => i.automationRisk === "High" || i.automationRisk === "Very High"
   ).length;
@@ -160,6 +161,39 @@ export default function HomePage() {
             color="#22c55e"
             href="/careers?risk=low"
           />
+        </div>
+      </Reveal>
+
+      <hr className="divider-glow" />
+
+      {/* ─── WORKFORCE EXPOSURE HEADLINE ───────────────────────────────────── */}
+      <Reveal delay={40}>
+        <div className="glass rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="shrink-0">
+            <AnimatedCounter
+              value={workforceExposure.highExposureShare * 100}
+              decimals={1}
+              suffix="%"
+              durationMs={1600}
+              className="text-5xl sm:text-6xl font-extrabold text-gradient tabular-nums"
+            />
+            <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">of the U.S. workforce</p>
+          </div>
+          <div className="hidden sm:block w-px h-16 bg-zinc-800 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="text-base sm:text-lg font-semibold text-white leading-snug">
+              is in <span className="text-gradient">high AI-exposure</span> occupations
+            </p>
+            <p className="mt-1.5 text-sm text-zinc-400 max-w-xl leading-relaxed">
+              Employment-weighted: BLS OEWS employment × Anthropic Economic Index exposure bands
+              ({(workforceExposure.highExposureWorkforce / 1_000_000).toFixed(1)}M of {(workforceExposure.totalWorkforce / 1_000_000).toFixed(1)}M workers tracked).
+              This measures occupational AI exposure — not predicted job loss.{" "}
+              <Link href="/sources" className="text-zinc-500 underline underline-offset-2 hover:text-zinc-400">
+                Sources
+              </Link>
+              .
+            </p>
+          </div>
         </div>
       </Reveal>
 

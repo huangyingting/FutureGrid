@@ -198,6 +198,45 @@ export function getTotalWorkforce(): number {
   return _totalWorkforceCache;
 }
 
+// ─── Workforce exposure by AI band ────────────────────────────────────────────
+
+export interface WorkforceExposure {
+  totalWorkforce: number;
+  byBand: Record<"Low" | "Medium" | "High" | "Very High", number>;
+  highExposureWorkforce: number;
+  /** 0–1: share of workforce in High + Very High exposure occupations */
+  highExposureShare: number;
+  veryHighShare: number;
+}
+
+let _workforceExposureCache: WorkforceExposure | null = null;
+
+export function getWorkforceExposure(): WorkforceExposure {
+  if (_workforceExposureCache) return _workforceExposureCache;
+  const insights = generateAllCareerInsights();
+  const byBand: Record<"Low" | "Medium" | "High" | "Very High", number> = {
+    Low: 0,
+    Medium: 0,
+    High: 0,
+    "Very High": 0,
+  };
+  let totalWorkforce = 0;
+  for (const i of insights) {
+    const emp = i.totalEmployment ?? 0;
+    byBand[i.automationRisk] += emp;
+    totalWorkforce += emp;
+  }
+  const highExposureWorkforce = byBand.High + byBand["Very High"];
+  _workforceExposureCache = {
+    totalWorkforce,
+    byBand,
+    highExposureWorkforce,
+    highExposureShare: totalWorkforce > 0 ? highExposureWorkforce / totalWorkforce : 0,
+    veryHighShare: totalWorkforce > 0 ? byBand["Very High"] / totalWorkforce : 0,
+  };
+  return _workforceExposureCache;
+}
+
 // ─── Lookup helpers ───────────────────────────────────────────────────────────
 
 export function getCareerByCode(code: string): CareerInsight | undefined {
