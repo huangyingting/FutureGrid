@@ -100,12 +100,14 @@ export default function SectorScatterChart() {
       .range([H - margin.bottom, margin.top])
       .nice();
 
-    const maxCount = d3.max(data, (d) => d.occupationCount) ?? 1;
+    const maxEmp = d3.max(data, (d) => d.totalEmployment) ?? 1;
     const rScale = d3.scaleSqrt()
-      .domain([0, maxCount])
+      .domain([0, maxEmp])
       .range([9, 40]);
 
-    const bubbleR = (d: SectorAggregate) => rScale(d.occupationCount);
+    // Null totalEmployment → minimal radius so the bubble still renders
+    const bubbleR = (d: SectorAggregate) =>
+      d.totalEmployment != null ? rScale(d.totalEmployment) : 7;
 
     // ── Grid lines ──────────────────────────────────────────────────────────
 
@@ -332,8 +334,12 @@ export default function SectorScatterChart() {
               </span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-zinc-500">Occupations</span>
-              <span className="text-white font-medium">{tooltip.item.occupationCount}</span>
+              <span className="text-zinc-500">Employment</span>
+              <span className="text-white font-medium">
+                {tooltip.item.totalEmployment != null
+                  ? tooltip.item.totalEmployment.toLocaleString()
+                  : "—"}
+              </span>
             </div>
           </div>
           <p className="text-[10px] text-zinc-600 mt-2.5">Click to explore sector →</p>
@@ -358,7 +364,7 @@ export default function SectorScatterChart() {
             {lbl}
           </span>
         ))}
-        <span className="ml-1 text-zinc-700">bubble = occupations</span>
+        <span className="ml-1 text-zinc-700">bubble = total employment</span>
       </div>
     </div>
   );

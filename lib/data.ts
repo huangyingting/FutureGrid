@@ -127,6 +127,7 @@ export interface HighlightEntry {
   projectedOpenings: number | null;
   outlook: "Bright" | "Average";
   medianSalary: number;
+  totalEmployment: number | null;
   sectorName: string;
 }
 
@@ -136,6 +137,7 @@ export interface Highlights {
   brightOutlook: HighlightEntry[];
   mostResilient: HighlightEntry[];
   highestPaid: HighlightEntry[];
+  largestWorkforce: HighlightEntry[];
 }
 
 function toHighlightEntry(c: CareerInsight): HighlightEntry {
@@ -148,6 +150,7 @@ function toHighlightEntry(c: CareerInsight): HighlightEntry {
     projectedOpenings: c.projectedOpenings,
     outlook: c.outlook,
     medianSalary: c.medianSalary,
+    totalEmployment: c.totalEmployment,
     sectorName: c.sectorName,
   };
 }
@@ -173,10 +176,28 @@ export function getHighlights(topN = 5): Highlights {
       .sort((a, b) => b.medianSalary - a.medianSalary)
       .slice(0, topN)
       .map(toHighlightEntry),
+    largestWorkforce: [...insights]
+      .filter((i) => i.totalEmployment != null && i.totalEmployment > 0)
+      .sort((a, b) => (b.totalEmployment ?? 0) - (a.totalEmployment ?? 0))
+      .slice(0, topN)
+      .map(toHighlightEntry),
   };
 }
 
-// ─── Lookup helpers ──────────────────────────────────────────────────────────
+// ─── Workforce aggregate ──────────────────────────────────────────────────────
+
+let _totalWorkforceCache: number | null = null;
+
+export function getTotalWorkforce(): number {
+  if (_totalWorkforceCache !== null) return _totalWorkforceCache;
+  _totalWorkforceCache = generateAllCareerInsights().reduce(
+    (sum, i) => sum + (i.totalEmployment ?? 0),
+    0,
+  );
+  return _totalWorkforceCache;
+}
+
+// ─── Lookup helpers ───────────────────────────────────────────────────────────
 
 export function getCareerByCode(code: string): CareerInsight | undefined {
   return generateAllCareerInsights().find((i) => i.occupationCode === code);

@@ -34,6 +34,12 @@ export default function SectorDetailPage() {
   const brightShare = sectorInsights.length > 0 ? brightCount / sectorInsights.length : 0;
   const avgSalary = sectorInsights.reduce((s, i) => s + i.medianSalary, 0) / sectorInsights.length;
 
+  const sectorEmployment = sectorInsights.some(
+    (i) => i.totalEmployment != null && i.totalEmployment > 0,
+  )
+    ? sectorInsights.reduce((sum, i) => sum + (i.totalEmployment ?? 0), 0)
+    : null;
+
   const riskLabel =
     avgRisk < 0.3 ? "Low" : avgRisk < 0.6 ? "Medium" : avgRisk < 0.85 ? "High" : "Very High";
   const riskColor = colorForRisk(riskLabel);
@@ -57,7 +63,7 @@ export default function SectorDetailPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold" style={{ color: riskColor }}>
             {(avgRisk * 100).toFixed(1)}%
@@ -79,6 +85,12 @@ export default function SectorDetailPage() {
         <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
           <div className="text-2xl font-bold text-white">{sectorInsights.length}</div>
           <div className="text-xs text-zinc-400 mt-1">Occupations Analyzed</div>
+        </div>
+        <div className="glass bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-blue-400">
+            {sectorEmployment != null ? sectorEmployment.toLocaleString() : "—"}
+          </div>
+          <div className="text-xs text-zinc-400 mt-1">Total Employment</div>
         </div>
       </div>
       <p className="text-xs text-zinc-500 italic -mt-4">

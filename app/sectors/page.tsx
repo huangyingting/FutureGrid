@@ -8,7 +8,7 @@ import Link from "next/link";
 import { colorForRisk, formatCurrency } from "@/lib/utils";
 import { useState, useMemo } from "react";
 
-type SortKey = "risk" | "brightOutlook" | "size" | "salary";
+type SortKey = "risk" | "brightOutlook" | "size" | "salary" | "employment";
 
 function riskLabel(avgRisk: number): "Low" | "Medium" | "High" | "Very High" {
   if (avgRisk < 0.3) return "Low";
@@ -28,6 +28,7 @@ export default function SectorsPage() {
         case "brightOutlook": return b.brightShare - a.brightShare;
         case "size":          return b.occupationCount - a.occupationCount;
         case "salary":        return (b.avgSalary ?? 0) - (a.avgSalary ?? 0);
+        case "employment":    return (b.totalEmployment ?? -Infinity) - (a.totalEmployment ?? -Infinity);
       }
     });
   }, [sortBy, allSectors]);
@@ -69,10 +70,11 @@ export default function SectorsPage() {
             <span className="text-xs text-zinc-500">Sort by</span>
             {(
               [
-                { key: "risk",          label: "Risk"    },
-                { key: "brightOutlook", label: "Outlook" },
-                { key: "size",          label: "Size"    },
-                { key: "salary",        label: "Salary"  },
+                { key: "risk",          label: "Risk"       },
+                { key: "brightOutlook", label: "Outlook"    },
+                { key: "size",          label: "Size"       },
+                { key: "salary",        label: "Salary"     },
+                { key: "employment",    label: "Employment" },
               ] as { key: SortKey; label: string }[]
             ).map(({ key, label }) => (
               <button
@@ -151,6 +153,12 @@ export default function SectorsPage() {
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Occupations</span>
                     <span className="font-medium text-white">{s.occupationCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Employment</span>
+                    <span className="font-medium text-white">
+                      {s.totalEmployment != null ? s.totalEmployment.toLocaleString() : "—"}
+                    </span>
                   </div>
                 </div>
               </Link>

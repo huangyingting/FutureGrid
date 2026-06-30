@@ -7,11 +7,12 @@ import Reveal from "@/components/ui/Reveal";
 import HeroRiskChecker from "@/components/dashboard/HeroRiskChecker";
 import HighlightsBento from "@/components/dashboard/HighlightsBento";
 import SectorScatterChart from "@/components/charts/SectorScatterChart";
-import { generateAllCareerInsights, getSectorAggregatesExtended } from "@/lib/data";
+import { generateAllCareerInsights, getSectorAggregatesExtended, getTotalWorkforce } from "@/lib/data";
 
 export default function HomePage() {
   const insights = generateAllCareerInsights();
   const sectors = getSectorAggregatesExtended();
+  const totalWorkforce = getTotalWorkforce();
   const highRiskCount = insights.filter(
     (i) => i.automationRisk === "High" || i.automationRisk === "Very High"
   ).length;
@@ -69,6 +70,17 @@ export default function HomePage() {
                 className="text-4xl sm:text-5xl font-extrabold text-gradient tabular-nums"
               />
               <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">High-exposure roles</p>
+            </div>
+            <div className="hidden sm:block w-px h-10 bg-zinc-800" aria-hidden="true" />
+            <div>
+              <AnimatedCounter
+                value={totalWorkforce / 1_000_000}
+                decimals={1}
+                suffix="M"
+                durationMs={1600}
+                className="text-4xl sm:text-5xl font-extrabold text-gradient tabular-nums"
+              />
+              <p className="text-xs text-zinc-500 mt-1 uppercase tracking-widest">Total workforce tracked</p>
             </div>
           </div>
         </Reveal>

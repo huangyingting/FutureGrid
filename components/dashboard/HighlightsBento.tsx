@@ -57,6 +57,16 @@ const PANELS: PanelConfig[] = [
     barValue: (e) => e.medianSalary,
     barColor: () => "#f59e0b",
   },
+  {
+    key: "largestWorkforce",
+    title: "Largest Workforce",
+    icon: "👥",
+    accent: "#3b82f6",
+    metric: (e) => e.totalEmployment != null ? e.totalEmployment.toLocaleString() : "—",
+    metricLabel: "employees",
+    barValue: (e) => e.totalEmployment ?? 0,
+    barColor: () => "#3b82f6",
+  },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -66,10 +76,10 @@ export default function HighlightsBento() {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {PANELS.map(({ key, title, icon, accent, metric, metricLabel, barValue, barColor }) => {
           const entries = highlights[key];
-          const maxBar = Math.max(...entries.map((e) => barValue(e)));
+          const maxBar = entries.length > 0 ? Math.max(...entries.map((e) => barValue(e))) : 1;
 
           return (
             <div

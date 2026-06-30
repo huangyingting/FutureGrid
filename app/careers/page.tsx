@@ -11,7 +11,7 @@ const MAX_COMPARE = 3;
 export default function CareersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"risk" | "openings" | "salary">("risk");
+  const [sortBy, setSortBy] = useState<"risk" | "openings" | "salary" | "employment">("risk");
   const [compareList, setCompareList] = useState<CareerInsight[]>([]);
   const [showComparePanel, setShowComparePanel] = useState(false);
 
@@ -33,6 +33,7 @@ export default function CareersPage() {
     return [...result].sort((a, b) => {
       if (sortBy === "risk") return b.automationProbability - a.automationProbability;
       if (sortBy === "openings") return (b.projectedOpenings ?? -Infinity) - (a.projectedOpenings ?? -Infinity);
+      if (sortBy === "employment") return (b.totalEmployment ?? -Infinity) - (a.totalEmployment ?? -Infinity);
       return b.medianSalary - a.medianSalary;
     });
   }, [searchQuery, riskFilter, sortBy, allInsights]);
@@ -83,13 +84,14 @@ export default function CareersPage() {
         </select>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "risk" | "openings" | "salary")}
+          onChange={(e) => setSortBy(e.target.value as "risk" | "openings" | "salary" | "employment")}
           aria-label="Sort occupations"
           className="bg-zinc-900/80 border border-zinc-700/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-violet-500 transition-colors"
         >
           <option value="risk">Sort by AI Exposure</option>
           <option value="openings">Sort by Openings</option>
           <option value="salary">Sort by Salary</option>
+          <option value="employment">Sort by Employment</option>
         </select>
       </div>
 
@@ -219,6 +221,12 @@ export default function CareersPage() {
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Median Salary</span>
                       <span className="text-white">{formatCurrency(i.medianSalary)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Employment</span>
+                      <span className="text-white">
+                        {i.totalEmployment != null ? i.totalEmployment.toLocaleString() : "—"}
+                      </span>
                     </div>
                   </div>
                 </Link>
