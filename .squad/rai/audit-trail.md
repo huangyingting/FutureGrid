@@ -6,6 +6,68 @@
 
 ---
 
+## RAI Audit — 2026-06-30T06:43Z (Round 3 — Real-Data Integration)
+
+**Reviewer:** Rai  
+**Requested by:** huangyingting  
+**Scope:** Real-data integration: Anthropic Economic Index (2025) AI-exposure, BLS salary, O*NET skills, `/global` country data, `/sources` page  
+**Overall Verdict:** 🟢 Green — no blockers; two minor 🟡 advisories
+
+### R3-F1 — 🟢 Hero disclaimer: honest framing confirmed
+- **Files:** `app/page.tsx:84–89`, `components/dashboard/HeroRiskChecker.tsx:88,121,228–230`
+- **WHAT:** Hero disclaimer reads *"a relative exposure measure, not a prediction of job loss."* HeroRiskChecker section label is "AI Exposure Checker", placeholder is "Search an occupation to see its AI exposure…", and the result panel has: *"Estimated automation exposure for this occupation — not a personal forecast."* R2-F1 action items fully addressed.
+- **VERDICT:** No personal-verdict framing. ✅
+
+### R3-F2 — 🟢 RiskGauge: neutral accessible label
+- **File:** `components/ui/RiskGauge.tsx:93–95`
+- **WHAT:** `aria-label` reads `"{occupation}: {value}% — {band} exposure"`. No job-displacement language.
+- **VERDICT:** Clean. ✅
+
+### R3-F3 — 🟢 /sources page: Frey-Osborne disavowal present, sources accurate
+- **Files:** `app/sources/page.tsx:60–82`, `data/sources.json`
+- **WHAT:** Prominent disavowal box: *"We do NOT use Frey & Osborne (2013)."* Primary sources match `data/sources.json`. Context-only references (IMF, OECD, ILO) clearly labelled as not directly loaded.
+- **VERDICT:** Transparent and accurate. ✅
+
+### R3-F4 — 🟢 Attribution / licenses complete
+- **File:** `data/sources.json:3–4`
+- **WHAT:** Top-level `attribution` field covers Anthropic EI (CC-BY 4.0), O*NET 28.3 (CC BY 4.0), BLS (public domain). All rendered via `LicenseBadge` on `/sources`.
+- **VERDICT:** CC-BY 4.0 attribution requirements met. ✅
+
+### R3-F5 — 🟢 Country data (/global): neutral framing
+- **File:** `app/global/page.tsx`
+- **WHAT:** Described as *"a usage-based measure grounded in observed behaviour, not forecasts."* Rankings are numeric indices only; no editorial commentary on nations. Methodology note explains normalisation.
+- **VERDICT:** Neutral, no value-laden national judgements. ✅
+
+### R3-F6 — 🟢 No credentials or PII
+- **Files checked:** `scripts/build-data-snapshot.mjs`, all UI components
+- **WHAT:** No API keys, tokens, or passwords. Fetches are unauthenticated public URLs. No PII.
+- **VERDICT:** Clean. ✅
+
+### R3-F7 — 🟢 Residual Frey-Osborne: none
+- **WHAT:** "Frey"/"Osborne" appear only in: (1) `/sources` disavowal, (2) `data/sources.json:12` provenance note "replaces Frey-Osborne 2013", (3) `scripts/build-data-snapshot.mjs:426` same note. No stale user-visible attribution.
+- **VERDICT:** Clean. ✅
+
+### R3-F8 — 🟡 Incomplete "Risk" → "Exposure" rebranding on career detail page
+- **File:** `app/careers/[code]/page.tsx:118,155,160`
+- **WHAT:** Section heading "Risk Analysis"; table labels "Risk Category" and "Sector Average Risk" — while hero badge, stat bar, and all other pages correctly say "AI Exposure."
+- **WHY:** Partial rebranding; users scrolling past the hero badge encounter legacy "Risk" framing without an exposure qualifier.
+- **HOW:** Rename to "AI Exposure Analysis" / "Exposure Band" / "Sector Avg. Exposure." Advisory; one-line changes.
+
+### R3-F9 — 🟡 "Employment Projections with AI Impact" heading implies causality
+- **Files:** `app/page.tsx:201`, `app/careers/[code]/page.tsx:191`
+- **WHAT:** Chart heading reads "Employment Projections with AI Impact." The chart shows BLS projected openings coloured by AI exposure — independent data co-displayed, not a causal model. The SVG's own title correctly reads "Top Occupations by Projected Annual Openings."
+- **WHY:** "With AI Impact" suggests the projections have been adjusted by an AI model, which overclaims the analysis.
+- **HOW:** Rename to "Employment Projections & AI Exposure." Advisory; no data or logic change.
+
+### Action items (non-blocking)
+
+| Priority | ID | Suggested fix |
+|----------|----|---------------|
+| Low | R3-F8 | Rename "Risk Analysis" → "AI Exposure Analysis" on career detail page |
+| Low | R3-F9 | Rename chart heading → "Employment Projections & AI Exposure" |
+
+---
+
 ## RAI Audit — 2026-06-30T01:49Z
 
 **Reviewer:** Rai  

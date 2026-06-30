@@ -13,3 +13,5 @@
 
 
 **2026-06-30 (Round 2 — Engagement Features):** RAI audit → 🟡 YELLOW (3 advisory findings, all fixed). F1 hero "Research-based estimates", F2 stat "Est. Employment", F3 "About this data" disclaimer. No secrets/PII/stigma. Safe for production.
+
+**2026-06-30 (Round 3 — Real-Data Integration):** Completed licensing audit: BLS (public domain), O*NET (CC-BY 4.0), Anthropic EI (CC-BY) — all freely redistributable. Verified: zero Frey-Osborne values in snapshot, all probabilities = AEI observed_exposure. Data sources.json + /sources page provide comprehensive attribution. Methodology disclaimers cite Anthropic EI + BLS + O*NET, reject Frey-Osborne. 🟢 GREEN (zero compliance/safety issues).

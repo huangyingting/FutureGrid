@@ -14,3 +14,5 @@
 
 
 **2026-06-30 (Round 2 — Engagement Features):** RiskGauge, CommandPalette, SectorScatterChart + Sidebar wiring delivered. 🔴 REJECT B1 (D3 cleanup) → locked-out; Neo applied fix. N1 (matchMedia anti-pattern) self-fixed. Re-review 🟢 APPROVE. `npm run build` exit 0.
+
+**2026-06-30 (Round 3 — Real-Data Integration):** Relabeled "automation risk" → "AI exposure" across all pages; chart axes rewired to projectedOpenings/brightShare; removed Frey-Osborne from sidebar footer, now cites Anthropic EI + BLS + O*NET. CountryExposureChart added for global view. All reduced-motion/a11y maintained. Commit afe77e9. 🟢 BUILD/LINT PASS.

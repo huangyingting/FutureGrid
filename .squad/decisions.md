@@ -88,6 +88,108 @@ FutureGrid is a **refined future-grid aesthetic** with deep near-black backgroun
 
 ---
 
+### FutureGrid Round 3 — Real Data Integration (2026-06-30)
+
+**Requested by:** huangyingting  
+**Status:** Approved (🟢 Rai), Implemented & committed  
+**Scope:** Replace dated Frey & Osborne (2013) with Anthropic Economic Index + BLS + O*NET real, authoritative, multi-country data
+
+#### Research & Data Source Selection (Scout)
+Scout cataloged authoritative data landscape with 16 sources across US, UK, EU, Canada, Australia. Recommendation adopted: 
+- **Primary AI exposure:** Anthropic Economic Index (CC-BY, real Claude-usage AI-penetration metric, 756 occupations, 194 countries)
+- **Employment & Growth:** BLS Employment Projections 2024–2034 (public domain, SOC-keyed, 800+ occupations) + OEWS May 2024 (public domain, wages/employment)
+- **Skills & Tasks:** O*NET 28.1+ (CC-BY 4.0, 1000 SOC occupations, task/skill descriptors)
+- **Multi-country context:** IMF AIOE 2024 (125 countries), OECD Employment Outlook 2023, ILO WESO 2025
+
+#### Implementation (Tank)
+
+**Build-time pipeline (`scripts/build-data-snapshot.mjs`):**
+- Fetch Anthropic Economic Index (HuggingFace) job_exposure.csv → 756 occupations + `observed_exposure` (0–1 scale, real Claude-usage metric, NOT Frey-Osborne)
+- Fetch BLS Employment Projections + OEWS May 2024 → SOC-keyed salary, employment, projections (daily automated refresh possible)
+- Download O*NET zip → extract top 5 skills per SOC (CC-BY 4.0)
+- Fetch AEI country-exposure data (194 countries, Aug 2025) → gdp_per_working_age_capita, usage index
+- Robust CSV parser handling quoted fields; SOC join with 6-digit prefix normalization; graceful degradation for missing data
+- Cache layer (`.data-cache/` gitignored); re-runs are fast
+
+**Output snapshots (committed to repo):**
+- `data/occupation-snapshot.json` (756 records): `socCode, title, sector, aiExposure (0–1), automationRisk, automationProbability (= aiExposure), medianSalary, employment (null, BLS SOC-level unavailable), growthRate (null, no authoritative per-SOC %), jobZone, brightOutlook, projectedOpenings, skills[]`
+- `data/country-exposure.json` (194 countries): `iso3, name, usageIndex, usagePct, usageCount, gdpPerWorkingAgeCapita`
+- `data/sources.json`: Full CC-BY/public domain/CC-BY 4.0 attribution; methodology citation (Anthropic EI + BLS + O*NET + context from IMF/OECD/ILO)
+
+**Risk band calibration (percentile-based):**
+- Analyzed AEI distribution (756 occupations); computed p55/p80/p92 thresholds
+- **Very High:** > p92 (61 occ, ~8%)
+- **High:** p80–p92 (90 occ, ~12%)
+- **Medium:** p55–p80 (189 occ, ~25%)
+- **Low:** ≤ p55 (416 occ, ~55%)
+- Previous fixed thresholds (0.3/0.6/0.85) skewed distribution; new bands are informative across all tiers
+
+**Library updates (additive-only, backward-compatible):**
+- `lib/automation/index.ts`: Load `occupation-snapshot.json`, build AUTOMATION_SCORES map from real data. Preserve all existing exports (`getAutomationScore`, classifyRisk updated to percentile thresholds)
+- `lib/data.ts`: New exports `getCountryExposure()`, `getDataSources()`, interfaces `CountryExposure`, `DataSource`, `DataSources`. Highlights renamed `fastestGrowing` → `brightOutlook` (O*NET Bright flag), add `brightShare` per sector
+- NULL honesty: `employment` → null (BLS provides major-group totals only), `growthRate` → null (no authoritative per-SOC %), `totalEmployment` (sector) → null. NEW field `projectedOpenings` (BLS-EP annual openings, 671/756 occupations)
+
+**Validation:**
+- `npm run build` exit 0 (all routes built)
+- `npx eslint` exit 0 (no errors)
+- Sample occupations confirmed: Marketing Managers (aiExposure=0.3195, real salary), Data Entry Keyers (aiExposure=0.6707), Registered Nurses (aiExposure=0.0595), etc. — NO Frey-Osborne values
+- 672/756 occupations with real salary, 684/756 with O*NET skills, 671/756 with projectedOpenings
+
+---
+
+### FutureGrid Data Fix: Nullable Fields + Bright Outlook Relabel (2026-06-30)
+
+**Requested by:** huangyingting  
+**Status:** Approved (🟢 Coordinator), Implemented & committed (afe77e9)  
+**Scope:** Patch Tank's AI-exposure data integration: null honest fields, relabel "fastestGrowing" → "brightOutlook", calibrate risk bands, add projectedOpenings, update UI disclaimers
+
+#### CareerInsight Schema (Final)
+```typescript
+interface CareerInsight {
+  occupationCode: string;
+  occupationName: string;
+  automationRisk: "Low" | "Medium" | "High" | "Very High";
+  automationProbability: number; // 0–1, = aiExposure (real Claude-usage metric)
+  growthRate: number | null; // null (no authoritative per-SOC source)
+  medianSalary: number; // 0 if unavailable
+  totalEmployment: number | null; // null (BLS SOC-level not available)
+  projectedOpenings: number | null; // BLS-EP annual openings (NEW)
+  outlook: "Bright" | "Average"; // O*NET brightOutlook flag
+  sectorName: string;
+  skills: string[];
+}
+```
+
+#### Highlights (Final)
+- `mostAtRisk`: highest aiExposure
+- `brightOutlook`: (renamed from `fastestGrowing`) O*NET Bright occupations ranked by exposure
+- `mostResilient`: lowest aiExposure
+- `highestPaid`: highest medianSalary
+
+#### SectorAggregate (Extended)
+- New: `brightShare` = fraction of Bright occupations in sector (real growth proxy)
+- Nulled: `avgGrowth`, `totalEmployment` (no source data)
+
+#### UI Updates
+- **Neo** relabeled "automation risk" → "AI exposure" across all pages
+- **Switch** relabeled chart titles; removed Frey & Osborne from footer credit
+- **Disclaimers rewritten:** "Frey & Osborne basis" → cite Anthropic EI / BLS / O*NET; "synthetic data" → replaced with real sources note; "About this data" link to `/sources` page
+- **Null safety:** All template renders check for null growthRate, totalEmployment, avgGrowth before display
+
+#### Verification (Rai, Coordinator)
+- `npm run build` exit 0
+- `npx eslint` exit 0, no warnings
+- All 9+ routes HTTP 200
+- No hydration errors
+- No regressions (prior UI features intact)
+- 🟢 Rai: No PII, secrets, stigma; compliance with all disclaimers
+
+#### Commits
+- 2b1c53d: Foundation — build-data-snapshot.mjs, data/occupation-snapshot.json, data/country-exposure.json, data/sources.json, lib rewire
+- afe77e9: Data fix — percentile calibration, null fields, brightOutlook relabel, /sources page, UI disclaimers
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus

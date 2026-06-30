@@ -14,3 +14,5 @@
 
 
 **2026-06-30 (Round 2 — Engagement Features):** Data layer enrichment — SearchItem interface, getSearchIndex(), searchInsights(), N3 deterministic hash (SSR correctness fix, coordinator-approved). `npm run build` exit 0. Additive-only contract verified.
+
+**2026-06-30 (Round 3 — Real-Data Integration):** Built scripts/build-data-snapshot.mjs fetching Anthropic Economic Index + BLS + O*NET → committed data/occupation-snapshot.json (756 occ, real AI exposure), data/country-exposure.json (194 countries), data/sources.json (CC-BY/public-domain attribution). Lib rewire: percentile-calibrated risk bands, null fields honest, brightOutlook relabel, projectedOpenings field. Zero Frey-Osborne values. Commits: 2b1c53d (foundation) + afe77e9 (data fix). 🟢 BUILD/LINT PASS.
