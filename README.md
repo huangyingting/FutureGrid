@@ -45,6 +45,8 @@ The production build is a static export written to the `out/` directory, ready f
 
 Pushes to `main` publish the static export with the `Deploy GitHub Pages` workflow. In the repository settings, set Pages source to `GitHub Actions` and configure the custom domain `futuregrid.genisisiq.com`.
 
+Set the `NEXT_PUBLIC_GA_ID` repository secret to enable Google Analytics in the published site.
+
 ### Data Snapshot
 
 ```bash

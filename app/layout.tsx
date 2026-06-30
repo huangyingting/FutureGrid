@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import Sidebar from "@/components/dashboard/Sidebar";
 import GridBackground from "@/components/ui/GridBackground";
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="h-full bg-[#07080d] text-zinc-200">
+        <GoogleAnalytics />
         <GridBackground />
         <Sidebar />
         {/* pt-16 on mobile offsets the fixed top bar; lg resets to lg:pt-0 via p-8 shorthand */}
