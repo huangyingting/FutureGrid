@@ -170,6 +170,144 @@ function onetToSoc6(code) {
   return m ? m[1] : code;
 }
 
+// ─── BLS helpers ───────────────────────────────────────────────────────────────
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+/** POST to BLS Public Data API v2, returns parsed JSON response. */
+function blsPost(seriesids, startyear, endyear, registrationkey) {
+  const body = JSON.stringify({ seriesid: seriesids, startyear, endyear, registrationkey });
+  return new Promise((resolve, reject) => {
+    const opts = {
+      hostname: "api.bls.gov",
+      path: "/publicAPI/v2/timeseries/data/",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+        "User-Agent": UA,
+      },
+    };
+    const req = https.request(opts, (res) => {
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => {
+        try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf8"))); }
+        catch (e) { reject(new Error(`BLS JSON parse error: ${e.message}`)); }
+      });
+      res.on("error", reject);
+    });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+/**
+ * Find the latest annual (period A01) value in a BLS series data array.
+ * Returns { value: number, year: string } or null.
+ */
+function getLatestAnnual(data) {
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const annual = data.filter((d) => d.period === "A01" && d.value && d.value !== "-");
+  if (annual.length === 0) return null;
+  annual.sort((a, b) => parseInt(b.year) - parseInt(a.year));
+  const val = parseFloat(annual[0].value.replace(/,/g, ""));
+  return isNaN(val) ? null : { value: val, year: annual[0].year };
+}
+
+/**
+ * Enrich occupations[] in-place with OEWS employment + annual median wage from BLS API v2.
+ *
+ * With BLS_API_KEY: batches 50 series per request, retries with backoff, updates
+ * `employment` (integer, OEWS total) and `medianSalary` (authoritative OEWS wage).
+ * Without key: logs a clear notice and returns immediately (snapshot stays valid, employment null).
+ *
+ * @param {object[]} occupations  snapshot array (mutated in place)
+ * @returns {{ enriched: boolean, empUpdated: number, wageUpdated: number }}
+ */
+async function enrichWithBLS(occupations) {
+  const apiKey = process.env.BLS_API_KEY;
+
+  if (!apiKey) {
+    console.log("\n[BLS] BLS_API_KEY not set — skipping real employment/wage enrichment");
+    console.log("      (set it and re-run `npm run build:data`).");
+    return { enriched: false, empUpdated: 0, wageUpdated: 0 };
+  }
+
+  console.log(`\n[BLS] Enriching ${occupations.length} occupations via BLS Public Data API v2 …`);
+
+  // Map series ID → { field: "emp"|"wage", occ: occupationObject }
+  const seriesMap = new Map();
+  const allSeriesIds = [];
+  for (const occ of occupations) {
+    const soc6 = occ.socCode.replace("-", "");
+    const empId  = `OEUN0000000000000${soc6}01`;
+    const wageId = `OEUN0000000000000${soc6}13`;
+    seriesMap.set(empId,  { field: "emp",  occ });
+    seriesMap.set(wageId, { field: "wage", occ });
+    allSeriesIds.push(empId, wageId);
+  }
+
+  const BATCH_SIZE = 50;
+  const totalBatches = Math.ceil(allSeriesIds.length / BATCH_SIZE);
+  let empUpdated = 0, wageUpdated = 0;
+
+  for (let i = 0; i < allSeriesIds.length; i += BATCH_SIZE) {
+    const batch = allSeriesIds.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    process.stdout.write(`  Batch ${batchNum}/${totalBatches} (${batch.length} series) … `);
+
+    let success = false;
+    for (let attempt = 1; attempt <= 3 && !success; attempt++) {
+      try {
+        const resp = await blsPost(batch, "2024", "2025", apiKey);
+
+        if (resp.status === "REQUEST_SUCCEEDED") {
+          for (const series of (resp.Results?.series ?? [])) {
+            const latest = getLatestAnnual(series.data);
+            if (latest === null) continue;
+            const entry = seriesMap.get(series.seriesID);
+            if (!entry) continue;
+            if (entry.field === "emp") {
+              entry.occ.employment = Math.round(latest.value);
+              empUpdated++;
+            } else {
+              entry.occ.medianSalary = Math.round(latest.value);
+              wageUpdated++;
+            }
+          }
+          success = true;
+        } else {
+          const msgs = (resp.message ?? []).join(" ");
+          const isLimit = /threshold|limit|exceeded/i.test(msgs);
+          console.warn(`\n  ⚠ status=${resp.status} attempt=${attempt}: ${msgs}`);
+          if (isLimit) {
+            console.warn("  Rate limit hit — waiting 60 s …");
+            await sleep(60_000);
+          } else if (attempt < 3) {
+            await sleep(2_000 * attempt);
+          }
+        }
+      } catch (err) {
+        console.warn(`\n  ⚠ batch ${batchNum} attempt ${attempt} error: ${err.message}`);
+        if (attempt < 3) await sleep(2_000 * attempt);
+      }
+    }
+
+    if (!success) {
+      process.stdout.write("FAILED\n");
+    } else {
+      process.stdout.write("ok\n");
+    }
+
+    if (i + BATCH_SIZE < allSeriesIds.length) await sleep(300);
+  }
+
+  console.log(`  → employment updated: ${empUpdated}, wages updated: ${wageUpdated}`);
+  return { enriched: true, empUpdated, wageUpdated };
+}
+
 // classifyRisk is defined inside main() using percentile thresholds from the actual distribution
 
 // ─── Main pipeline ─────────────────────────────────────────────────────────────
@@ -388,6 +526,10 @@ async function main() {
 
   console.log(`\n  Occupation snapshot: ${snapshot.length} records (skipped ${skippedNoExposure} missing exposure)`);
 
+  // ─── BLS OEWS enrichment (employment + wages) ──────────────────────────────
+  const { enriched: blsEnriched, empUpdated: blsEmpUpdated, wageUpdated: blsWageUpdated } =
+    await enrichWithBLS(snapshot);
+
   // ─── Country exposure ──────────────────────────────────────────────────────
   // Long format: filter geography=="country", pivot variables to columns
   const countryPivot = new Map(); // iso3 → { iso3, name, usageIndex, usagePct, usageCount, gdpPerWorkingAgeCapita }
@@ -431,7 +573,15 @@ async function main() {
         year: 2025,
         url: "https://huggingface.co/datasets/Anthropic/EconomicIndex",
         license: "CC-BY 4.0",
-        usedFor: "Median salary, job forecast, job zone, bright outlook, sector (JobFamily)",
+        usedFor: "Median salary fallback, job forecast, job zone, bright outlook, sector (JobFamily)",
+      },
+      {
+        name: "BLS Occupational Employment and Wage Statistics (OEWS) via BLS Public Data API (api.bls.gov)",
+        publisher: "U.S. Bureau of Labor Statistics",
+        year: 2025,
+        url: "https://www.bls.gov/oes/",
+        license: "Public Domain",
+        usedFor: "per-occupation employment + median wage (authoritative; overrides AEI bundle when BLS_API_KEY set)",
       },
       {
         name: "Anthropic Economic Index — BLS Employment May 2023",
@@ -439,7 +589,7 @@ async function main() {
         year: 2023,
         url: "https://huggingface.co/datasets/Anthropic/EconomicIndex",
         license: "CC-BY 4.0 (derived); BLS original is public domain",
-        usedFor: "Employment totals by occupation",
+        usedFor: "Employment totals by occupation (legacy fallback — superseded by OEWS API when key is set)",
       },
       {
         name: "Anthropic Economic Index — Country AI Adoption (Aug 2025)",
@@ -482,7 +632,7 @@ async function main() {
         usedFor: "Context/validation reference only — not directly loaded",
       },
     ],
-    note: `automationRisk bands are percentile-calibrated from the aiExposure distribution (${en} occupations): Very High = top ~8% (aiExposure > ${VH_THRESHOLD.toFixed(4)}), High = next ~12% (> ${HIGH_THRESHOLD.toFixed(4)}), Medium = next ~25% (> ${MED_THRESHOLD.toFixed(4)}), Low = remainder (≤ ${MED_THRESHOLD.toFixed(4)}). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment is null (BLS file contains only major-group totals). growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: ` + (onetSkillsFailed ? "FAILED — default skills used" : "successfully loaded"),
+    note: `automationRisk bands are percentile-calibrated from the aiExposure distribution (${en} occupations): Very High = top ~8% (aiExposure > ${VH_THRESHOLD.toFixed(4)}), High = next ~12% (> ${HIGH_THRESHOLD.toFixed(4)}), Medium = next ~25% (> ${MED_THRESHOLD.toFixed(4)}), Low = remainder (≤ ${MED_THRESHOLD.toFixed(4)}). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment: ${blsEnriched ? `real OEWS 2025 figures (${blsEmpUpdated} occupations updated via BLS Public Data API)` : "null — BLS_API_KEY not set; set it and re-run npm run build:data"}. medianSalary: ${blsEnriched ? `OEWS 2025 where available (${blsWageUpdated} updated), AEI-bundled wage otherwise` : "AEI-bundled (BLS_API_KEY not set)"}. growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: ` + (onetSkillsFailed ? "FAILED — default skills used" : "successfully loaded"),
   };
 
   // ─── Write JSON files ──────────────────────────────────────────────────────

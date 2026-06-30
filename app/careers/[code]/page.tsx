@@ -83,6 +83,15 @@ export default function CareerDetailPage() {
             label: "Proj. Annual Openings",
             className: "text-white",
           },
+          ...(career.totalEmployment != null
+            ? [
+                {
+                  value: career.totalEmployment.toLocaleString(),
+                  label: "Employment (OEWS 2025)",
+                  className: "text-white",
+                },
+              ]
+            : []),
           {
             value: `${resiliency}`,
             label: "AI Resiliency Score",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T06:20:30.515Z",
+  "generatedAt": "2026-06-30T08:12:23.676Z",
   "license": "CC-BY 4.0 (Anthropic Economic Index); CC BY 4.0 (O*NET, USDOL/ETA); Public Domain (BLS)",
   "attribution": "Anthropic Economic Index (Anthropic, 2025); O*NET 28.3 (U.S. Department of Labor/ETA); BLS Employment Statistics (U.S. Bureau of Labor Statistics, 2023)",
   "sources": [
@@ -17,7 +17,15 @@
       "year": 2025,
       "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
       "license": "CC-BY 4.0",
-      "usedFor": "Median salary, job forecast, job zone, bright outlook, sector (JobFamily)"
+      "usedFor": "Median salary fallback, job forecast, job zone, bright outlook, sector (JobFamily)"
+    },
+    {
+      "name": "BLS Occupational Employment and Wage Statistics (OEWS) via BLS Public Data API (api.bls.gov)",
+      "publisher": "U.S. Bureau of Labor Statistics",
+      "year": 2025,
+      "url": "https://www.bls.gov/oes/",
+      "license": "Public Domain",
+      "usedFor": "per-occupation employment + median wage (authoritative; overrides AEI bundle when BLS_API_KEY set)"
     },
     {
       "name": "Anthropic Economic Index — BLS Employment May 2023",
@@ -25,7 +33,7 @@
       "year": 2023,
       "url": "https://huggingface.co/datasets/Anthropic/EconomicIndex",
       "license": "CC-BY 4.0 (derived); BLS original is public domain",
-      "usedFor": "Employment totals by occupation"
+      "usedFor": "Employment totals by occupation (legacy fallback — superseded by OEWS API when key is set)"
     },
     {
       "name": "Anthropic Economic Index — Country AI Adoption (Aug 2025)",
@@ -68,5 +76,5 @@
       "usedFor": "Context/validation reference only — not directly loaded"
     }
   ],
-  "note": "automationRisk bands are percentile-calibrated from the aiExposure distribution (756 occupations): Very High = top ~8% (aiExposure > 0.3104), High = next ~12% (> 0.1378), Medium = next ~25% (> 0.0080), Low = remainder (≤ 0.0080). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment is null (BLS file contains only major-group totals). growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: successfully loaded"
+  "note": "automationRisk bands are percentile-calibrated from the aiExposure distribution (756 occupations): Very High = top ~8% (aiExposure > 0.3104), High = next ~12% (> 0.1378), Medium = next ~25% (> 0.0080), Low = remainder (≤ 0.0080). aiExposure = observed_exposure from Anthropic Economic Index (Claude AI-usage based, not Frey-Osborne 2013). employment: real OEWS 2025 figures (755 occupations updated via BLS Public Data API). medianSalary: OEWS 2025 where available (752 updated), AEI-bundled wage otherwise. growthRate is null (no authoritative per-SOC % growth in AEI files). projectedOpenings from wage_data.JobForecast (BLS-EP annual openings) where > 0. O*NET skills: successfully loaded"
 }
