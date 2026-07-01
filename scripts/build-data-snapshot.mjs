@@ -188,7 +188,7 @@ function onetToSoc6(code) {
 
 // ─── BLS helpers ───────────────────────────────────────────────────────────────
 
-const BLS_HISTORY_START = "2019";
+const BLS_HISTORY_START = "2016";
 const BLS_HISTORY_END   = "2025";
 
 /**
@@ -199,6 +199,9 @@ const BLS_HISTORY_END   = "2025";
  * 2024 was not yet captured and 2025 comes from the live API above.
  */
 const OEWS_HISTORY_YEARS = [
+  { year: "2016", yr: "16", ts: "20260613002610" },
+  { year: "2017", yr: "17", ts: "20260613002711" },
+  { year: "2018", yr: "18", ts: "20260613002703" },
   { year: "2019", yr: "19", ts: "20210101000000" },
   { year: "2020", yr: "20", ts: "20210416171629" },
   { year: "2021", yr: "21", ts: "20220601000000" },
@@ -206,14 +209,17 @@ const OEWS_HISTORY_YEARS = [
   { year: "2023", yr: "23", ts: "20240819155659" },
 ];
 
-/** Python helper that parses an OEWS national xlsx → {OCC_CODE: {emp,wage}} JSON. */
+/** Python helper that parses an OEWS national xlsx → {OCC_CODE: {emp,wage}} JSON.
+ *  Handles both post-2019 format (has naics/own_code/o_group columns) and
+ *  pre-2019 format (no naics/own_code; group column is occ_group). */
 const PARSE_OEWS_PY = `import json, openpyxl, sys
 wb = openpyxl.load_workbook(sys.argv[1], read_only=True)
 ws = wb.active
 it = ws.iter_rows(values_only=True)
 headers = [str(h).lower().strip() if h is not None else '' for h in next(it)]
 def ci(name): return headers.index(name) if name in headers else -1
-i_naics=ci('naics'); i_og=ci('o_group'); i_own=ci('own_code')
+i_naics=ci('naics'); i_own=ci('own_code')
+i_og=ci('o_group') if ci('o_group')>=0 else ci('occ_group')
 i_code=ci('occ_code'); i_emp=ci('tot_emp'); i_wage=ci('a_median')
 def toint(v):
     if v is None: return None
@@ -223,11 +229,12 @@ def toint(v):
     except: return None
 result={}
 for row in it:
-    naics=str(row[i_naics]).strip() if i_naics>=0 else ''
-    og=str(row[i_og]).strip().lower() if i_og>=0 else ''
-    own=str(row[i_own]).strip() if i_own>=0 else ''
     code=str(row[i_code]).strip() if i_code>=0 else ''
-    if naics!='000000' or og!='detailed' or own!='1235' or not code or code=='None': continue
+    if not code or code=='None': continue
+    og=str(row[i_og]).strip().lower() if i_og>=0 else ''
+    if og!='detailed': continue
+    if i_naics>=0 and str(row[i_naics]).strip()!='000000': continue
+    if i_own>=0 and str(row[i_own]).strip()!='1235': continue
     emp=toint(row[i_emp] if i_emp>=0 else None)
     wage=toint(row[i_wage] if i_wage>=0 else None)
     if emp is not None or wage is not None:
@@ -465,13 +472,18 @@ async function enrichWithOEWSHistory(occupations, cacheDir) {
       try { execSync(`unzip -q "${zipPath}" -d "${unzipDir}"`, { stdio: "ignore" }); } catch { /* ignore */ }
     }
 
-    // Find xlsx
-    const xlsxFiles = execSync(`find "${unzipDir}" -name "*.xlsx" 2>/dev/null`)
+    // Find xlsx — prefer national_M*_dl.xlsx over auxiliary files (e.g. field_descriptions.xlsx)
+    const allXlsx = execSync(`find "${unzipDir}" -name "*.xlsx" 2>/dev/null`)
       .toString().trim().split("\n").filter(Boolean);
-    if (!xlsxFiles.length) {
+    if (!allXlsx.length) {
       console.warn(`  ⚠ ${year}: no xlsx found in ZIP`);
       continue;
     }
+    const xlsxFiles = allXlsx.sort((a, b) => {
+      const aMain = /national_M\d+_dl\.xlsx$/i.test(a) ? 0 : 1;
+      const bMain = /national_M\d+_dl\.xlsx$/i.test(b) ? 0 : 1;
+      return aMain - bMain;
+    });
 
     // Parse with Python
     process.stdout.write(`  [OEWS ${year}] Parsing ${path.basename(xlsxFiles[0])} … `);
