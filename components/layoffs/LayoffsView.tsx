@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { getWarnData, getWarnNotices } from "@/lib/warn";
+import { useTheme } from "next-themes";
+import {
+  getWarnData,
+  getWarnNotices,
+  getWarnCoverage,
+  getWarnSources,
+  getWarnByState,
+} from "@/lib/warn";
 import type { WarnNotice } from "@/lib/warn";
 import WarnTrendChart from "./WarnTrendChart";
 import { useT } from "@/lib/i18n/useT";
@@ -37,6 +44,7 @@ function fmtDateShort(iso: string): string {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 50;
+const TOP_TYPES = 6;
 
 type SortKey = "date" | "employees";
 
@@ -71,39 +79,50 @@ function StatCard({
 
 export default function LayoffsView() {
   const t = useT("layoffs");
+  const { resolvedTheme } = useTheme();
+  const isDark = (resolvedTheme ?? "dark") !== "light";
 
-  const { generatedAt, source, summary } = getWarnData();
+  const { generatedAt, summary } = getWarnData();
+  const coverage  = getWarnCoverage();
+  const sources   = getWarnSources();
+  const byState   = getWarnByState();
   const allNotices = useMemo(() => getWarnNotices(), []);
 
-  const [query,   setQuery]   = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("date");
-  const [shown,   setShown]   = useState(PAGE_SIZE);
+  const [query,       setQuery]       = useState("");
+  const [sortKey,     setSortKey]     = useState<SortKey>("date");
+  const [stateFilter, setStateFilter] = useState("");
+  const [shown,       setShown]       = useState(PAGE_SIZE);
 
   // ── Filtered + sorted notices ────────────────────────────────────────────────
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list: WarnNotice[] = q
-      ? allNotices.filter(
-          (n) =>
-            (n.company?.toLowerCase().includes(q)) ||
-            (n.county?.toLowerCase().includes(q)),
-        )
-      : allNotices;
+    let list: WarnNotice[] = allNotices;
 
+    if (stateFilter) {
+      list = list.filter((n) => n.state === stateFilter);
+    }
+    if (q) {
+      list = list.filter(
+        (n) =>
+          (n.company?.toLowerCase().includes(q)) ||
+          (n.county?.toLowerCase().includes(q)) ||
+          (n.stateName?.toLowerCase().includes(q)),
+      );
+    }
     if (sortKey === "employees") {
       list = [...list].sort((a, b) => b.employees - a.employees);
     }
     // "date" order: getWarnNotices() is already most-recent-first
     return list;
-  }, [allNotices, query, sortKey]);
+  }, [allNotices, query, stateFilter, sortKey]);
 
   const visibleNotices = filtered.slice(0, shown);
 
   // ── Derived summary values ───────────────────────────────────────────────────
-  const permLayoff   = summary.byType.find((bt) => bt.type === "Layoff Permanent");
-  const permClosure  = summary.byType.find((bt) => bt.type === "Closure Permanent");
   const maxEmpByEmp  = summary.topEmployers[0]?.employees ?? 1;
-  const maxTypeByEmp = summary.byType[0]?.employees ?? 1;
+  const topTypes     = summary.byType.slice(0, TOP_TYPES);
+  const maxTypeByEmp = topTypes[0]?.employees ?? 1;
+  const maxStateEmp  = byState[0]?.employees ?? 1;
 
   const dateRangeLabel =
     summary.dateRange.earliest && summary.dateRange.latest
@@ -137,14 +156,22 @@ export default function LayoffsView() {
             })}
           </span>
           {" · "}
-          <a
-            href={source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-violet-500 hover:text-violet-400 underline underline-offset-2 transition-colors"
-          >
-            {source.publisher}
-          </a>
+          <span className="text-zinc-600 dark:text-zinc-400">{coverage}</span>
+        </p>
+        <p className="text-xs text-zinc-500 mt-1">
+          {sources.map((src, i) => (
+            <span key={src.state}>
+              {i > 0 && <span className="mx-1 text-zinc-400">·</span>}
+              <a
+                href={src.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-500 hover:text-violet-400 underline underline-offset-2 transition-colors"
+              >
+                {src.stateName}
+              </a>
+            </span>
+          ))}
         </p>
       </div>
 
@@ -161,16 +188,90 @@ export default function LayoffsView() {
           sub={dateRangeLabel}
         />
         <StatCard
-          label={t("statLayoffs")}
-          value={permLayoff?.notices.toLocaleString() ?? "—"}
-          sub={permLayoff ? `${fmtNum(permLayoff.employees)} ${t("employees")}` : undefined}
+          label={t("statesCovered")}
+          value={String(byState.length)}
+          sub={byState.map((s) => s.state).join(" · ")}
         />
         <StatCard
-          label={t("statPermanentClosures")}
-          value={permClosure?.notices.toLocaleString() ?? "—"}
-          sub={permClosure ? `${fmtNum(permClosure.employees)} ${t("employees")}` : undefined}
+          label={t("statDateRange")}
+          value={
+            summary.dateRange.earliest && summary.dateRange.latest
+              ? `${summary.dateRange.earliest.slice(0, 4)}–${summary.dateRange.latest.slice(0, 4)}`
+              : "—"
+          }
+          sub={`${summary.total.toLocaleString()} ${t("notices")}`}
         />
       </div>
+
+      {/* ── By State ─────────────────────────────────────────────────────────── */}
+      <section aria-labelledby="wtc-bystate-heading">
+        <div className="mb-4">
+          <h2 id="wtc-bystate-heading" className="text-xl font-semibold text-zinc-900 dark:text-white">
+            {t("byStateHeading")}
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{t("byStateDesc")}</p>
+        </div>
+        <div
+          className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 space-y-5"
+          role="img"
+          aria-label={t("srByStateLabel")}
+        >
+          {byState.map((st) => {
+            const dr =
+              st.dateRange.earliest && st.dateRange.latest
+                ? `${fmtDateShort(st.dateRange.earliest)} – ${fmtDateShort(st.dateRange.latest)}`
+                : "—";
+            const isHistorical = ["NY", "TX", "OH"].includes(st.state);
+            return (
+              <div key={st.state}>
+                <div className="flex justify-between items-baseline gap-2 mb-1.5">
+                  <span className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+                      {st.stateName}
+                    </span>
+                    {isHistorical && (
+                      <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-700/60 text-zinc-500 dark:text-zinc-400">
+                        historical
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-xs text-zinc-500 shrink-0 tabular-nums">
+                    {fmtNum(st.employees)} {t("employees")} · {st.notices.toLocaleString()} {t("notices")}
+                  </span>
+                </div>
+                <div
+                  className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden"
+                  aria-hidden="true"
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(st.employees / maxStateEmp) * 100}%`,
+                      background: isHistorical
+                        ? isDark ? "#6366f1" : "#818cf8"
+                        : isDark ? "#7c3aed" : "#8b5cf6",
+                      transition: "width 0.6s ease",
+                    }}
+                  />
+                </div>
+                <p className="text-[10px] text-zinc-400 mt-0.5">{dr}</p>
+              </div>
+            );
+          })}
+          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+            {t("historicalNote")}
+          </p>
+          {/* SR-only full list */}
+          <ul className="sr-only">
+            {byState.map((st) => (
+              <li key={st.state}>
+                {st.stateName}: {st.employees.toLocaleString()} {t("employees")},{" "}
+                {st.notices.toLocaleString()} {t("notices")}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
       {/* ── Monthly Trend Chart ───────────────────────────────────────────────── */}
       <section aria-labelledby="wtc-trend-heading">
@@ -207,10 +308,15 @@ export default function LayoffsView() {
             aria-label={t("srTopEmployersLabel")}
           >
             {summary.topEmployers.slice(0, 12).map((emp) => (
-              <div key={emp.company}>
+              <div key={`${emp.company}-${emp.state}`}>
                 <div className="flex justify-between items-baseline gap-2 mb-1.5">
-                  <span className="text-sm font-medium text-zinc-900 dark:text-white truncate max-w-[65%]">
-                    {emp.company}
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white truncate max-w-[55%]">
+                      {emp.company}
+                    </span>
+                    <span className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-600 dark:text-violet-400 border border-violet-400/20 shrink-0">
+                      {emp.state}
+                    </span>
                   </span>
                   <span className="text-xs text-zinc-500 shrink-0 tabular-nums">
                     {emp.employees.toLocaleString()}
@@ -237,8 +343,8 @@ export default function LayoffsView() {
             {/* SR-only full list */}
             <ul className="sr-only">
               {summary.topEmployers.slice(0, 12).map((emp) => (
-                <li key={emp.company}>
-                  {emp.company}: {emp.employees.toLocaleString()} {t("employees")},{" "}
+                <li key={`${emp.company}-${emp.state}`}>
+                  {emp.company} ({emp.state}): {emp.employees.toLocaleString()} {t("employees")},{" "}
                   {emp.notices} {t("notices")}
                 </li>
               ))}
@@ -264,10 +370,10 @@ export default function LayoffsView() {
             role="img"
             aria-label={t("srByTypeLabel")}
           >
-            {summary.byType.map((tp) => (
+            {topTypes.map((tp) => (
               <div key={tp.type}>
                 <div className="flex justify-between items-baseline gap-2 mb-1.5">
-                  <span className="text-sm font-medium text-zinc-900 dark:text-white">
+                  <span className="text-sm font-medium text-zinc-900 dark:text-white truncate max-w-[65%]">
                     {tp.type}
                   </span>
                   <span className="text-xs text-zinc-500 shrink-0 tabular-nums">
@@ -294,7 +400,7 @@ export default function LayoffsView() {
 
             {/* SR-only full list */}
             <ul className="sr-only">
-              {summary.byType.map((tp) => (
+              {topTypes.map((tp) => (
                 <li key={tp.type}>
                   {tp.type}: {tp.employees.toLocaleString()} {t("employees")},{" "}
                   {tp.notices} {t("notices")}
@@ -324,6 +430,21 @@ export default function LayoffsView() {
             className="flex-1 min-w-48 max-w-sm h-9 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white text-sm px-3 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors"
             aria-label={t("searchPlaceholder")}
           />
+
+          {/* State filter */}
+          <select
+            value={stateFilter}
+            onChange={(e) => { setStateFilter(e.target.value); setShown(PAGE_SIZE); }}
+            className="h-9 px-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors"
+            aria-label={t("stateColumn")}
+          >
+            <option value="">{t("stateFilterAll")}</option>
+            {sources.map((src) => (
+              <option key={src.state} value={src.state}>
+                {src.stateName} ({src.state})
+              </option>
+            ))}
+          </select>
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
@@ -362,7 +483,7 @@ export default function LayoffsView() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[640px]">
+              <table className="w-full text-sm min-w-[740px]">
                 <thead>
                   <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/60">
                     <th
@@ -370,6 +491,12 @@ export default function LayoffsView() {
                       className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400"
                     >
                       {t("tableCompany")}
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400"
+                    >
+                      {t("stateColumn")}
                     </th>
                     <th
                       scope="col"
@@ -400,12 +527,17 @@ export default function LayoffsView() {
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
                   {visibleNotices.map((notice: WarnNotice, i: number) => (
                     <tr
-                      key={`${notice.company}-${notice.noticeDate ?? "null"}-${i}`}
+                      key={`${notice.company}-${notice.state}-${notice.noticeDate ?? "null"}-${i}`}
                       className="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors"
                     >
                       <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white max-w-xs">
                         <span className="block truncate" title={notice.company}>
                           {notice.company}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="text-xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                          {notice.state}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
@@ -427,6 +559,11 @@ export default function LayoffsView() {
             </div>
           )}
         </div>
+
+        {/* Note about table scope */}
+        <p className="text-[11px] text-zinc-400 mt-2">
+          {t("tableNoteRecentPerState")}
+        </p>
 
         {/* Show more / less */}
         {filtered.length > PAGE_SIZE && (
@@ -453,7 +590,7 @@ export default function LayoffsView() {
         )}
       </section>
 
-      {/* ── Source / WARN Act footnote ────────────────────────────────────────── */}
+      {/* ── Sources / WARN Act footnote ───────────────────────────────────────── */}
       <section aria-labelledby="wtc-source-heading">
         <div className="glass bg-white/70 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 space-y-4">
           <h2
@@ -463,43 +600,31 @@ export default function LayoffsView() {
             {t("warnActLabel")}
           </h2>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-            {source.note}
+            {coverage}
           </p>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            <div>
-              <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-0.5">
-                {t("sourceLabel")}
-              </dt>
-              <dd>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-violet-500 hover:text-violet-400 underline underline-offset-2 transition-colors"
-                >
-                  {source.name}
-                </a>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-0.5">
-                {t("publisherLabel")}
-              </dt>
-              <dd className="text-zinc-700 dark:text-zinc-300">{source.publisher}</dd>
-            </div>
-            <div>
-              <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-0.5">
-                {t("coverageLabel")}
-              </dt>
-              <dd className="text-zinc-700 dark:text-zinc-300">{source.coverage}</dd>
-            </div>
-            <div>
-              <dt className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 mb-0.5">
-                {t("licenseLabel")}
-              </dt>
-              <dd className="text-zinc-700 dark:text-zinc-300">{source.license}</dd>
-            </div>
-          </dl>
+          <div className="space-y-3">
+            {sources.map((src) => (
+              <div key={src.state} className="flex flex-wrap items-start gap-x-3 gap-y-0.5 text-sm">
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-6 shrink-0 mt-0.5">
+                  {src.state}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <a
+                    href={src.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-violet-500 hover:text-violet-400 underline underline-offset-2 transition-colors"
+                  >
+                    {src.name}
+                  </a>
+                  <span className="text-zinc-500 ml-2">({src.publisher})</span>
+                  {src.license && (
+                    <span className="text-zinc-400 text-xs ml-2">· {src.license}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

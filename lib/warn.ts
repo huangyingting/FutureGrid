@@ -8,12 +8,12 @@ export interface WarnNotice {
   company: string;
   county: string | null;
   city: string | null;
-  address: string | null;
   employees: number;
   noticeDate: string | null; // ISO "YYYY-MM-DD"
   effectiveDate: string | null;
   layoffType: string | null;
-  state: string; // "CA"
+  state: string; // 2-letter, e.g. "CA"
+  stateName: string; // e.g. "California"
 }
 
 export interface WarnMonth {
@@ -22,27 +22,42 @@ export interface WarnMonth {
   employees: number;
 }
 
+export interface WarnDateRange {
+  earliest: string | null;
+  latest: string | null;
+}
+
+export interface WarnStateStat {
+  state: string;
+  stateName: string;
+  notices: number;
+  employees: number;
+  dateRange: WarnDateRange;
+}
+
 export interface WarnSummary {
   total: number;
   totalEmployees: number;
-  dateRange: { earliest: string | null; latest: string | null };
+  dateRange: WarnDateRange;
+  byState: WarnStateStat[];
   byMonth: WarnMonth[];
   byType: { type: string; notices: number; employees: number }[];
-  topEmployers: { company: string; employees: number; notices: number }[];
+  topEmployers: { company: string; employees: number; notices: number; state: string }[];
 }
 
 export interface WarnSource {
+  state: string;
+  stateName: string;
   name: string;
   publisher: string;
   url: string;
   license: string;
-  coverage: string;
-  note?: string;
 }
 
 export interface WarnData {
   generatedAt: string;
-  source: WarnSource;
+  coverage: string;
+  sources: WarnSource[];
   notices: WarnNotice[];
   summary: WarnSummary;
 }
@@ -53,8 +68,17 @@ export function getWarnData(): WarnData {
   return data;
 }
 
-export function getWarnSource(): WarnSource {
-  return data.source;
+export function getWarnCoverage(): string {
+  return data.coverage;
+}
+
+export function getWarnSources(): WarnSource[] {
+  return data.sources;
+}
+
+/** Per-state totals (from the full pre-trim set), sorted by employees desc. */
+export function getWarnByState(): WarnStateStat[] {
+  return data.summary.byState;
 }
 
 export function getWarnSummary(): WarnSummary {
