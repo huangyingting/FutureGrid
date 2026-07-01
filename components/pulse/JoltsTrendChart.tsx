@@ -13,15 +13,10 @@ import {
 // ── NBER recession periods ─────────────────────────────────────────────────────
 
 const RECESSIONS = [
-  { start: "2001-03", end: "2001-11" },
-  { start: "2007-12", end: "2009-06" },
   { start: "2020-02", end: "2020-04" },
 ] as const;
 
-const RECESSION_LABEL_BANDS = [
-  { start: "2001-03", end: "2001-11" },
-  { start: "2007-12", end: "2009-06" },
-] as const;
+const RECESSION_LABEL_BANDS = [] as const;
 
 const parseMonth = d3.timeParse("%Y-%m");
 

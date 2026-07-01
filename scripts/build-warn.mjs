@@ -21,6 +21,9 @@ if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 const MAX_NOTICES_PER_STATE = 2500;
+// Keep only the latest 10 years of notices (drop older historical rows).
+const MIN_NOTICE_YEAR = new Date().getUTCFullYear() - 10;
+const MIN_NOTICE_DATE = `${MIN_NOTICE_YEAR}-01-01`;
 
 // ─── Generic HTTP fetch with retry + exponential backoff ────────────────────
 
@@ -740,6 +743,13 @@ async function main() {
     });
   }
 
+  // Keep only the latest 10 years (drop pre-MIN_NOTICE_YEAR historical rows).
+  for (const entry of fullRecordsPerState) {
+    entry.records = entry.records.filter(
+      (r) => !r.noticeDate || r.noticeDate >= MIN_NOTICE_DATE,
+    );
+  }
+
   // Compute summary over FULL (untrimmed) set
   const allFull = fullRecordsPerState.flatMap(({ records }) => records);
   const summary = buildSummary(allFull);
@@ -769,7 +779,7 @@ async function main() {
   const output = {
     generatedAt: new Date().toISOString(),
     coverage:
-      "6 U.S. states (CA, NJ, NY, OH, TX, WI) — official state WARN Act filings, aggregated. Some states are historical backfills; see per-state date ranges.",
+      "6 U.S. states (CA, NJ, NY, OH, TX, WI) — official state WARN Act filings, aggregated, latest 10 years. Some states are historical backfills; see per-state date ranges.",
     sources: includedSources,
     notices: trimmedNotices,
     summary,

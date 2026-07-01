@@ -152,10 +152,10 @@ async function main() {
 
   const ELEMENTS = ["JO", "HI", "QU", "LD", "TS"];
 
-  // ── 1. National (000000): all 5 data elements × level + rate = 10 series, 2001–2025 ──
+  // ── 1. National (000000): all 5 data elements × level + rate = 10 series, 2016–2025 ──
   const natIds = ELEMENTS.flatMap((el) => ["L", "R"].map((rl) => sid("000000", el, rl)));
-  console.log(`\nFetching national series (${natIds.length} series, 2001–2025)...`);
-  const natData = await fetchAll(natIds, 2001, 2025);
+  console.log(`\nFetching national series (${natIds.length} series, 2016–2025)...`);
+  const natData = await fetchAll(natIds, 2016, 2025);
 
   const nationalSeries = {};
   for (const el of ELEMENTS) {
@@ -164,13 +164,13 @@ async function main() {
     }
   }
 
-  // ── 2. Industries (all except 000000): LDL + LDR full history 2001–2025 ──
+  // ── 2. Industries (all except 000000): LDL + LDR history 2016–2025 ──
   const industryCodes = Object.keys(INDUSTRIES).filter((c) => c !== "000000");
   const indLdIds = industryCodes.flatMap((c) => [sid(c, "LD", "L"), sid(c, "LD", "R")]);
   console.log(
-    `\nFetching industry LDL+LDR history (${indLdIds.length} series, 2001–2025)...`
+    `\nFetching industry LDL+LDR history (${indLdIds.length} series, 2016–2025)...`
   );
-  const indLdData = await fetchAll(indLdIds, 2001, 2025);
+  const indLdData = await fetchAll(indLdIds, 2016, 2025);
 
   // ── 3. Industries: JOL + QUL + HIL snapshot (2024–2025 is enough for latest value) ──
   const indSnapIds = industryCodes.flatMap((c) => [
@@ -223,7 +223,7 @@ async function main() {
       survey: "JOLTS",
       url: "https://www.bls.gov/jlt/",
       license: "Public Domain",
-      note: "Monthly data 2001–2025. Levels are in thousands of jobs. Series IDs: JTS{industry-6}000000000{element-2}{L|R}. Elements: JO=job openings, HI=hires, QU=quits, LD=layoffs & discharges, TS=total separations.",
+      note: "Monthly data 2016–2025. Levels are in thousands of jobs. Series IDs: JTS{industry-6}000000000{element-2}{L|R}. Elements: JO=job openings, HI=hires, QU=quits, LD=layoffs & discharges, TS=total separations.",
     },
     national: { series: nationalSeries },
     industries,
