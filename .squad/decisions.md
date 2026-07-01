@@ -762,3 +762,197 @@ Test suite alone is insufficient for D3-heavy work. Adopt a lightweight real-bro
 ✅ **121/121 tests pass; headless Chrome smoke test GREEN.**  
 ✅ **Two-layer chart testing strategy now adopted; smoke-test async-spawn pattern documented for reuse.**
 
+---
+
+## Batch 9: Data Richness — JOLTS + CA WARN + Growth Rate (2026-07-01)
+
+**Shipped:** Issues #35–#37 (commits 7aa0f49, da1c0e1, c6523bd), all merged to origin/main  
+**Requested by:** huangyingting  
+**Status:** ✅ CLOSED, shipped (121 tests, all 11 routes smoke-test GREEN)
+
+### JOLTS Data Snapshot (Tank, GitHub #35)
+
+**Files produced:**
+- `scripts/build-jolts.mjs` — Fetch script (run: `npm run build:jolts`)
+- `data/jolts.json` — Committed snapshot (~1.1 MB)
+- `package.json` — Added `"build:jolts"` script
+
+**Data shape:**
+```json
+{
+  "generatedAt": "ISO-8601 timestamp",
+  "source": { "name": "BLS Job Openings and Labor Turnover Survey (JOLTS)", ... },
+  "national": {
+    "series": {
+      "JOL": [{date: "YYYY-MM", value: Number}, ...],
+      "LDL": [...], "LDR": [...], ... // 10 series total
+    }
+  },
+  "industries": [
+    {
+      "code": "100000",
+      "name": "Total private",
+      "layoffsLevel": [{date, value}, ...], // monthly 2001-01 → 2025-12 (300 months)
+      "layoffsRate": [...],
+      "latest": { "date": "2025-12", "LDL": 1598, "LDR": 1.2, "JOL": 5828, "QUL": 3045, "HIL": 4961 }
+    },
+    // ... 20 more industries
+  ]
+}
+```
+
+**Validated:** 300 months (Jan 2001 – Dec 2025), 10 national series, 21 industries. Latest LDL 2025-12 = 1,666 (thousands, matches BLS). File size: ~1.1 MB.
+
+### CA WARN Notices (Tank, GitHub #36)
+
+**Files produced:**
+- `scripts/build-warn.mjs` — Fetch + parse via exceljs (run: `npm run build:warn`)
+- `data/warn-notices.json` — Committed snapshot (~0.5 MB)
+
+**Data shape:**
+```ts
+{
+  "generatedAt": "ISO-8601 timestamp",
+  "source": {
+    "name": "California WARN Act Notices",
+    "publisher": "California Employment Development Department (EDD)",
+    ...
+  },
+  "notices": [
+    {
+      "company": string,
+      "county": string | null,
+      "city": string | null,
+      "address": string | null,
+      "employees": number,
+      "noticeDate": "YYYY-MM-DD" | null,
+      "effectiveDate": "YYYY-MM-DD" | null,
+      "layoffType": string | null,
+      "state": "CA"
+    },
+    // ... 1,588 notices total, sorted by noticeDate DESC
+  ],
+  "summary": {
+    "total": 1588,
+    "totalEmployees": 81400,
+    "dateRange": { "earliest": "2025-01-29", "latest": "2026-06-26" },
+    "byMonth": [...],
+    "byType": [...],
+    "topEmployers": [...]
+  }
+}
+```
+
+**Validated:** 1,588 CA notices, 81,400 employees, date range 2025-01-29 → 2026-06-26.
+
+#### CA-Only Honesty & API Discovery
+
+- **Government API landscape:** BLS JOLTS = clean API (via BLS_API_KEY in .env). Company-level WARN notices have NO federal API.
+- **CA WARN:** California EDD publishes official Excel WARN notices (fetched + parsed via exceljs). No other state has a readily accessible authoritative snapshot.
+- **Result:** Layoffs page explicitly labeled "California only", amber badge, source attribution.
+
+### Growth Rate Feature (Coordinator, GitHub #37)
+
+**Computed:** Annualized CAGR (Compound Annual Growth Rate) from existing OEWS `employmentHistory` (2019 → 2025).
+
+**Rationale:** BLS Employment Projections API returned 403; archived versions not on Wayback. Rather than scrape or leave stale, derived growthRate authentically from existing OEWS historical employment data (annualized year-over-year percent change).
+
+**Surfaced:** Career detail page + included in `getHighlights()` output (growth-ranked careers).
+
+**Bundle hygiene:** Large route-specific snapshots (`jolts.json` ~1.1MB, `warn-notices.json` ~0.5MB) kept OUT of `lib/data.ts` (bundled by every page). Instead:
+- `lib/jolts.ts` — loader module, imported only by `/pulse` route chunk
+- `lib/warn.ts` — loader module, imported only by `/layoffs` route chunk
+
+### Labor Market Pulse Page (Neo, GitHub #35)
+
+**Files created (7 new):**
+- `app/pulse/page.tsx` — Server component shell
+- `app/pulse/layout.tsx` — Metadata (title, OG/Twitter tags)
+- `components/pulse/PulseView.tsx` — "use client": hero, 4 stat cards, trend section, industry section
+- `components/pulse/JoltsTrendChart.tsx` — "use client" D3 area/line chart (layoffs 2001–2025, NBER recession shading, COVID spike annotation, hires toggle)
+- `components/pulse/JoltsIndustryChart.tsx` — "use client" D3 horizontal bar chart (layoffs by supersector, level/rate toggle)
+- `lib/i18n/messages/en/pulse.ts` — English i18n (pulseEn export)
+- `lib/i18n/messages/zh/pulse.ts` — Chinese i18n (pulseZh export)
+
+**i18n keys:** 36 keys (exact mirror en/zh): pageHeading, pageSubhead, dataSource, generatedAt, sectionSnapshot, statLatestMonth, statLayoffs, statOpenings, statHires, statQuits, statThousands, sectionTrend, sectionTrendDesc, chartToggleHires, legendLayoffs, legendHires, legendRecession, chartPeakAnnotation, chartAxisDate, chartAxisLevel, tooltipLayoffs, tooltipHires, srTrendSummary, sectionIndustry, sectionIndustryDesc, toggleLevel, toggleRate, chartIndustryAxisX, chartIndustryAxisXRate, tooltipLDL, tooltipLDR, srIndustrySummary, methodologyTitle, methodologyText, licenseLine, sourceNote, learnMore.
+
+**Key decisions:**
+- Excluded codes `"000000"` (total nonfarm) and `"100000"` (total private) from industry chart to avoid double-counting.
+- Trend chart y-axis: JOLTS values in thousands; displays SI suffixes (e.g., "2M", "11M").
+- COVID peak: Annotated with `getJoltsLayoffsPeak()` — vertical dashed amber line + label.
+- Reduced motion: Entrance animations (path draw, bar slide-in) skipped when `prefers-reduced-motion: reduce` is set.
+- Accessibility: Both charts wrapped in `role="img" + aria-label + sr-only` text summary.
+
+### Recent Mass Layoffs Page (Switch, GitHub #36)
+
+**Files created (8 new):**
+- `lib/i18n/messages/en/layoffs.ts` — English i18n (layoffsEn export)
+- `lib/i18n/messages/zh/layoffs.ts` — Chinese i18n (layoffsZh export)
+- `lib/i18n/useLayoffsT.ts` — Type-safe `useLayoffsT()` hook (workaround until integration)
+- `app/layoffs/layout.tsx` — Metadata
+- `app/layoffs/page.tsx` — Server component
+- `components/layoffs/WarnTrendChart.tsx` — D3 combo chart (monthly employees bars + notices line)
+- `components/layoffs/LayoffsView.tsx` — Main "use client" page component
+
+**i18n keys:** 46 keys (en/zh mirrored): heroTitle, heroSubhead, coverageBadge, coverageNote, statTotalNotices, statTotalEmployees, statDateRange, statLayoffs, statPermanentClosures, sectionTrend, sectionTrendDesc, sectionTopEmployers, sectionTopEmployersDesc, sectionByType, sectionByTypeDesc, sectionTable, sectionTableDesc, tableCompany, tableCounty, tableEmployees, tableNoticeDate, tableType, searchPlaceholder, sortLabel, sortEmployeesDesc, sortDateDesc, showMore, showLess, noResults, showingLabel, sourceLabel, publisherLabel, coverageLabel, licenseLabel, warnActLabel, generatedAt, srChartLabel, srChartSummary, srTopEmployersLabel, srByTypeLabel, employees, notices, dateUnknown, axisEmployees, axisNotices.
+
+**Key decisions:**
+- D3 combo chart: scaleBand for months, scaleLinear for employees (left Y) + notices (right Y).
+- Table: All 1,588 notices; client-side search (company OR county); sort by date or employees. Pagination: 50 rows shown, "show more" adds 50 at a time.
+- Honesty: Hero explicitly states "California only — not all 50 states", amber "CA Only" badge, source attribution prominent.
+- Accessibility: `role="img" + aria-label + sr-only` summary paragraph.
+
+### Integration: /pulse + /layoffs (Neo, GitHub #37)
+
+**Files edited:**
+- `lib/i18n/messages/index.ts` — Added imports `pulseEn`, `pulseZh`, `layoffsEn`, `layoffsZh`; added namespaces to messages.en and messages.zh
+- `lib/i18n/messages/en/nav.ts` — Added `pulse: "Pulse"`, `layoffs: "Layoffs"`
+- `lib/i18n/messages/zh/nav.ts` — Added `pulse: "市场脉搏"`, `layoffs: "裁员通报"`
+- `components/pulse/PulseView.tsx` — Replaced local `usePulseT` with `useT("pulse")`
+- `components/pulse/JoltsTrendChart.tsx` — Replaced local `usePulseT` with `useT("pulse")`
+- `components/pulse/JoltsIndustryChart.tsx` — Replaced local `usePulseT` with `useT("pulse")`
+- `components/layoffs/LayoffsView.tsx` — Replaced `useLayoffsT` with `useT("layoffs")`
+- `components/layoffs/WarnTrendChart.tsx` — Replaced `useLayoffsT` with `useT("layoffs")`
+- `components/dashboard/Sidebar.tsx` — Added `IconPulse` (activity line glyph), `IconLayoffs` (downward arrow); inserted `/pulse` and `/layoffs` nav entries after `/global`
+- `scripts/smoke-test.mjs` — Added `"/pulse"` and `"/layoffs"` to ROUTES array
+
+**Files deleted:**
+- `lib/i18n/useLayoffsT.ts` — superseded by standard `useT("layoffs")`
+
+**Namespaces registered:**
+- `pulse` → `pulseEn` / `pulseZh`
+- `layoffs` → `layoffsEn` / `layoffsZh`
+
+### Validation Results
+
+- `npm run build` → exit 0; route list includes ○ /pulse, ○ /layoffs
+- `npm run lint` → exit 0 (clean)
+- `npm run test:run` → 121 tests passed (15 test files)
+- Headless-Chrome smoke test → all 11 routes HTTP 200, no error boundary
+
+### Key Lessons Recorded
+
+**Lesson 1: Government data availability & API discovery**
+- **BLS JOLTS:** Clean API via BLS_API_KEY (federal survey, authoritative layoff + turnover aggregate). Works reliably.
+- **Company-level WARN notices:** No federal API. State-by-state HTML/Excel only. CA EDD publishes official Excel WARN snapshot (confirmed fetchable via exceljs).
+- **BLS Employment Projections:** API returned 403; not on Wayback. Solution: derive growthRate authentically from existing OEWS employmentHistory (annualized CAGR).
+- **Implication:** For future government data work, verify API availability early. Have a fallback plan (scrape, extract, synthesize from existing).
+
+**Lesson 2: Bundle hygiene — large route-specific snapshots**
+- Problem: If `data/jolts.json` (~1.1MB) and `data/warn-notices.json` (~0.5MB) imported in `lib/data.ts`, every page bundles them.
+- Solution: Keep snapshots in their own loader modules (`lib/jolts.ts`, `lib/warn.ts`), imported only by their route chunks. Verified: `/careers`, `/sectors` routes do NOT import jolts.json or warn.json.
+- Implication: When adding large static JSON snapshots, always ask: "Is this route-specific?" If yes, create a dedicated loader module.
+
+**Lesson 3: Growth rate derivation**
+- When official projections are unavailable, derive growthRate authentically from historical data (annualized CAGR, not synthetic).
+- Worked well: OEWS employmentHistory 2019 → 2025 provides stable annualized percent change.
+- Disclosed in methodology footnote: "Growth rates based on historical employment trends (2019–2025) rather than forward projections."
+
+### Outcome
+
+✅ **Batch 9 complete. Issues #35–#37 closed + shipped.**  
+✅ **Two new i18n namespaces registered (pulse, layoffs). 82 i18n keys added (all mirrored en/zh).**  
+✅ **121/121 tests pass; all 11 routes smoke-test GREEN.**  
+✅ **1.1MB JOLTS snapshot + 0.5MB CA WARN snapshot bundled separately (no bloat to main routes).**  
+✅ **Three durable lessons recorded: government data landscape, bundle-hygiene rule for snapshots, authentic growthRate derivation.**
+
