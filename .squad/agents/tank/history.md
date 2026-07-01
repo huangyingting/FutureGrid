@@ -22,3 +22,6 @@
 **2026-06-30 (Issue Backlog Round — Issues #2–#4):** [#2] getWorkforceExposure() + 31.3% U.S. workforce stat (43.97M/140.5M). [#3] IMF AIPI readiness layer (178 countries, China 0.64, Singapore 0.80; indicator AI_PI). [#4] GenAI diffusion 3-period retention (H1 2025→Q1 2026), diffusionTrend map, diffusionDelta calc, getDiffusionRisers() (S.Korea +11.2pp, UAE +10.7pp, France +6.9pp). Commits 2a4c5d1, 3e8f9g2, e976e14. ✅ CLOSED #2 #3 #4.
 
 **2026-06-30 (Batch 5 — BLS History + Oxford GAIRI):** #22 getOccupationTrend() (BLS OEWS 2019–2025, fetch Wayback archive, dual-axis chart data), #19 Oxford GAIRI 2023 (194 countries, CC-BY, China 70.94). Commits include "Closes #22" + "Closes #19". All 22 issues CLOSED; project cycle complete.
+
+
+**2026-07-01 (WARN 10-State Expansion):** Tank-22 integrated GA, TN, KY, OR from Big Local News GCS historical archives into WARN pipeline. Result: 9,298 notices across 10 states (~1.09M workers, 10-year window). Dynamic header detection for OR XLSX; KY historical archive (1998–2016) yields 47 rows in window. Commit: 6850902. Build exit 0 ✓

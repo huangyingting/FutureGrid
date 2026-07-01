@@ -24,3 +24,5 @@
 **2026-06-30 (Batches 3 & 4 — Autonomous Improvement Loop):** Issues #14 (README refresh for real data stack), #17 (freshness indicators sidebar + sources badge). All closed, validated (build 0, lint clean, tests 103/103). Loop concluded; diminishing returns reached.
 
 **2026-06-30 (Batch 5 — i18n + Theme Toggle):** #20 i18n English + Chinese (client LanguageProvider + useT + namespaced dicts, sidebar switcher, all pages bilingual, data unchanged), #21 light-mode integration (next-themes toggle UX). Commits include "Closes #20" + "Closes #21". All 22 issues CLOSED; project complete.
+
+**2026-07-01 (i18n Component Internationalization):** Neo-28 completed i18n for HeroRiskChecker, CountryDetailPanel, CommandPalette (last 3 hardcoded components). Added 'checker' + 'command' namespaces; 62 keys per locale at full EN/ZH parity. Data values remain English (integrity); UI/metadata fully localized. Build exit 0 ✓

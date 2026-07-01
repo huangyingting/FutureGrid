@@ -1210,3 +1210,45 @@ transitionScore = (
 - `npm run test:run` → 121/121 tests ✓
 - `npm run smoke` → 9/9 routes ✓
 - CI green ✓
+
+
+---
+
+## i18n System Activation (2026-07-01)
+
+**Status:** ✅ Implemented  
+**Scope:** Internationalization (English + Chinese), system wiring, data layer  
+**Authors:** Neo-28 (i18n components), Coordinator (system mount + wiring)
+
+### Summary
+i18n system was inert: `LanguageProvider` was never mounted in the app layout, `LanguageSwitcher` was never rendered into the UI, and the home page rendered hardcoded-English `DashboardHome` while the fully translated version sat orphaned. Fixed by:
+
+1. Mounting `LanguageProvider` in `app/layout.tsx`
+2. Wiring `LanguageSwitcher` into sidebar (desktop + mobile)
+3. Wiring `app/page.tsx` to translated `DashboardHome` + `KeyFindings`
+
+**Result:** Full EN/ZH bilingual parity (62 keys/locale); all 9 routes tested + verified locale persistence; CI + GitHub Pages deploy.
+
+### Key Files
+- `components/dashboard/HeroRiskChecker.tsx` — 'checker' namespace
+- `components/dashboard/CountryDetailPanel.tsx` — 'command' namespace
+- `components/ui/CommandPalette.tsx` — 'command' namespace
+- `lib/i18n/messages/{en,zh}/{checker,command,global}.ts` — all translations
+- `app/layout.tsx` — LanguageProvider mount
+- `app/page.tsx` — DashboardHome wiring
+
+### Design Decisions
+- **Data values remain English:** Proper nouns (country names, occupations, company names) are intentionally untranslated for data integrity and consistency.
+- **UI + metadata only:** Switches (labels, placeholders, button text, navigation), visualizations (titles, legends), and structural context (modal titles).
+- **Locale persistence:** localStorage via Next.js useEffect on mount; defaults to system preference if unavailable.
+
+### Validation
+- `npm run build`: exit 0 (800 pages)
+- `npm run lint`: clean
+- `npm run test:run`: 121 passed
+- `npm run smoke`: 9/9 routes ✓
+- Playwright: all routes → Chinese verified; persistence confirmed ✓
+
+### Commits
+- e7d8872 (Coordinator: LanguageProvider mount + LanguageSwitcher + page.tsx wiring)
+- 6850902 (Tank: WARN pipeline 6→10 states)
