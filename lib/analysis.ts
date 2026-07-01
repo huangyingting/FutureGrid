@@ -1,9 +1,10 @@
 import occupationSnapshot from "@/data/occupation-snapshot.json";
-import aiDemandData from "@/data/ai-demand.json";
-import aiLayoffData from "@/data/ai-layoffs.json";
 import aioeExposureData from "@/data/aioe-exposure.json";
 import automationBaselineData from "@/data/automation-baseline.json";
 import llmExposureData from "@/data/llm-exposure.json";
+
+export { getAIDemandSeries, getAILayoffSeries } from "./labor-signals";
+export type { DemandPoint, DemandSeries, AIDemand, LayoffPoint, AILayoffs } from "./labor-signals";
 
 /**
  * Descriptive, exploratory analytics for Insights Lab. These statistics summarize
@@ -246,47 +247,6 @@ export function getExposureGapLeaders(limit = 10): OccExposure[] {
     .map((occupation) => ({ ...occupation }));
 }
 
-// ---- 5. AI demand and AI-attributed layoff time series ----
-export interface DemandPoint { month: string; share: number; }
-export interface DemandSeries { country: string; points: DemandPoint[]; }
-export interface AIDemand { countries: string[]; series: DemandSeries[]; latest: { country: string; share: number }[]; }
-export function getAIDemandSeries(): AIDemand {
-  if (!_aiDemandCache) {
-    const data = aiDemandData as AIDemandJson;
-    _aiDemandCache = {
-      countries: [...data.countries],
-      series: data.series.map((series) => ({
-        country: series.country,
-        points: series.points
-          .filter((point) => isFiniteNumber(point.share))
-          .map((point) => ({ month: point.month, share: point.share })),
-      })),
-      latest: data.latest
-        .filter((point) => isFiniteNumber(point.share))
-        .map((point) => ({ country: point.country, share: point.share })),
-    };
-  }
-  return cloneAIDemand(_aiDemandCache);
-}
-
-export interface LayoffPoint { month: string; cuts: number; }
-export interface AILayoffs { monthly: LayoffPoint[]; annual: { year: number; cuts: number }[]; note: string; }
-export function getAILayoffSeries(): AILayoffs {
-  if (!_aiLayoffCache) {
-    const data = aiLayoffData as AILayoffJson;
-    _aiLayoffCache = {
-      monthly: data.monthly
-        .filter((point) => isFiniteNumber(point.cuts))
-        .map((point) => ({ month: point.month, cuts: Math.round(point.cuts) })),
-      annual: data.annual
-        .filter((point) => isFiniteNumber(point.year) && isFiniteNumber(point.cuts))
-        .map((point) => ({ year: Math.round(point.year), cuts: Math.round(point.cuts) })),
-      note: data.note,
-    };
-  }
-  return cloneAILayoffs(_aiLayoffCache);
-}
-
 type SnapshotRow = {
   socCode: string;
   title: string;
@@ -309,8 +269,6 @@ type SnapshotRow = {
 type GrowthResult = { rate: number; fromYear: number; toYear: number };
 type ForecastCache = { byCode: Map<string, OccupationForecast>; national: NationalForecast };
 type ExposureBySocJson = { bySoc: Record<string, number> };
-type AIDemandJson = { countries: string[]; series: DemandSeries[]; latest: { country: string; share: number }[] };
-type AILayoffJson = { monthly: LayoffPoint[]; annual: { year: number; cuts: number }[]; note: string };
 
 const snapshot = occupationSnapshot as SnapshotRow[];
 const LATEST_ACTUAL_YEAR = 2025;
@@ -320,8 +278,6 @@ let _aiSignalCache: AISignalData | null = null;
 let _forecastCache: ForecastCache | null = null;
 let _disruptionCache: DisruptionIndex | null = null;
 let _exposureComparisonCache: ExposureComparison | null = null;
-let _aiDemandCache: AIDemand | null = null;
-let _aiLayoffCache: AILayoffs | null = null;
 
 function buildExposureComparisonCache(): void {
   const capabilityBySoc = (llmExposureData as ExposureBySocJson).bySoc;
@@ -624,24 +580,5 @@ function cloneExposureComparison(comparison: ExposureComparison): ExposureCompar
     lensesAvailable: [...comparison.lensesAvailable],
     coverage: { ...comparison.coverage },
     correlations: comparison.correlations.map((correlation) => ({ ...correlation })),
-  };
-}
-
-function cloneAIDemand(data: AIDemand): AIDemand {
-  return {
-    countries: [...data.countries],
-    series: data.series.map((series) => ({
-      country: series.country,
-      points: series.points.map((point) => ({ ...point })),
-    })),
-    latest: data.latest.map((point) => ({ ...point })),
-  };
-}
-
-function cloneAILayoffs(data: AILayoffs): AILayoffs {
-  return {
-    monthly: data.monthly.map((point) => ({ ...point })),
-    annual: data.annual.map((point) => ({ ...point })),
-    note: data.note,
   };
 }

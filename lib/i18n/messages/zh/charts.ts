@@ -59,6 +59,7 @@ export const chartsZh: Record<string, string> = {
   metricDiffusion:    "生成式 AI 普及率",
   metricReadiness:    "AI 就绪度",
   metricGovReadiness: "政府 AI 就绪度",
+  metricDemand:      "AI 招聘需求",
 
   // ── WorldChoropleth view mode ─────────────────────────────────────────────
   viewModeMap:     "地图",
@@ -77,6 +78,7 @@ export const chartsZh: Record<string, string> = {
   legendGenAIDiffusionPop:  "生成式 AI 普及率（劳动年龄人口占比）",
   legendGovReadinessOxford: "政府 AI 就绪度（牛津大学, 0–100）",
   legendAIReadinessIMF:     "AI 就绪度（IMF AIPI, 0–1）",
+  legendAIJobDemand:       "AI 招聘需求（提及 AI 的招聘岗位占比）",
 
   // ── WorldChoropleth bubble legend ────────────────────────────────────────
   legendBubbleColourSize: "气泡颜色与大小 = {metric}",
@@ -84,6 +86,7 @@ export const chartsZh: Record<string, string> = {
   legendMetricGenAI:      "生成式 AI 普及率",
   legendMetricGovReady:   "政府 AI 就绪度",
   legendMetricAIReady:    "AI 就绪度",
+  legendMetricDemand:    "AI 招聘需求",
 
   // ── WorldChoropleth TooltipContent strings ───────────────────────────────
   tooltipReadinessLabel:    "AI 就绪度：",
@@ -98,6 +101,8 @@ export const chartsZh: Record<string, string> = {
   tooltipAIUsageIndexLabel: "AI 使用指数：",
   tooltipGlobalShareLabel:  "全球份额：",
   noClaudeAIUsageData:      "暂无 Claude.ai 使用数据",
+  tooltipAIJobDemandLabel: "AI 招聘岗位占比：",
+  noAIJobDemandData:       "暂无 AI 招聘需求数据",
 
   // ── CountryExposureChart ─────────────────────────────────────────────────
   barAxisAIUsageIndex:  "AI 使用指数（人均，全球均值 = 1.0）",

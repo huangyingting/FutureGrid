@@ -27,6 +27,10 @@ export const globalZh: Record<string, string> = {
     "生成式AI普及率领跑国家 \u00b7 微软AIEI 2026年Q1",
   diffusionLeadersCaption:
     "劳动年龄人口使用生成式AI的比例（147国调查）。",
+  mapDemandLayerLabel: "AI 招聘需求",
+  mapDemandTooltipLabel: "AI 招聘岗位占比",
+  mapDemandSourceNote:
+    "AI 招聘需求使用 Indeed Hiring Lab 最新月份的招聘岗位占比数据，覆盖 9 个经济体。",
 
   // China callout
   chinaTitle: "中国 \u2014 替代数据参考",

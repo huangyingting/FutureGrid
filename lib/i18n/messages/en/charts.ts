@@ -59,6 +59,7 @@ export const chartsEn: Record<string, string> = {
   metricDiffusion:    "GenAI diffusion",
   metricReadiness:    "AI readiness",
   metricGovReadiness: "Gov. readiness",
+  metricDemand:      "AI job demand",
 
   // ── WorldChoropleth view mode ─────────────────────────────────────────────
   viewModeMap:    "Map",
@@ -77,6 +78,7 @@ export const chartsEn: Record<string, string> = {
   legendGenAIDiffusionPop: "GenAI diffusion (% of working-age pop)",
   legendGovReadinessOxford: "Gov. AI readiness (Oxford, 0–100)",
   legendAIReadinessIMF:    "AI readiness (IMF AIPI, 0–1)",
+  legendAIJobDemand:      "AI job demand (% job postings mentioning AI)",
 
   // ── WorldChoropleth bubble legend ────────────────────────────────────────
   legendBubbleColourSize:  "Bubble colour + size = {metric}",
@@ -84,6 +86,7 @@ export const chartsEn: Record<string, string> = {
   legendMetricGenAI:       "GenAI diffusion %",
   legendMetricGovReady:    "Gov. AI readiness",
   legendMetricAIReady:     "AI readiness",
+  legendMetricDemand:     "AI job demand",
 
   // ── WorldChoropleth TooltipContent strings ───────────────────────────────
   tooltipReadinessLabel:    "AI readiness:",
@@ -98,6 +101,8 @@ export const chartsEn: Record<string, string> = {
   tooltipAIUsageIndexLabel: "AI usage index:",
   tooltipGlobalShareLabel:  "Global share:",
   noClaudeAIUsageData:      "No Claude.ai usage data",
+  tooltipAIJobDemandLabel: "AI job-posting share:",
+  noAIJobDemandData:       "No AI job demand data",
 
   // ── CountryExposureChart ─────────────────────────────────────────────────
   barAxisAIUsageIndex: "AI USAGE INDEX (PER-CAPITA, WORLD AVG = 1.0)",

@@ -30,6 +30,10 @@ export const globalEn: Record<string, string> = {
     "GenAI diffusion leaders \u00b7 Microsoft AIEI Q1\u00a02026",
   diffusionLeadersCaption:
     "% working-age population using generative AI (147-country survey).",
+  mapDemandLayerLabel: "AI job demand",
+  mapDemandTooltipLabel: "AI job-posting share",
+  mapDemandSourceNote:
+    "AI job demand uses Indeed Hiring Lab job-posting share data for 9 economies, latest month.",
 
   // China callout
   chinaTitle: "China \u2014 Proxy Context",

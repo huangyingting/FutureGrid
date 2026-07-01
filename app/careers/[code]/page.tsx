@@ -8,6 +8,7 @@ import PredictiveChart from "@/components/charts/PredictiveChart";
 import Link from "next/link";
 import { useMemo } from "react";
 import { useT } from "@/lib/i18n/useT";
+import { getOccupationExposureLenses } from "@/lib/exposure";
 
 export default function CareerDetailPage() {
   const params = useParams();
@@ -27,6 +28,7 @@ export default function CareerDetailPage() {
   );
   const trend = useMemo(() => getOccupationTrend(code), [code]);
   const transitions = useMemo(() => getReskillingPaths(code, 3, "score"), [code]);
+  const exposureLenses = useMemo(() => getOccupationExposureLenses(code), [code]);
 
   if (!career) {
     return (
@@ -280,6 +282,69 @@ export default function CareerDetailPage() {
           </div>
         </div>
 
+        {exposureLenses && (
+          <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("sectionExposureLenses")}</h2>
+                <p className="text-xs text-zinc-500 mt-1">{t("exposureLensesSubtitle")}</p>
+              </div>
+              {exposureLenses.consensus != null && (
+                <div className="text-right shrink-0">
+                  <div className="text-2xl font-bold text-zinc-900 dark:text-white tabular-nums">
+                    {formatLensPct(exposureLenses.consensus)}%
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-zinc-500">{t("lensConsensus")}</div>
+                </div>
+              )}
+            </div>
+            <div className="space-y-3.5">
+              {[
+                { label: t("lensActualAdoption"), source: "Anthropic", value: exposureLenses.usage, tone: "bg-cyan-500" },
+                { label: t("lensAICapability"), source: "OpenAI", value: exposureLenses.capability, tone: "bg-violet-500" },
+                { label: t("lensAIAbility"), source: "AIOE", value: exposureLenses.ability, tone: "bg-emerald-500" },
+                {
+                  label: t("lensAutomationBaseline"),
+                  source: "Frey & Osborne",
+                  value: exposureLenses.automation,
+                  tone: "bg-zinc-400 dark:bg-zinc-600",
+                },
+              ]
+                .filter(
+                  (lens): lens is { label: string; source: string; value: number; tone: string } => lens.value != null,
+                )
+                .map((lens) => (
+                  <div key={lens.label}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm mb-1.5">
+                      <span className="text-zinc-700 dark:text-zinc-300">
+                        {lens.label} <span className="text-xs text-zinc-500">· {lens.source}</span>
+                      </span>
+                      <span className="font-semibold text-zinc-900 dark:text-white tabular-nums">
+                        {formatLensPct(lens.value)}%
+                      </span>
+                    </div>
+                    <div className="h-2.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${lens.tone}`} style={{ width: `${clampPct(lens.value)}%` }} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+            {
+              exposureLenses.gap != null &&
+                Math.abs(exposureLenses.gap) >= 15 &&
+                exposureLenses.capability != null &&
+                exposureLenses.usage != null && (
+                  <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/30 dark:bg-amber-900/20 dark:text-amber-200">
+                    {t("exposureGapCallout", {
+                      capability: formatLensPct(exposureLenses.capability),
+                      usage: formatLensPct(exposureLenses.usage),
+                    })}
+                  </p>
+                )
+            }
+          </div>
+        )}
+
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{t("sectionTopSkills")}</h2>
           <div className="space-y-2.5">
@@ -475,4 +540,11 @@ export default function CareerDetailPage() {
       </div>
     </div>
   );
+}
+function formatLensPct(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function clampPct(value: number) {
+  return Math.min(100, Math.max(0, value));
 }

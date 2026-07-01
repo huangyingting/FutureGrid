@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import * as d3 from "d3";
 import type { GeoPermissibleObjects, ExtendedFeatureCollection } from "d3-geo";
 import { getCountryMapData } from "@/lib/data";
+import { getCountryAIDemand } from "@/lib/labor-signals";
 import type { CountryMapDatum } from "@/lib/data";
 import { useT } from "@/lib/i18n/useT";
 
@@ -33,9 +34,15 @@ function brandRamp(t: number): string {
   return d3.interpolateRgb("#8b5cf6", "#22d3ee")((clamped - 0.5) * 2);
 }
 
+function demandRamp(t: number): string {
+  const clamped = Math.max(0, Math.min(1, t));
+  if (clamped < 0.5) return d3.interpolateRgb("#052e2b", "#10b981")(clamped * 2);
+  return d3.interpolateRgb("#10b981", "#a7f3d0")((clamped - 0.5) * 2);
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Metric   = "claude" | "diffusion" | "readiness" | "govReadiness";
+type Metric   = "claude" | "diffusion" | "readiness" | "govReadiness" | "demand";
 type ViewMode = "map" | "bubble";
 
 interface TooltipState {
@@ -69,7 +76,17 @@ interface GeoData {
 
 type TFunc = (key: string, vars?: Record<string, string | number>) => string;
 
-function TooltipContent({ datum, metric, t }: { datum: CountryMapDatum; metric: Metric; t: TFunc }) {
+function TooltipContent({
+  datum,
+  metric,
+  demandShare,
+  t,
+}: {
+  datum: CountryMapDatum;
+  metric: Metric;
+  demandShare?: number;
+  t: TFunc;
+}) {
   if (metric === "readiness") {
     if (datum.aiReadiness != null) {
       return (
@@ -102,6 +119,22 @@ function TooltipContent({ datum, metric, t }: { datum: CountryMapDatum; metric: 
       );
     }
     return <p className="text-zinc-500 text-xs mt-1.5">{t("noGovReadinessData")}</p>;
+  }
+
+  if (metric === "demand") {
+    if (demandShare != null) {
+      return (
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-zinc-600 dark:text-zinc-400 text-xs">
+            {t("tooltipAIJobDemandLabel")} {" "}
+            <span className="text-emerald-600 dark:text-emerald-300 font-mono font-semibold">
+              {demandShare.toFixed(1)}%
+            </span>
+          </p>
+        </div>
+      );
+    }
+    return <p className="text-zinc-500 text-xs mt-1.5">{t("noAIJobDemandData")}</p>;
   }
 
   if (metric === "diffusion") {
@@ -238,6 +271,12 @@ export default function WorldChoropleth({
     return map;
   }, []);
 
+  const demandByIso3 = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const d of getCountryAIDemand()) map.set(d.iso3, d.latestShare);
+    return map;
+  }, []);
+
   // Claude color scale
   const maxIndex = useMemo(() => {
     let max = 0;
@@ -264,6 +303,20 @@ export default function WorldChoropleth({
   const diffusionColorScale = useMemo(
     () => d3.scaleSequential([0, maxDiffusion], brandRamp),
     [maxDiffusion],
+  );
+
+  // AI job demand color scale — Indeed Hiring Lab share domain ~0→7%
+  const maxDemand = useMemo(() => {
+    let max = 0;
+    for (const share of demandByIso3.values()) {
+      if (share > max) max = share;
+    }
+    return max > 0 ? max : 7;
+  }, [demandByIso3]);
+
+  const demandColorScale = useMemo(
+    () => d3.scaleSequential([0, maxDemand], demandRamp),
+    [maxDemand],
   );
 
   // Readiness color scale — IMF AIPI domain ~0.18→0.80
@@ -298,7 +351,14 @@ export default function WorldChoropleth({
       let fill: string;
       let hasProxy: boolean;
 
-      if (metric === "readiness") {
+      const demandShare = demandByIso3.get(iso3);
+
+      if (metric === "demand") {
+        fill     = demandShare != null
+          ? demandColorScale(demandShare)
+          : noDataFill;
+        hasProxy = false;
+      } else if (metric === "readiness") {
         fill     = datum?.aiReadiness != null
           ? readinessColorScale(datum.aiReadiness)
           : noDataFill;
@@ -322,7 +382,7 @@ export default function WorldChoropleth({
 
       return { iso3, datum, d: dStr, fill, hasProxy };
     });
-  }, [geoData, pathGen, dataByIso3, metric, claudeColorScale, diffusionColorScale, readinessColorScale, govReadinessColorScale, noDataFill]);
+  }, [geoData, pathGen, dataByIso3, demandByIso3, metric, claudeColorScale, diffusionColorScale, demandColorScale, readinessColorScale, govReadinessColorScale, noDataFill]);
 
   // ── Bubble data: centroid + metric value + color ───────────────────────────
 
@@ -334,7 +394,8 @@ export default function WorldChoropleth({
       if (!datum) return [];
 
       let value: number | null = null;
-      if (metric === "readiness")         value = datum.aiReadiness ?? null;
+      if (metric === "demand")           value = demandByIso3.get(iso3) ?? null;
+      else if (metric === "readiness")    value = datum.aiReadiness ?? null;
       else if (metric === "govReadiness") value = datum.governmentReadiness ?? null;
       else if (metric === "diffusion")    value = datum.diffusionPct ?? null;
       else value = datum.hasClaudeData && datum.usageIndex != null ? datum.usageIndex : null;
@@ -344,14 +405,15 @@ export default function WorldChoropleth({
       if (!c || isNaN(c[0]) || isNaN(c[1])) return [];
 
       let fill: string;
-      if (metric === "readiness")         fill = readinessColorScale(value);
+      if (metric === "demand")           fill = demandColorScale(value);
+      else if (metric === "readiness")    fill = readinessColorScale(value);
       else if (metric === "govReadiness") fill = govReadinessColorScale(value);
       else if (metric === "diffusion")    fill = diffusionColorScale(value);
       else                                fill = claudeColorScale(value);
 
       return [{ iso3, datum, centroid: c as [number, number], value, fill }];
     });
-  }, [geoData, pathGen, dataByIso3, metric, claudeColorScale, diffusionColorScale, readinessColorScale, govReadinessColorScale]);
+  }, [geoData, pathGen, dataByIso3, demandByIso3, metric, claudeColorScale, diffusionColorScale, demandColorScale, readinessColorScale, govReadinessColorScale]);
 
   // Largest-first so small bubbles render on top of large ones
   const sortedBubbleData = useMemo(
@@ -366,6 +428,12 @@ export default function WorldChoropleth({
 
   // SR top-15 list — metric-aware
   const srTop15 = useMemo(() => {
+    if (metric === "demand") {
+      return [...dataByIso3.values()]
+        .filter(d => demandByIso3.has(d.iso3))
+        .sort((a, b) => (demandByIso3.get(b.iso3) ?? 0) - (demandByIso3.get(a.iso3) ?? 0))
+        .slice(0, 15);
+    }
     if (metric === "diffusion") {
       return [...dataByIso3.values()]
         .filter(d => d.diffusionPct != null)
@@ -388,7 +456,7 @@ export default function WorldChoropleth({
       .filter(d => d.hasClaudeData && d.usageIndex != null)
       .sort((a, b) => (b.usageIndex ?? 0) - (a.usageIndex ?? 0))
       .slice(0, 15);
-  }, [dataByIso3, metric]);
+  }, [dataByIso3, demandByIso3, metric]);
 
   // ── Track container width for tooltip clamping ───────────────────────────
 
@@ -505,6 +573,8 @@ export default function WorldChoropleth({
     ? `World ${mapOrBubble} map showing AI (Claude.ai) usage index by country. Colour intensity indicates per-capita usage; ${viewMode === "bubble" ? "bubble size is proportional to usage index; " : ""}grey countries have no Claude.ai data${viewMode === "map" ? "; China is shown with a dashed amber border indicating proxy data only" : ""}.`
     : metric === "diffusion"
     ? `World ${mapOrBubble} map showing GenAI diffusion by country, as percentage of working-age population using generative AI (Microsoft AIEI Q1 2026, ~147 economies). Grey countries have no data. China is included with real data at 16.4%.`
+    : metric === "demand"
+    ? `World ${mapOrBubble} map showing AI job-posting demand by country, as the share of job postings mentioning AI in the latest Indeed Hiring Lab month across 9 economies. Grey countries have no data.`
     : metric === "govReadiness"
     ? `World ${mapOrBubble} map showing Government AI Readiness by country based on the Oxford Insights Government AI Readiness Index 2023, scored 0–100. Higher scores indicate greater government AI readiness. Grey countries have no data.`
     : `World ${mapOrBubble} map showing AI readiness by country based on the IMF AI Preparedness Index (AIPI), scored 0–1. Higher scores indicate greater capacity and readiness for AI adoption. Grey countries have no data.`;
@@ -522,7 +592,7 @@ export default function WorldChoropleth({
           aria-label="Map metric"
           className="flex w-fit rounded-xl glass p-0.5 text-xs font-medium"
         >
-          {(["claude", "diffusion", "readiness", "govReadiness"] as Metric[]).map((m) => {
+          {(["claude", "diffusion", "demand", "readiness", "govReadiness"] as Metric[]).map((m) => {
             const active = metric === m;
             return (
               <button
@@ -541,7 +611,7 @@ export default function WorldChoropleth({
                     : { background: "transparent", color: "#71717a" }
                 }
               >
-                {m === "claude" ? t("metricClaude") : m === "diffusion" ? t("metricDiffusion") : m === "readiness" ? t("metricReadiness") : t("metricGovReadiness")}
+                {m === "claude" ? t("metricClaude") : m === "diffusion" ? t("metricDiffusion") : m === "demand" ? t("metricDemand") : m === "readiness" ? t("metricReadiness") : t("metricGovReadiness")}
               </button>
             );
           })}
@@ -600,6 +670,8 @@ export default function WorldChoropleth({
                 ? "Top 15 countries by AI usage index"
                 : metric === "diffusion"
                 ? "Top 15 countries by GenAI diffusion rate"
+                : metric === "demand"
+                ? "Top countries by AI job-posting share"
                 : metric === "govReadiness"
                 ? "Top 15 countries by Government AI readiness score"
                 : "Top 15 countries by AI readiness score"
@@ -609,6 +681,8 @@ export default function WorldChoropleth({
               <li key={d.iso3}>
                 {metric === "diffusion"
                   ? `${d.name}: GenAI diffusion ${d.diffusionPct?.toFixed(1)}%`
+                  : metric === "demand"
+                  ? `${d.name}: AI job-posting share ${(demandByIso3.get(d.iso3) ?? 0).toFixed(1)}%`
                   : metric === "readiness"
                   ? `${d.name}: AI readiness ${d.aiReadiness?.toFixed(2)}`
                   : metric === "govReadiness"
@@ -757,7 +831,12 @@ export default function WorldChoropleth({
               }}
             >
               <p className="font-semibold text-zinc-900 dark:text-white leading-tight">{tooltip.datum.name}</p>
-              <TooltipContent datum={tooltip.datum} metric={metric} t={t} />
+              <TooltipContent
+                datum={tooltip.datum}
+                metric={metric}
+                demandShare={demandByIso3.get(tooltip.datum.iso3)}
+                t={t}
+              />
             </div>
           )}
 
@@ -770,20 +849,24 @@ export default function WorldChoropleth({
                 <div
                   className="w-28 h-2.5 rounded"
                   style={{
-                    background: `linear-gradient(to right, ${brandRamp(0)}, ${brandRamp(0.33)}, ${brandRamp(0.67)}, ${brandRamp(1)})`,
+                    background: metric === "demand"
+                      ? `linear-gradient(to right, ${demandRamp(0)}, ${demandRamp(0.33)}, ${demandRamp(0.67)}, ${demandRamp(1)})`
+                      : `linear-gradient(to right, ${brandRamp(0)}, ${brandRamp(0.33)}, ${brandRamp(0.67)}, ${brandRamp(1)})`,
                   }}
                 />
                 <span className="text-[10px] text-zinc-500 font-mono">
-                  {metric === "claude" ? maxIndex.toFixed(1) : metric === "diffusion" ? `${maxDiffusion.toFixed(1)}%` : metric === "govReadiness" ? "100" : "0.80"}
+                  {metric === "claude" ? maxIndex.toFixed(1) : metric === "diffusion" ? `${maxDiffusion.toFixed(1)}%` : metric === "demand" ? `${maxDemand.toFixed(1)}%` : metric === "govReadiness" ? "100" : "0.80"}
                 </span>
               </div>
               <p className="text-[10px] text-zinc-600 mt-0.5">
                 {viewMode === "bubble"
-                  ? t("legendBubbleColourSize", { metric: metric === "claude" ? t("legendMetricAIUsage") : metric === "diffusion" ? t("legendMetricGenAI") : metric === "govReadiness" ? t("legendMetricGovReady") : t("legendMetricAIReady") })
+                  ? t("legendBubbleColourSize", { metric: metric === "claude" ? t("legendMetricAIUsage") : metric === "diffusion" ? t("legendMetricGenAI") : metric === "demand" ? t("legendMetricDemand") : metric === "govReadiness" ? t("legendMetricGovReady") : t("legendMetricAIReady") })
                   : metric === "claude"
                   ? t("legendAIUsagePcIndex")
                   : metric === "diffusion"
                   ? t("legendGenAIDiffusionPop")
+                  : metric === "demand"
+                  ? t("legendAIJobDemand")
                   : metric === "govReadiness"
                   ? t("legendGovReadinessOxford")
                   : t("legendAIReadinessIMF")}
@@ -795,7 +878,7 @@ export default function WorldChoropleth({
               {viewMode === "bubble" ? (
                 <>
                   <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true">
-                    <circle cx="8" cy="6" r="5" fill={brandRamp(0.7)} fillOpacity={0.78} />
+                    <circle cx="8" cy="6" r="5" fill={metric === "demand" ? demandRamp(0.7) : brandRamp(0.7)} fillOpacity={0.78} />
                   </svg>
                   <span className="text-[10px] text-zinc-500">{t("legendBubbleProportional")}</span>
                 </>

@@ -193,6 +193,9 @@ export default function GlobalView({
             .
           </p>
           <div className="glass p-4 sm:p-6 rounded-2xl">
+            <p className="mb-3 text-[11px] text-zinc-500 leading-relaxed">
+              {t("mapDemandSourceNote")}
+            </p>
             <WorldChoroplethInteractive />
           </div>
 
