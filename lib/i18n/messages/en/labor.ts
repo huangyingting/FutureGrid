@@ -45,6 +45,27 @@ export const laborEn = {
   pressureBandWatch: "Watch",
   pressureBandLow: "Low",
   pressureBandNotRanked: "Not ranked",
+  pressureQcewHeading: "Employment & Wage Baseline",
+  pressureQcewDesc:
+    "QCEW provides private-sector employment and wage denominator context for WARN employees normalized by employment. Tracking {states} baseline states for {period}; LAUS chips add labor-force and WARN Pressure context where available.",
+  pressureQcewNoStates: "QCEW baseline states are not available yet.",
+  pressureQcewSrLabel:
+    "QCEW baseline ladder table with WARN employees per 10,000 private employment, WARN activity, QCEW employment, wage or pay, and LAUS context.",
+  pressureQcewTableState: "State",
+  pressureQcewTableWarnRate: "WARN employees per 10k QCEW private employment",
+  pressureQcewTableWarnActivity: "WARN employees / notices",
+  pressureQcewTableEmployment: "QCEW employment",
+  pressureQcewTableWagePay: "Avg weekly wage / annual pay",
+  pressureQcewTableLausContext: "LAUS context",
+  pressureQcewWarnRateUnit: "per 10k private employment",
+  pressureQcewEmploymentSub: "private employment",
+  pressureQcewWeeklyWage: "avg weekly wage",
+  pressureQcewAnnualPay: "avg annual pay",
+  pressureQcewLausLaborForceChip: "LAUS labor force {laborForce}",
+  pressureQcewPressureScoreChip: "WARN Pressure {score}",
+  pressureQcewSourceLine:
+    "Source: {source} from {publisher}; QCEW private employment and wage baseline. License: {license}.",
+  pressureQcewSourceLink: "Open BLS QCEW source",
   pressureCoverageHeading: "Coverage context",
   pressureCoverageDesc:
     "Manual, unavailable, PDF-only, failed, or historical WARN feeds stay visible but do not receive ranks.",

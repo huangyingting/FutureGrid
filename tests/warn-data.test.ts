@@ -64,6 +64,12 @@ interface WarnSource {
   name: string;
   publisher: string;
   url: string;
+  sourceStatus?: string;
+  sourceType?: string;
+  sourceUrls?: string[];
+  adapter?: string | null;
+  notes?: string | null;
+  parserConfidence?: number | null;
   license: string;
 }
 
@@ -110,6 +116,19 @@ interface WarnCoverageEntry {
   access?: string;
   sourceStatus?: string;
   coverageStatus?: string;
+  sourceType?: string;
+  sourceUrls?: string[];
+  adapter?: string | null;
+  recordsIncluded?: boolean;
+  notices?: number;
+  dateRange?: WarnDateRange | null;
+  buildStatus?: string;
+  name?: string | null;
+  publisher?: string | null;
+  url?: string | null;
+  notes?: string | null;
+  error?: string | null;
+  parserConfidence?: number | null;
 }
 
 interface WarnData {
@@ -150,10 +169,14 @@ const VALID_COVERAGE_STATUSES = new Set([
   "pdf-only",
   "unavailable",
 ]);
+const MACHINE_READABLE_STATUSES = new Set(["live", "machine-readable", "current-machine-readable"]);
 const NON_MACHINE_READABLE_STATUSES = new Set(["manual-only", "pdf-only", "unavailable"]);
+const VALID_SOURCE_TYPES = new Set(["api", "csv", "html", "json", "none", "pdf", "xls", "xlsx", "xml"]);
 const MAX_NOTICES_PER_STATE = 2_500;
+const MIN_WARN_NOTICE_DATE = "2010-01-01";
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ISO_MONTH = /^\d{4}-\d{2}$/;
+const TIMESTAMPED_VA_CSV_URL = /virginiaworks\.gov\/warn_notices_\d+\.csv(?:$|[?#])/i;
 
 const warnData = JSON.parse(
   readFileSync(path.join(process.cwd(), "data/warn-notices.json"), "utf8"),
@@ -176,7 +199,12 @@ function coverageStatus(entry: WarnCoverageEntry): string | null {
       entry.access ??
       entry.status,
   );
-  return status === "live" ? "machine-readable" : status;
+  return status && MACHINE_READABLE_STATUSES.has(status) ? "machine-readable" : status;
+}
+
+function sourceStatus(source: WarnSource): string | null {
+  const status = normalizeStatus(source.sourceStatus);
+  return status && MACHINE_READABLE_STATUSES.has(status) ? "machine-readable" : status;
 }
 
 function coverageRegistry(): WarnCoverageEntry[] | null {
@@ -199,14 +227,66 @@ function expectOptionalTrimmedString(value: unknown, label: string): void {
   expectTrimmedString(value, label);
 }
 
+function expectAbsoluteUrl(value: unknown, label: string): void {
+  expectTrimmedString(value, label);
+  if (typeof value !== "string") return;
+  expect(() => new URL(value), `${label} should be an absolute URL`).not.toThrow();
+}
+
+function expectSourceUrls(value: unknown, label: string, required = false): string[] {
+  if (value == null) {
+    expect(required, `${label} should be present`).toBe(false);
+    return [];
+  }
+
+  expect(Array.isArray(value), `${label} should be an array`).toBe(true);
+  if (!Array.isArray(value)) return [];
+  if (required) expect(value.length, `${label} should include at least one URL`).toBeGreaterThan(0);
+
+  const urls: string[] = [];
+  for (const [index, url] of value.entries()) {
+    expectAbsoluteUrl(url, `${label}[${index}]`);
+    if (typeof url === "string") urls.push(url);
+  }
+  expect(new Set(urls).size, `${label} should not contain duplicate URLs`).toBe(urls.length);
+  return urls;
+}
+
+function expectSourceType(value: unknown, label: string, required = false): string | null {
+  if (value == null) {
+    expect(required, `${label} should be present`).toBe(false);
+    return null;
+  }
+
+  expectTrimmedString(value, label);
+  if (typeof value !== "string") return null;
+  const type = normalizeStatus(value);
+  expect(VALID_SOURCE_TYPES.has(type ?? ""), `${label} should be a known source type`).toBe(true);
+  return type;
+}
+
+function expectParserConfidence(value: unknown, label: string): void {
+  if (value == null) return;
+  expect(typeof value, `${label} should be numeric when present`).toBe("number");
+  if (typeof value !== "number") return;
+  expect(Number.isFinite(value), `${label} should be finite`).toBe(true);
+  expect(value, `${label} should be >= 0`).toBeGreaterThanOrEqual(0);
+  expect(value, `${label} should be <= 1`).toBeLessThanOrEqual(1);
+}
+
+function expectPlausibleWarnDate(value: string, label: string): void {
+  expect(value, label).toMatch(ISO_DATE);
+  expect(value >= MIN_WARN_NOTICE_DATE, `${label} should not predate ${MIN_WARN_NOTICE_DATE}`).toBe(true);
+}
+
 function expectPositiveInteger(value: number, label: string): void {
   expect(Number.isInteger(value), `${label} should be an integer`).toBe(true);
   expect(value, `${label} should be positive`).toBeGreaterThan(0);
 }
 
 function expectValidDateRange(range: WarnDateRange, label: string): void {
-  if (range.earliest !== null) expect(range.earliest, `${label}.earliest`).toMatch(ISO_DATE);
-  if (range.latest !== null) expect(range.latest, `${label}.latest`).toMatch(ISO_DATE);
+  if (range.earliest !== null) expectPlausibleWarnDate(range.earliest, `${label}.earliest`);
+  if (range.latest !== null) expectPlausibleWarnDate(range.latest, `${label}.latest`);
   if (range.earliest !== null && range.latest !== null) {
     expect(range.earliest <= range.latest, `${label} should be chronological`).toBe(true);
   }
@@ -244,7 +324,43 @@ describe("WARN data snapshot", () => {
       expectTrimmedString(source.name, `${source.state}.name`);
       expectTrimmedString(source.publisher, `${source.state}.publisher`);
       expectTrimmedString(source.license, `${source.state}.license`);
-      expect(() => new URL(source.url), `${source.state}.url should be an absolute URL`).not.toThrow();
+      expectAbsoluteUrl(source.url, `${source.state}.url`);
+
+      expect(sourceStatus(source), `${source.state}.sourceStatus should identify a parsed/live feed`).toBe(
+        "machine-readable",
+      );
+      const type = expectSourceType(source.sourceType, `${source.state}.sourceType`, true);
+      expect(type, `${source.state}.sourceType should not be none for parsed sources`).not.toBe("none");
+      const urls = expectSourceUrls(source.sourceUrls, `${source.state}.sourceUrls`, true);
+      expect(urls, `${source.state}.sourceUrls should include source.url`).toContain(source.url);
+      expectTrimmedString(source.adapter, `${source.state}.adapter`);
+      expectOptionalTrimmedString(source.notes, `${source.state}.notes`);
+      expectParserConfidence(source.parserConfidence, `${source.state}.parserConfidence`);
+    }
+  });
+
+  it("does not claim hard-coded timestamped Virginia CSV URLs as fetched provenance", () => {
+    const registry = coverageRegistry();
+    const vaSource = warnData.sources.find((source) => source.state === "VA");
+    const vaCoverage = registry?.find((entry) => entry.state === "VA");
+    const urls: string[] = [];
+
+    expect(vaSource, "VA source metadata should be present").toBeDefined();
+    expect(vaCoverage, "VA coverage metadata should be present").toBeDefined();
+
+    if (vaSource) {
+      urls.push(vaSource.url, ...expectSourceUrls(vaSource.sourceUrls, "VA.source.sourceUrls", true));
+    }
+    if (vaCoverage) {
+      if (vaCoverage.url) urls.push(vaCoverage.url);
+      urls.push(...expectSourceUrls(vaCoverage.sourceUrls, "VA.coverage.sourceUrls", true));
+    }
+
+    expect(urls.length, "VA provenance should include source URLs").toBeGreaterThan(0);
+    for (const url of urls) {
+      expect(url, "VA source metadata should not hard-code timestamped warn_notices_*.csv URLs").not.toMatch(
+        TIMESTAMPED_VA_CSV_URL,
+      );
     }
   });
 
@@ -313,6 +429,86 @@ describe("WARN data snapshot", () => {
       expect(summaryStates.has(entry.state), `${entry.state} should not have synthetic summary rows`).toBe(
         false,
       );
+      if (entry.recordsIncluded !== undefined) {
+        expect(entry.recordsIncluded, `${entry.state} should not mark records included`).toBe(false);
+      }
+      if (entry.notices !== undefined) expect(entry.notices, `${entry.state} should report zero notices`).toBe(0);
+      expect(entry.adapter ?? null, `${entry.state} should not declare a parsed adapter`).toBeNull();
+    }
+  });
+
+  it("ties parsed coverage states to live source metadata and real records", () => {
+    const registry = coverageRegistry();
+    expect(registry, "WARN coverage registry should be available").not.toBeNull();
+    if (!registry) return;
+
+    const coverageByState = new Map(registry.map((entry) => [entry.state, entry]));
+    const sourceByState = new Map(warnData.sources.map((source) => [source.state, source]));
+    const noticeCounts = new Map<string, number>();
+    const summaryByState = new Map(warnData.summary.byState.map((state) => [state.state, state]));
+
+    for (const notice of warnData.notices) {
+      noticeCounts.set(notice.state, (noticeCounts.get(notice.state) ?? 0) + 1);
+    }
+
+    for (const entry of registry) {
+      const status = coverageStatus(entry);
+      const parsed = status === "machine-readable";
+      const source = sourceByState.get(entry.state);
+      const noticesForState = noticeCounts.get(entry.state) ?? 0;
+      const sourceType = expectSourceType(entry.sourceType, `${entry.state}.coverage.sourceType`, parsed);
+      const coverageUrls = expectSourceUrls(entry.sourceUrls, `${entry.state}.coverage.sourceUrls`, parsed);
+
+      expectOptionalTrimmedString(entry.name, `${entry.state}.coverage.name`);
+      expectOptionalTrimmedString(entry.publisher, `${entry.state}.coverage.publisher`);
+      expectOptionalTrimmedString(entry.notes, `${entry.state}.coverage.notes`);
+      expectOptionalTrimmedString(entry.error, `${entry.state}.coverage.error`);
+      if (entry.url != null) expectAbsoluteUrl(entry.url, `${entry.state}.coverage.url`);
+      if (entry.buildStatus != null) expectTrimmedString(entry.buildStatus, `${entry.state}.coverage.buildStatus`);
+      expectParserConfidence(entry.parserConfidence, `${entry.state}.coverage.parserConfidence`);
+
+      if (parsed) {
+        expect(source, `${entry.state} parsed coverage should have source metadata`).toBeDefined();
+        expect(sourceType, `${entry.state} parsed coverage should not use sourceType=none`).not.toBe("none");
+        expectTrimmedString(entry.adapter, `${entry.state}.coverage.adapter`);
+        expect(entry.recordsIncluded, `${entry.state} parsed coverage should include records`).toBe(true);
+        expect(entry.notices ?? noticesForState, `${entry.state} parsed coverage should report notices`).toBeGreaterThan(0);
+        expect(noticesForState, `${entry.state} parsed coverage should have real notice rows`).toBeGreaterThan(0);
+        expect(summaryByState.has(entry.state), `${entry.state} parsed coverage should have a summary row`).toBe(true);
+        expect(entry.dateRange, `${entry.state} parsed coverage should expose a date range`).not.toBeNull();
+        if (entry.dateRange) expectValidDateRange(entry.dateRange, `${entry.state}.coverage.dateRange`);
+
+        if (source) {
+          const sourceTypeFromSource = expectSourceType(source.sourceType, `${entry.state}.source.sourceType`, true);
+          expect(sourceStatus(source), `${entry.state}.sourceStatus should align with coverage`).toBe("machine-readable");
+          expect(sourceTypeFromSource, `${entry.state}.sourceType should align with coverage`).toBe(sourceType);
+          expect(source.adapter, `${entry.state}.adapter should align with coverage`).toBe(entry.adapter);
+          for (const url of expectSourceUrls(source.sourceUrls, `${entry.state}.source.sourceUrls`, true)) {
+            expect(coverageUrls, `${entry.state}.coverage.sourceUrls should include source URL ${url}`).toContain(url);
+          }
+        }
+
+        if (sourceType === "html" || sourceType === "pdf") {
+          expectTrimmedString(entry.adapter, `${entry.state} parsed ${sourceType} coverage should name its adapter`);
+          expect(coverageUrls.length, `${entry.state} parsed ${sourceType} coverage should keep source URLs`).toBeGreaterThan(0);
+        }
+      } else if (status && NON_MACHINE_READABLE_STATUSES.has(status)) {
+        expect(source, `${entry.state} non-parsed coverage should not be listed as a source`).toBeUndefined();
+        expect(noticesForState, `${entry.state} non-parsed coverage should not have notices`).toBe(0);
+        expect(summaryByState.has(entry.state), `${entry.state} non-parsed coverage should not have summary rows`).toBe(false);
+        expect(entry.recordsIncluded, `${entry.state} non-parsed coverage should not include records`).toBe(false);
+        expect(entry.notices ?? 0, `${entry.state} non-parsed coverage should report zero notices`).toBe(0);
+        expect(entry.adapter ?? null, `${entry.state} non-parsed coverage should not declare an adapter`).toBeNull();
+        expect(entry.dateRange ?? null, `${entry.state} non-parsed coverage should not expose a fake date range`).toBeNull();
+      }
+    }
+
+    for (const source of warnData.sources) {
+      const entry = coverageByState.get(source.state);
+      expect(entry, `${source.state} source should have coverage metadata`).toBeDefined();
+      expect(entry ? coverageStatus(entry) : null, `${source.state} source should be parsed/live in coverage`).toBe(
+        "machine-readable",
+      );
     }
   });
 
@@ -329,6 +525,7 @@ describe("WARN data snapshot", () => {
     let previousNoticeDate: string | null = null;
 
     for (const [index, notice] of warnData.notices.entries()) {
+      const noticeLabel = `notices[${index}] ${notice.state}`;
       expectTrimmedString(notice.company, `notices[${index}].company`);
       expectOptionalTrimmedString(notice.county, `notices[${index}].county`);
       expectOptionalTrimmedString(notice.city, `notices[${index}].city`);
@@ -344,7 +541,7 @@ describe("WARN data snapshot", () => {
       }
 
       if (notice.noticeDate !== null) {
-        expect(notice.noticeDate).toMatch(ISO_DATE);
+        expectPlausibleWarnDate(notice.noticeDate, `${noticeLabel}.noticeDate`);
         if (previousNoticeDate !== null) {
           expect(
             previousNoticeDate >= notice.noticeDate,
@@ -354,7 +551,9 @@ describe("WARN data snapshot", () => {
       } else if (previousNoticeDate !== null) {
         previousNoticeDate = null;
       }
-      if (notice.effectiveDate !== null) expect(notice.effectiveDate).toMatch(ISO_DATE);
+      if (notice.effectiveDate !== null) {
+        expectPlausibleWarnDate(notice.effectiveDate, `${noticeLabel}.effectiveDate`);
+      }
 
       previousNoticeDate = notice.noticeDate;
       trimmedEmployeeTotal += notice.employees;

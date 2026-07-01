@@ -9,6 +9,13 @@ import {
   getWarnPressureSummary,
   getWarnPressureTopStates,
 } from "@/lib/state-labor";
+import {
+  getQcewBaselineStates,
+  getQcewBaselineSummary,
+  getQcewBaselineTopStates,
+  getStateQcewData,
+  getStateQcewSource,
+} from "@/lib/state-qcew";
 
 type PressureBand = "high" | "elevated" | "watch" | "low" | "not-ranked";
 type CoverageGroup = "live" | "manual" | "unavailable" | "historical" | "pdf" | "failed";
@@ -51,6 +58,114 @@ interface StateLaborData {
     scoreFormula?: string;
     rankingNote?: string;
   };
+}
+
+interface StateQcewSource {
+  name?: string;
+  publisher?: string;
+  survey?: string;
+  url?: string;
+  license?: string;
+  year?: number;
+  note?: string;
+}
+
+interface QcewBaselineSummary {
+  states?: number;
+  totalStates?: number;
+  totalJurisdictions?: number;
+  rankedStates?: number;
+  statesWithBaselineRate?: number;
+  qcewYear?: number;
+  latestQuarter?: string;
+  latestPeriod?: string;
+  totalWarnEmployees?: number;
+}
+
+interface StateQcewData {
+  generatedAt?: string;
+  latestQuarter?: string;
+  latestPeriod?: string;
+  source?: StateQcewSource;
+  summary?: QcewBaselineSummary;
+}
+
+interface QcewSnapshot {
+  privateEmployment?: number | null;
+  qcewPrivateEmployment?: number | null;
+  qcewEmployment?: number | null;
+  employment?: number | null;
+  averageEmployment?: number | null;
+  annualAverageEmployment?: number | null;
+  avgWeeklyWage?: number | null;
+  averageWeeklyWage?: number | null;
+  weeklyWage?: number | null;
+  avgAnnualPay?: number | null;
+  averageAnnualPay?: number | null;
+  annualPay?: number | null;
+  year?: number | null;
+  quarter?: number | string | null;
+  period?: string | null;
+}
+
+interface QcewNestedSnapshot extends QcewSnapshot {
+  latest?: QcewSnapshot | null;
+}
+
+interface QcewBaselineMetrics {
+  warnEmployeesPer10kQcewPrivateEmployment?: number | null;
+  warnEmployeesPer10kPrivateEmployment?: number | null;
+  warnEmployeesPer10kQcewEmployment?: number | null;
+  qcewPrivateEmployment?: number | null;
+  privateEmployment?: number | null;
+  annualAverageEmployment?: number | null;
+  avgWeeklyWage?: number | null;
+  averageWeeklyWage?: number | null;
+  avgAnnualPay?: number | null;
+  averageAnnualPay?: number | null;
+  warnPressureScore?: number | null;
+}
+
+interface QcewBaselineState {
+  state: string;
+  stateName?: string;
+  name?: string;
+  rank?: number | null;
+  baselineRank?: number | null;
+  qcew?: QcewNestedSnapshot | null;
+  qcewLatest?: QcewSnapshot | null;
+  latest?: QcewSnapshot | null;
+  metrics?: QcewBaselineMetrics;
+  warnWindow?: {
+    employees12m?: number | null;
+    notices12m?: number | null;
+    employees?: number | null;
+    notices?: number | null;
+  };
+  warnEmployees12m?: number | null;
+  warnNotices12m?: number | null;
+  warnEmployees?: number | null;
+  warnNotices?: number | null;
+  warnEmployeesPer10kQcewPrivateEmployment?: number | null;
+  warnEmployeesPer10kPrivateEmployment?: number | null;
+  warnEmployeesPer10kQcewEmployment?: number | null;
+  qcewPrivateEmployment?: number | null;
+  privateEmployment?: number | null;
+  annualAverageEmployment?: number | null;
+  qcewEmployment?: number | null;
+  avgWeeklyWage?: number | null;
+  averageWeeklyWage?: number | null;
+  avgAnnualPay?: number | null;
+  averageAnnualPay?: number | null;
+  lausLatest?: {
+    laborForce?: number | null;
+  } | null;
+  latestLaus?: {
+    laborForce?: number | null;
+  } | null;
+  lausLaborForce?: number | null;
+  warnPressureScore?: number | null;
+  pressureScore?: number | null;
 }
 
 interface StateLaborState {
@@ -147,6 +262,13 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function firstFiniteNumber(...values: Array<number | null | undefined>): number | null {
+  for (const value of values) {
+    if (isFiniteNumber(value)) return value;
+  }
+  return null;
+}
+
 function StatCard({
   label,
   value,
@@ -189,6 +311,11 @@ function formatWindow(months: string[]): string {
 function formatNumber(value: number | null | undefined): string {
   if (!isFiniteNumber(value)) return "—";
   return Math.round(value).toLocaleString();
+}
+
+function formatCurrency(value: number | null | undefined): string {
+  if (!isFiniteNumber(value)) return "—";
+  return `$${Math.round(value).toLocaleString()}`;
 }
 
 function formatCompact(value: number | null | undefined): string {
@@ -334,6 +461,11 @@ function getWarnNotices(state: StateLaborState): number {
   );
 }
 
+function getLaborForce(state: StateLaborState | undefined): number | null {
+  if (!state) return null;
+  return state.latest?.laborForce ?? state.lausLatest?.laborForce ?? state.laborForce ?? null;
+}
+
 function getWarnRatePer10k(state: StateLaborState): number | null {
   if (isFiniteNumber(state.warnEmployeesPer10kLaborForce)) {
     return state.warnEmployeesPer10kLaborForce;
@@ -360,6 +492,141 @@ function getWarnRatePer10k(state: StateLaborState): number | null {
   }
 
   return null;
+}
+
+function getQcewSnapshot(state: QcewBaselineState): QcewSnapshot | null {
+  return state.qcewLatest ?? state.qcew?.latest ?? state.latest ?? state.qcew ?? null;
+}
+
+function getQcewStateName(state: QcewBaselineState): string {
+  return state.stateName ?? state.name ?? state.state;
+}
+
+function getQcewRank(state: QcewBaselineState): number | null {
+  return firstFiniteNumber(state.baselineRank, state.rank);
+}
+
+function getQcewWarnEmployees(state: QcewBaselineState): number | null {
+  return firstFiniteNumber(
+    state.warnWindow?.employees12m,
+    state.warnWindow?.employees,
+    state.warnEmployees12m,
+    state.warnEmployees,
+  );
+}
+
+function getQcewWarnNotices(state: QcewBaselineState): number | null {
+  return firstFiniteNumber(
+    state.warnWindow?.notices12m,
+    state.warnWindow?.notices,
+    state.warnNotices12m,
+    state.warnNotices,
+  );
+}
+
+function getQcewPrivateEmployment(state: QcewBaselineState): number | null {
+  const latest = getQcewSnapshot(state);
+  return firstFiniteNumber(
+    state.qcewPrivateEmployment,
+    state.privateEmployment,
+    state.qcewEmployment,
+    state.metrics?.qcewPrivateEmployment,
+    state.metrics?.privateEmployment,
+    state.metrics?.annualAverageEmployment,
+    state.annualAverageEmployment,
+    latest?.privateEmployment,
+    latest?.qcewPrivateEmployment,
+    latest?.qcewEmployment,
+    latest?.employment,
+    latest?.averageEmployment,
+    latest?.annualAverageEmployment,
+  );
+}
+
+function getQcewAverageWeeklyWage(state: QcewBaselineState): number | null {
+  const latest = getQcewSnapshot(state);
+  return firstFiniteNumber(
+    state.avgWeeklyWage,
+    state.averageWeeklyWage,
+    state.metrics?.avgWeeklyWage,
+    state.metrics?.averageWeeklyWage,
+    latest?.avgWeeklyWage,
+    latest?.averageWeeklyWage,
+    latest?.weeklyWage,
+  );
+}
+
+function getQcewAverageAnnualPay(state: QcewBaselineState): number | null {
+  const latest = getQcewSnapshot(state);
+  return firstFiniteNumber(
+    state.avgAnnualPay,
+    state.averageAnnualPay,
+    state.metrics?.avgAnnualPay,
+    state.metrics?.averageAnnualPay,
+    latest?.avgAnnualPay,
+    latest?.averageAnnualPay,
+    latest?.annualPay,
+  );
+}
+
+function getQcewWarnRatePer10k(state: QcewBaselineState): number | null {
+  const rate = firstFiniteNumber(
+    state.warnEmployeesPer10kQcewPrivateEmployment,
+    state.warnEmployeesPer10kPrivateEmployment,
+    state.warnEmployeesPer10kQcewEmployment,
+    state.metrics?.warnEmployeesPer10kQcewPrivateEmployment,
+    state.metrics?.warnEmployeesPer10kPrivateEmployment,
+    state.metrics?.warnEmployeesPer10kQcewEmployment,
+  );
+  if (rate !== null) return rate;
+
+  const warnEmployees = getQcewWarnEmployees(state);
+  const privateEmployment = getQcewPrivateEmployment(state);
+  if (warnEmployees !== null && isFiniteNumber(privateEmployment) && privateEmployment > 0) {
+    return (warnEmployees / privateEmployment) * 10_000;
+  }
+
+  return null;
+}
+
+function getQcewContextLaborForce(
+  qcewState: QcewBaselineState,
+  laborState: StateLaborState | undefined,
+): number | null {
+  return firstFiniteNumber(
+    qcewState.lausLaborForce,
+    qcewState.lausLatest?.laborForce,
+    qcewState.latestLaus?.laborForce,
+    getLaborForce(laborState),
+  );
+}
+
+function getQcewContextPressureScore(
+  qcewState: QcewBaselineState,
+  laborState: StateLaborState | undefined,
+): number | null {
+  return firstFiniteNumber(
+    qcewState.warnPressureScore,
+    qcewState.pressureScore,
+    qcewState.metrics?.warnPressureScore,
+    getPressureScore(laborState),
+  );
+}
+
+function compareQcewBaselineStates(a: QcewBaselineState, b: QcewBaselineState): number {
+  const rankA = getQcewRank(a);
+  const rankB = getQcewRank(b);
+  if (rankA !== null && rankB !== null && rankA !== rankB) return rankA - rankB;
+
+  const rateA = getQcewWarnRatePer10k(a) ?? -1;
+  const rateB = getQcewWarnRatePer10k(b) ?? -1;
+  if (rateA !== rateB) return rateB - rateA;
+
+  const employeesA = getQcewWarnEmployees(a) ?? -1;
+  const employeesB = getQcewWarnEmployees(b) ?? -1;
+  if (employeesA !== employeesB) return employeesB - employeesA;
+
+  return getQcewStateName(a).localeCompare(getQcewStateName(b));
 }
 
 function getUnemploymentRate(state: StateLaborState): number | null {
@@ -430,6 +697,20 @@ export default function WarnPressureView() {
     () => (getWarnPressureTopStates(10) ?? []) as StateLaborState[],
     [],
   );
+  const qcewData = useMemo(() => (getStateQcewData() ?? {}) as StateQcewData, []);
+  const qcewSource = useMemo(() => (getStateQcewSource() ?? {}) as StateQcewSource, []);
+  const qcewSummary = useMemo(
+    () => (getQcewBaselineSummary() ?? {}) as QcewBaselineSummary,
+    [],
+  );
+  const qcewAllStates = useMemo(
+    () => (getQcewBaselineStates() ?? []) as QcewBaselineState[],
+    [],
+  );
+  const qcewTopStates = useMemo(
+    () => (getQcewBaselineTopStates(10) ?? []) as QcewBaselineState[],
+    [],
+  );
 
   const rankedStates = useMemo(
     () => allStates.filter(isRankEligible).sort(compareRankedStates),
@@ -457,6 +738,22 @@ export default function WarnPressureView() {
       })),
     [allStates],
   );
+  const laborStateByCode = useMemo(
+    () => new Map(allStates.map((state) => [state.state, state])),
+    [allStates],
+  );
+  const qcewBaselineStates = useMemo(() => {
+    const states = qcewTopStates.length > 0 ? qcewTopStates : qcewAllStates;
+    return [...states].sort(compareQcewBaselineStates).slice(0, 10);
+  }, [qcewAllStates, qcewTopStates]);
+  const maxQcewRate = useMemo(
+    () =>
+      qcewBaselineStates.reduce(
+        (max, state) => Math.max(max, getQcewWarnRatePer10k(state) ?? 0),
+        0,
+      ),
+    [qcewBaselineStates],
+  );
 
   const topState = topStates[0] ?? rankedStates[0];
   const mergedSummary = { ...(data.summary ?? {}), ...summary };
@@ -479,6 +776,29 @@ export default function WarnPressureView() {
   const sourceUrl = source.url ?? data.source?.url;
   const sourceLicense = source.license ?? data.source?.license ?? "Public Domain";
   const sourceNote = source.note ?? data.source?.note;
+  const qcewSourceName =
+    qcewSource.name ?? qcewData.source?.name ?? "BLS Quarterly Census of Employment and Wages";
+  const qcewSourcePublisher =
+    qcewSource.publisher ?? qcewData.source?.publisher ?? "U.S. Bureau of Labor Statistics";
+  const qcewSourceUrl = qcewSource.url ?? qcewData.source?.url;
+  const qcewSourceLicense = qcewSource.license ?? qcewData.source?.license ?? "Public Domain";
+  const qcewSourceNote = qcewSource.note ?? qcewData.source?.note;
+  const mergedQcewSummary = { ...(qcewData.summary ?? {}), ...qcewSummary };
+  const qcewTotalStates =
+    mergedQcewSummary.statesWithBaselineRate ??
+    mergedQcewSummary.rankedStates ??
+    mergedQcewSummary.states ??
+    mergedQcewSummary.totalStates ??
+    mergedQcewSummary.totalJurisdictions ??
+    qcewAllStates.length;
+  const qcewLatestPeriod =
+    mergedQcewSummary.latestPeriod ??
+    mergedQcewSummary.latestQuarter ??
+    (isFiniteNumber(mergedQcewSummary.qcewYear) ? String(mergedQcewSummary.qcewYear) : undefined) ??
+    qcewData.latestPeriod ??
+    qcewData.latestQuarter ??
+    (isFiniteNumber(qcewSource.year) ? String(qcewSource.year) : undefined) ??
+    "—";
 
   return (
     <div className="space-y-10 max-w-[1400px]">
@@ -668,6 +988,182 @@ export default function WarnPressureView() {
               </table>
             </div>
           )}
+        </div>
+      </section>
+
+      <section aria-labelledby="pressure-qcew-heading">
+        <div className="mb-4">
+          <h2
+            id="pressure-qcew-heading"
+            className="text-xl font-semibold text-zinc-900 dark:text-white"
+          >
+            {t("pressureQcewHeading")}
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 max-w-4xl">
+            {t("pressureQcewDesc", {
+              states: formatNumber(qcewTotalStates),
+              period: qcewLatestPeriod,
+            })}
+          </p>
+        </div>
+
+        <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
+          {qcewBaselineStates.length === 0 ? (
+            <div className="py-12 px-4 text-center text-zinc-500 text-sm">
+              {t("pressureQcewNoStates")}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[980px]">
+                <caption className="sr-only">{t("pressureQcewSrLabel")}</caption>
+                <thead>
+                  <tr className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-950/60">
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableState")}
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableWarnRate")}
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableWarnActivity")}
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableEmployment")}
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableWagePay")}
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+                      {t("pressureQcewTableLausContext")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                  {qcewBaselineStates.map((qcewState, index) => {
+                    const laborState = laborStateByCode.get(qcewState.state);
+                    const rank = getQcewRank(qcewState) ?? index + 1;
+                    const rate = getQcewWarnRatePer10k(qcewState);
+                    const rateWidth =
+                      maxQcewRate > 0 && rate !== null && rate > 0
+                        ? `${Math.max(4, Math.min((rate / maxQcewRate) * 100, 100))}%`
+                        : "0%";
+                    const weeklyWage = getQcewAverageWeeklyWage(qcewState);
+                    const annualPay = getQcewAverageAnnualPay(qcewState);
+                    const wagePay = weeklyWage ?? annualPay;
+                    const wagePayLabelKey =
+                      weeklyWage !== null
+                        ? "pressureQcewWeeklyWage"
+                        : annualPay !== null
+                          ? "pressureQcewAnnualPay"
+                          : null;
+                    const laborForce = getQcewContextLaborForce(qcewState, laborState);
+                    const pressureScore = getQcewContextPressureScore(qcewState, laborState);
+                    const pressureBand = laborState ? getPressureBand(laborState) : "not-ranked";
+
+                    return (
+                      <tr
+                        key={qcewState.state}
+                        className="hover:bg-zinc-50 dark:hover:bg-zinc-900/40 transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-start gap-3">
+                            <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-500/10 text-xs font-semibold text-violet-600 dark:text-violet-400">
+                              {rank}
+                            </span>
+                            <div>
+                              <div className="font-medium text-zinc-900 dark:text-white">
+                                {getQcewStateName(qcewState)}
+                              </div>
+                              <div className="text-xs text-zinc-500">{qcewState.state}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-300">
+                          <div className="flex items-center justify-end gap-3">
+                            <div className="h-2 w-24 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden" aria-hidden="true">
+                              <div
+                                className="h-full bg-violet-500 rounded-full"
+                                style={{ width: rateWidth }}
+                              />
+                            </div>
+                            <span className="min-w-12 font-semibold text-zinc-900 dark:text-white">
+                              {formatRate(rate)}
+                            </span>
+                          </div>
+                          <span className="block text-[10px] text-zinc-500">
+                            {t("pressureQcewWarnRateUnit")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-300">
+                          {formatNumber(getQcewWarnEmployees(qcewState))}
+                          <span className="block text-[10px] text-zinc-500">
+                            {t("pressureNoticeCount", {
+                              notices: formatNumber(getQcewWarnNotices(qcewState)),
+                            })}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-300">
+                          {formatNumber(getQcewPrivateEmployment(qcewState))}
+                          <span className="block text-[10px] text-zinc-500">
+                            {t("pressureQcewEmploymentSub")}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-zinc-700 dark:text-zinc-300">
+                          {formatCurrency(wagePay)}
+                          {wagePayLabelKey && (
+                            <span className="block text-[10px] text-zinc-500">
+                              {t(wagePayLabelKey)}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {laborForce !== null && (
+                              <span className="inline-flex items-center rounded-full border border-zinc-300 dark:border-zinc-700 bg-white/70 dark:bg-zinc-950/40 px-2 py-1 text-[10px] font-semibold text-zinc-600 dark:text-zinc-300">
+                                {t("pressureQcewLausLaborForceChip", {
+                                  laborForce: formatCompact(laborForce),
+                                })}
+                              </span>
+                            )}
+                            {pressureScore !== null && (
+                              <span className={`inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-semibold ${BAND_CLASSES[pressureBand]}`}>
+                                {t("pressureQcewPressureScoreChip", {
+                                  score: formatScore(pressureScore),
+                                })}
+                              </span>
+                            )}
+                            {laborForce === null && pressureScore === null && (
+                              <span className="text-zinc-500">—</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p className="text-xs text-zinc-500 dark:text-zinc-500">
+              {t("pressureQcewSourceLine", {
+                source: qcewSourceName,
+                publisher: qcewSourcePublisher,
+                license: qcewSourceLicense,
+              })}
+              {qcewSourceNote ? ` ${qcewSourceNote}` : ""}
+            </p>
+            {qcewSourceUrl && (
+              <a
+                href={qcewSourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                {t("pressureQcewSourceLink")}
+              </a>
+            )}
+          </div>
         </div>
       </section>
 

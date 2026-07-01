@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T14:05:12.337Z",
+  "generatedAt": "2026-07-01T19:53:40.871Z",
   "source": {
     "name": "BLS Local Area Unemployment Statistics",
     "publisher": "U.S. Bureau of Labor Statistics",
@@ -10,13 +10,13 @@
   "methodology": {
     "warnWindowMonths": 12,
     "scoreFormula": "round(0.70 * WARN employees per 10k labor force percentile + 0.30 * unemployment YoY delta percentile)",
-    "rankingNote": "Ranks only states whose WARN coverage sourceStatus is live/current machine-readable, whose latest LAUS labor force is available, and whose WARN coverage or notices overlap the current 12-month WARN window. Manual-only, unavailable, and stale historical WARN feeds remain in metadata but are not ranked. Higher WARN rates and higher unemployment-rate YoY deltas increase pressure score; null YoY deltas score as 0 for that component. This is a descriptive pressure/association ranking; it does not establish causality between WARN notices and broader labor-market indicators.",
+    "rankingNote": "Ranks only states whose WARN coverage sourceStatus is live/current machine-readable, whose latest LAUS labor force is available, and whose WARN notice/provenance dates overlap the current 12-month WARN window. Effective dates are not used as notice-date provenance. Manual-only, unavailable, undated, and stale historical WARN feeds remain in metadata but are not ranked. Higher WARN rates and higher unemployment-rate YoY deltas increase pressure score; null YoY deltas score as 0 for that component. This is a descriptive pressure/association ranking; it does not establish causality between WARN notices and broader labor-market indicators.",
     "warnWindowEndBasis": "laus-latest-month",
     "warnWindowNote": "The 12-month WARN window ends at the latest LAUS month end (2026-05-31); later WARN notices, if any, are excluded until LAUS context catches up."
   },
   "summary": {
     "latestMonth": "2026-05",
-    "rankedStates": 5,
+    "rankedStates": 9,
     "totalJurisdictions": 51,
     "warnWindowStart": "2025-06-01",
     "warnWindowEnd": "2026-05-31",
@@ -47,7 +47,7 @@
         "name": "Alabama WARN Notices",
         "publisher": "Alabama Department of Labor",
         "url": "https://www.labor.alabama.gov/warn/",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -2349,11 +2349,11 @@
       "rankStatus": "ranked",
       "rankIneligibleReason": null,
       "rank": 1,
-      "pressureScore": 85,
+      "pressureScore": 79,
       "pressureLevel": "High",
       "pressurePercentiles": {
         "warnEmployeesPer10kLaborForce": 100,
-        "unemploymentRateYoYDelta": 50
+        "unemploymentRateYoYDelta": 28.57
       },
       "warnEmployees12m": 77058,
       "warnNotices12m": 1461,
@@ -2915,7 +2915,7 @@
         "name": "Colorado WARN Notices",
         "publisher": "Colorado Department of Labor and Employment",
         "url": "https://cdle.colorado.gov/employers/layoff-separations/warn-notices",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -3488,7 +3488,7 @@
         "name": "Connecticut WARN Notices",
         "publisher": "Connecticut Department of Labor",
         "url": "https://portal.ct.gov/dol/divisions/warn/warn-notices",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -5207,7 +5207,7 @@
         "name": "Florida WARN Notices",
         "publisher": "FloridaCommerce",
         "url": "https://www.floridajobs.org/reemployment-assistance-service-center/reemployment-assistance/for-employers/warn-notices",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Registered FloridaCommerce WARN URL returned 404 during adapter evaluation; keep manual-only until the current official listing URL or export is confirmed.",
         "error": null
       },
       "rankEligible": false,
@@ -7502,7 +7502,7 @@
         "name": "Illinois WARN Activities and Layoff Data",
         "publisher": "Illinois Department of Commerce and Economic Opportunity",
         "url": "https://www.illinoisworknet.com/LayoffRecovery/Pages/IllinoisWARNData.aspx",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page rendered no static WARN table or export in fetched HTML during adapter evaluation; keep manual-only until a deterministic endpoint is identified.",
         "error": null
       },
       "rankEligible": false,
@@ -8063,34 +8063,37 @@
         "laborForce": 3489693
       },
       "unemploymentRateYoYDelta": -0.4,
-      "warnCoverageStatus": "manual-only",
+      "warnCoverageStatus": "live",
       "warnCoverage": {
-        "sourceStatus": "manual-only",
+        "sourceStatus": "live",
         "sourceType": "html",
-        "recordsIncluded": false,
-        "notices": 0,
-        "dateRange": null,
-        "buildStatus": "metadata-only",
-        "adapter": null,
-        "name": "Indiana WARN Notices",
+        "recordsIncluded": true,
+        "notices": 529,
+        "dateRange": {
+          "earliest": "2016-01-19",
+          "latest": "2026-06-30"
+        },
+        "buildStatus": "ok",
+        "adapter": "fetchIN",
+        "name": "Indiana Current WARN Notices",
         "publisher": "Indiana Department of Workforce Development",
         "url": "https://www.in.gov/dwd/warn-notices/",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official static HTML table with company, city, affected workers, notice date, LO/CL date, and LO/CL action.",
         "error": null
       },
-      "rankEligible": false,
-      "rankStatus": "not-ranked",
-      "rankIneligibleReason": "WARN source is not currently machine-readable",
-      "rank": null,
-      "pressureScore": null,
-      "pressureLevel": "Not ranked",
+      "rankEligible": true,
+      "rankStatus": "ranked",
+      "rankIneligibleReason": null,
+      "rank": 8,
+      "pressureScore": 13,
+      "pressureLevel": "Low",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": null,
-        "unemploymentRateYoYDelta": null
+        "warnEmployeesPer10kLaborForce": 12.5,
+        "unemploymentRateYoYDelta": 14.29
       },
-      "warnEmployees12m": 0,
-      "warnNotices12m": 0,
-      "warnEmployeesPer10kLaborForce": 0,
+      "warnEmployees12m": 4642,
+      "warnNotices12m": 34,
+      "warnEmployeesPer10kLaborForce": 13.3,
       "series": {
         "unemploymentRate": [
           {
@@ -8551,75 +8554,75 @@
         "warn": [
           {
             "date": "2025-06",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 1,
+            "employees": 50,
+            "employeesPer10kLaborForce": 0.14
           },
           {
             "date": "2025-07",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 1,
+            "employees": 65,
+            "employeesPer10kLaborForce": 0.19
           },
           {
             "date": "2025-08",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 7,
+            "employees": 930,
+            "employeesPer10kLaborForce": 2.65
           },
           {
             "date": "2025-09",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 3,
+            "employees": 588,
+            "employeesPer10kLaborForce": 1.68
           },
           {
             "date": "2025-10",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 2,
+            "employees": 222,
+            "employeesPer10kLaborForce": 0.64
           },
           {
             "date": "2025-11",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 2,
+            "employees": 292,
+            "employeesPer10kLaborForce": 0.83
           },
           {
             "date": "2025-12",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 4,
+            "employees": 879,
+            "employeesPer10kLaborForce": 2.51
           },
           {
             "date": "2026-01",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 4,
+            "employees": 316,
+            "employeesPer10kLaborForce": 0.9
           },
           {
             "date": "2026-02",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 3,
+            "employees": 555,
+            "employeesPer10kLaborForce": 1.59
           },
           {
             "date": "2026-03",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 2,
+            "employees": 142,
+            "employeesPer10kLaborForce": 0.41
           },
           {
             "date": "2026-04",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 3,
+            "employees": 523,
+            "employeesPer10kLaborForce": 1.5
           },
           {
             "date": "2026-05",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 2,
+            "employees": 80,
+            "employeesPer10kLaborForce": 0.23
           }
         ]
       }
@@ -8657,12 +8660,12 @@
       "rankEligible": true,
       "rankStatus": "ranked",
       "rankIneligibleReason": null,
-      "rank": 5,
-      "pressureScore": 25,
+      "rank": 6,
+      "pressureScore": 39,
       "pressureLevel": "Moderate",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": 25,
-        "unemploymentRateYoYDelta": 25
+        "warnEmployeesPer10kLaborForce": 50,
+        "unemploymentRateYoYDelta": 14.29
       },
       "warnEmployees12m": 5035,
       "warnNotices12m": 138,
@@ -11507,34 +11510,37 @@
         "laborForce": 3207390
       },
       "unemploymentRateYoYDelta": 0.4,
-      "warnCoverageStatus": "manual-only",
+      "warnCoverageStatus": "live",
       "warnCoverage": {
-        "sourceStatus": "manual-only",
+        "sourceStatus": "live",
         "sourceType": "html",
-        "recordsIncluded": false,
-        "notices": 0,
-        "dateRange": null,
-        "buildStatus": "metadata-only",
-        "adapter": null,
-        "name": "Maryland WARN Notices",
+        "recordsIncluded": true,
+        "notices": 1076,
+        "dateRange": {
+          "earliest": "2016-01-05",
+          "latest": "2026-06-29"
+        },
+        "buildStatus": "ok",
+        "adapter": "fetchMD",
+        "name": "Maryland WARN / ESA / Other Dislocations Log",
         "publisher": "Maryland Department of Labor",
         "url": "https://www.dllr.state.md.us/employment/warn.shtml",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official yearly HTML tables are parsed; PDF downloads are not used.",
         "error": null
       },
-      "rankEligible": false,
-      "rankStatus": "not-ranked",
-      "rankIneligibleReason": "WARN source is not currently machine-readable",
-      "rank": null,
-      "pressureScore": null,
-      "pressureLevel": "Not ranked",
+      "rankEligible": true,
+      "rankStatus": "ranked",
+      "rankIneligibleReason": null,
+      "rank": 3,
+      "pressureScore": 69,
+      "pressureLevel": "Elevated",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": null,
-        "unemploymentRateYoYDelta": null
+        "warnEmployeesPer10kLaborForce": 62.5,
+        "unemploymentRateYoYDelta": 85.71
       },
-      "warnEmployees12m": 0,
-      "warnNotices12m": 0,
-      "warnEmployeesPer10kLaborForce": 0,
+      "warnEmployees12m": 9429,
+      "warnNotices12m": 154,
+      "warnEmployeesPer10kLaborForce": 29.4,
       "series": {
         "unemploymentRate": [
           {
@@ -11995,75 +12001,75 @@
         "warn": [
           {
             "date": "2025-06",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 10,
+            "employees": 436,
+            "employeesPer10kLaborForce": 1.35
           },
           {
             "date": "2025-07",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 10,
+            "employees": 667,
+            "employeesPer10kLaborForce": 2.06
           },
           {
             "date": "2025-08",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 15,
+            "employees": 778,
+            "employeesPer10kLaborForce": 2.41
           },
           {
             "date": "2025-09",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 13,
+            "employees": 422,
+            "employeesPer10kLaborForce": 1.31
           },
           {
             "date": "2025-10",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 11,
+            "employees": 648,
+            "employeesPer10kLaborForce": 2.02
           },
           {
             "date": "2025-11",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 18,
+            "employees": 1145,
+            "employeesPer10kLaborForce": 3.55
           },
           {
             "date": "2025-12",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 11,
+            "employees": 616,
+            "employeesPer10kLaborForce": 1.91
           },
           {
             "date": "2026-01",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 12,
+            "employees": 1086,
+            "employeesPer10kLaborForce": 3.38
           },
           {
             "date": "2026-02",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 13,
+            "employees": 637,
+            "employeesPer10kLaborForce": 1.98
           },
           {
             "date": "2026-03",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 18,
+            "employees": 615,
+            "employeesPer10kLaborForce": 1.92
           },
           {
             "date": "2026-04",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 15,
+            "employees": 1364,
+            "employeesPer10kLaborForce": 4.25
           },
           {
             "date": "2026-05",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 8,
+            "employees": 1015,
+            "employeesPer10kLaborForce": 3.16
           }
         ]
       }
@@ -12092,7 +12098,7 @@
         "name": "Massachusetts WARN Weekly Report",
         "publisher": "Massachusetts Executive Office of Labor and Workforce Development",
         "url": "https://www.mass.gov/info-details/worker-adjustment-and-retraining-act-warn-weekly-report",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -12665,7 +12671,7 @@
         "name": "Michigan WARN Notices",
         "publisher": "Michigan Department of Labor and Economic Opportunity",
         "url": "https://www.michigan.gov/leo/bureaus-agencies/wd/programs-services/warn-notices",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -13238,7 +13244,7 @@
         "name": "Minnesota WARN Notices",
         "publisher": "Minnesota Department of Employment and Economic Development",
         "url": "https://mn.gov/deed/programs-services/dislocated-worker/employers/warn/",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official Minnesota WARN URL led to a bot-manager CAPTCHA during adapter evaluation; keep manual-only until a deterministic public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -14384,7 +14390,7 @@
         "name": "Missouri WARN Notices",
         "publisher": "Missouri Office of Workforce Development",
         "url": "https://jobs.mo.gov/warn",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -17242,10 +17248,10 @@
         "sourceStatus": "live",
         "sourceType": "xlsx",
         "recordsIncluded": true,
-        "notices": 1015,
+        "notices": 1017,
         "dateRange": {
           "earliest": "2016-01-01",
-          "latest": "2026-06-01"
+          "latest": "2026-07-01"
         },
         "buildStatus": "ok",
         "adapter": "fetchNJ",
@@ -17258,11 +17264,11 @@
       "rankEligible": true,
       "rankStatus": "ranked",
       "rankIneligibleReason": null,
-      "rank": 3,
-      "pressureScore": 53,
+      "rank": 4,
+      "pressureScore": 61,
       "pressureLevel": "Elevated",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": 75,
+        "warnEmployeesPer10kLaborForce": 87.5,
         "unemploymentRateYoYDelta": 0
       },
       "warnEmployees12m": 16350,
@@ -18962,34 +18968,37 @@
         "laborForce": 5280593
       },
       "unemploymentRateYoYDelta": -0.1,
-      "warnCoverageStatus": "manual-only",
+      "warnCoverageStatus": "live",
       "warnCoverage": {
-        "sourceStatus": "manual-only",
-        "sourceType": "html",
-        "recordsIncluded": false,
-        "notices": 0,
-        "dateRange": null,
-        "buildStatus": "metadata-only",
-        "adapter": null,
-        "name": "North Carolina Workforce WARN Reports",
+        "sourceStatus": "live",
+        "sourceType": "csv",
+        "recordsIncluded": true,
+        "notices": 49,
+        "dateRange": {
+          "earliest": "2026-01-07",
+          "latest": "2026-06-24"
+        },
+        "buildStatus": "ok",
+        "adapter": "fetchNC",
+        "name": "North Carolina Workforce WARN Summary Report",
         "publisher": "North Carolina Department of Commerce",
         "url": "https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official current-year report CSV export is discovered from the state report page; archived PDFs remain manual-only.",
         "error": null
       },
-      "rankEligible": false,
-      "rankStatus": "not-ranked",
-      "rankIneligibleReason": "WARN source is not currently machine-readable",
-      "rank": null,
-      "pressureScore": null,
-      "pressureLevel": "Not ranked",
+      "rankEligible": true,
+      "rankStatus": "ranked",
+      "rankIneligibleReason": null,
+      "rank": 9,
+      "pressureScore": 13,
+      "pressureLevel": "Low",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": null,
-        "unemploymentRateYoYDelta": null
+        "warnEmployeesPer10kLaborForce": 0,
+        "unemploymentRateYoYDelta": 42.86
       },
-      "warnEmployees12m": 0,
-      "warnNotices12m": 0,
-      "warnEmployeesPer10kLaborForce": 0,
+      "warnEmployees12m": 4119,
+      "warnNotices12m": 41,
+      "warnEmployeesPer10kLaborForce": 7.8,
       "series": {
         "unemploymentRate": [
           {
@@ -19492,33 +19501,33 @@
           },
           {
             "date": "2026-01",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 10,
+            "employees": 1045,
+            "employeesPer10kLaborForce": 1.97
           },
           {
             "date": "2026-02",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 10,
+            "employees": 928,
+            "employeesPer10kLaborForce": 1.75
           },
           {
             "date": "2026-03",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 16,
+            "employees": 1601,
+            "employeesPer10kLaborForce": 3.02
           },
           {
             "date": "2026-04",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 4,
+            "employees": 438,
+            "employeesPer10kLaborForce": 0.83
           },
           {
             "date": "2026-05",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 1,
+            "employees": 107,
+            "employeesPer10kLaborForce": 0.2
           }
         ]
       }
@@ -21279,11 +21288,11 @@
       "rankStatus": "ranked",
       "rankIneligibleReason": null,
       "rank": 2,
-      "pressureScore": 58,
+      "pressureScore": 70,
       "pressureLevel": "Elevated",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": 50,
-        "unemploymentRateYoYDelta": 75
+        "warnEmployeesPer10kLaborForce": 75,
+        "unemploymentRateYoYDelta": 57.14
       },
       "warnEmployees12m": 7037,
       "warnNotices12m": 83,
@@ -21833,24 +21842,27 @@
         "laborForce": 6626372
       },
       "unemploymentRateYoYDelta": 0,
-      "warnCoverageStatus": "manual-only",
+      "warnCoverageStatus": "live",
       "warnCoverage": {
-        "sourceStatus": "manual-only",
+        "sourceStatus": "live",
         "sourceType": "html",
-        "recordsIncluded": false,
-        "notices": 0,
-        "dateRange": null,
-        "buildStatus": "metadata-only",
-        "adapter": null,
+        "recordsIncluded": true,
+        "notices": 244,
+        "dateRange": {
+          "earliest": null,
+          "latest": null
+        },
+        "buildStatus": "ok",
+        "adapter": "fetchPA",
         "name": "Pennsylvania WARN Notices",
         "publisher": "Pennsylvania Department of Labor & Industry",
         "url": "https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official accordion entries are parsed for company, county, affected workers, effective date, and action; noticeDate is null because the page does not expose an explicit notice/received date, so effectiveDate is not used for pressure-ranking provenance.",
         "error": null
       },
       "rankEligible": false,
       "rankStatus": "not-ranked",
-      "rankIneligibleReason": "WARN source is not currently machine-readable",
+      "rankIneligibleReason": "WARN feed lacks notice dates for current-window pressure ranking; no notices in the current 12-month window can be verified from notice dates",
       "rank": null,
       "pressureScore": null,
       "pressureLevel": "Not ranked",
@@ -26423,34 +26435,37 @@
         "laborForce": 4490601
       },
       "unemploymentRateYoYDelta": 0.5,
-      "warnCoverageStatus": "manual-only",
+      "warnCoverageStatus": "live",
       "warnCoverage": {
-        "sourceStatus": "manual-only",
-        "sourceType": "html",
-        "recordsIncluded": false,
-        "notices": 0,
-        "dateRange": null,
-        "buildStatus": "metadata-only",
-        "adapter": null,
+        "sourceStatus": "live",
+        "sourceType": "csv",
+        "recordsIncluded": true,
+        "notices": 762,
+        "dateRange": {
+          "earliest": "2016-01-04",
+          "latest": "2026-06-15"
+        },
+        "buildStatus": "ok",
+        "adapter": "fetchVA",
         "name": "Virginia WARN Notices",
         "publisher": "Virginia Works",
         "url": "https://virginiaworks.gov/im-an-employer/retain-and-grow/warn-notices/",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exposes a Download Filtered List CSV with notice date, impact date, affected employees, location, and notice type; the timestamped CSV export URL is discovered at build time.",
         "error": null
       },
-      "rankEligible": false,
-      "rankStatus": "not-ranked",
-      "rankIneligibleReason": "WARN source is not currently machine-readable",
-      "rank": null,
-      "pressureScore": null,
-      "pressureLevel": "Not ranked",
+      "rankEligible": true,
+      "rankStatus": "ranked",
+      "rankIneligibleReason": null,
+      "rank": 5,
+      "pressureScore": 56,
+      "pressureLevel": "Elevated",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": null,
-        "unemploymentRateYoYDelta": null
+        "warnEmployeesPer10kLaborForce": 37.5,
+        "unemploymentRateYoYDelta": 100
       },
-      "warnEmployees12m": 0,
-      "warnNotices12m": 0,
-      "warnEmployeesPer10kLaborForce": 0,
+      "warnEmployees12m": 7727,
+      "warnNotices12m": 74,
+      "warnEmployeesPer10kLaborForce": 17.21,
       "series": {
         "unemploymentRate": [
           {
@@ -26911,75 +26926,75 @@
         "warn": [
           {
             "date": "2025-06",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 6,
+            "employees": 582,
+            "employeesPer10kLaborForce": 1.29
           },
           {
             "date": "2025-07",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 7,
+            "employees": 523,
+            "employeesPer10kLaborForce": 1.16
           },
           {
             "date": "2025-08",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 5,
+            "employees": 243,
+            "employeesPer10kLaborForce": 0.54
           },
           {
             "date": "2025-09",
-            "notices": 0,
-            "employees": 0,
+            "notices": 1,
+            "employees": 1,
             "employeesPer10kLaborForce": 0
           },
           {
             "date": "2025-10",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 14,
+            "employees": 782,
+            "employeesPer10kLaborForce": 1.74
           },
           {
             "date": "2025-11",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 3,
+            "employees": 399,
+            "employeesPer10kLaborForce": 0.88
           },
           {
             "date": "2025-12",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 6,
+            "employees": 359,
+            "employeesPer10kLaborForce": 0.79
           },
           {
             "date": "2026-01",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 6,
+            "employees": 1626,
+            "employeesPer10kLaborForce": 3.6
           },
           {
             "date": "2026-02",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 6,
+            "employees": 410,
+            "employeesPer10kLaborForce": 0.91
           },
           {
             "date": "2026-03",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 5,
+            "employees": 408,
+            "employeesPer10kLaborForce": 0.91
           },
           {
             "date": "2026-04",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 7,
+            "employees": 938,
+            "employeesPer10kLaborForce": 2.09
           },
           {
             "date": "2026-05",
-            "notices": 0,
-            "employees": 0,
-            "employeesPer10kLaborForce": 0
+            "notices": 8,
+            "employees": 1456,
+            "employeesPer10kLaborForce": 3.24
           }
         ]
       }
@@ -27008,7 +27023,7 @@
         "name": "Washington WARN Layoff and Closure Database",
         "publisher": "Washington Employment Security Department",
         "url": "https://esd.wa.gov/employer-requirements/layoffs-and-employee-notifications/worker-adjustment-and-retraining-notification-warn-layoff-and-closure-database",
-        "notes": "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.",
+        "notes": "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.",
         "error": null
       },
       "rankEligible": false,
@@ -28163,12 +28178,12 @@
       "rankEligible": true,
       "rankStatus": "ranked",
       "rankIneligibleReason": null,
-      "rank": 4,
-      "pressureScore": 30,
+      "rank": 7,
+      "pressureScore": 39,
       "pressureLevel": "Moderate",
       "pressurePercentiles": {
-        "warnEmployeesPer10kLaborForce": 0,
-        "unemploymentRateYoYDelta": 100
+        "warnEmployeesPer10kLaborForce": 25,
+        "unemploymentRateYoYDelta": 71.43
       },
       "warnEmployees12m": 5233,
       "warnNotices12m": 68,

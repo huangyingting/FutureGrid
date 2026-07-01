@@ -185,7 +185,7 @@ function loadWarnData() {
 }
 
 function noticeDate(notice) {
-  return normalizeISODate(notice.noticeDate) ?? normalizeISODate(notice.effectiveDate);
+  return normalizeISODate(notice.noticeDate);
 }
 
 function normalizeISODate(value) {
@@ -290,9 +290,20 @@ function coverageDateRangeOverlapsWindow(dateRange, windowStart, windowEnd) {
   return Boolean(rangeStart && rangeEnd && rangeStart <= windowEnd && rangeEnd >= windowStart);
 }
 
-function rankIneligibleReason(coverageStatus, latestLaborForce, hasWarnWindowOverlap) {
+function coverageDateRangeHasDates(dateRange) {
+  return Boolean(
+    dateRange &&
+      typeof dateRange === "object" &&
+      (normalizeISODate(dateRange.earliest) || normalizeISODate(dateRange.latest)),
+  );
+}
+
+function rankIneligibleReason(coverageStatus, latestLaborForce, hasWarnWindowOverlap, lacksNoticeDates) {
   if (!isCurrentMachineReadableWarnCoverage(coverageStatus)) return "WARN source is not currently machine-readable";
   if (!latestLaborForce) return "Latest LAUS labor force is unavailable";
+  if (lacksNoticeDates) {
+    return "WARN feed lacks notice dates for current-window pressure ranking; no notices in the current 12-month window can be verified from notice dates";
+  }
   if (!hasWarnWindowOverlap) return "WARN feed has no notices in the current 12-month window";
   return null;
 }
@@ -525,9 +536,13 @@ async function main() {
     const hasWarnWindowOverlap =
       coverageDateRangeOverlapsWindow(coverage.dateRange, warnWindowStart, warnWindowEnd) ||
       (warnNoticeCountsInWindow.get(stateInfo.state) ?? 0) > 0;
+    const lacksNoticeDates =
+      Boolean(coverage.recordsIncluded) &&
+      Number(coverage.notices ?? 0) > 0 &&
+      !coverageDateRangeHasDates(coverage.dateRange);
     const rankEligible =
       isCurrentMachineReadableWarnCoverage(coverageStatus) && Boolean(laborForce && laborForce > 0) && hasWarnWindowOverlap;
-    const ineligibleReason = rankIneligibleReason(coverageStatus, laborForce, hasWarnWindowOverlap);
+    const ineligibleReason = rankIneligibleReason(coverageStatus, laborForce, hasWarnWindowOverlap, lacksNoticeDates);
 
     return {
       state: stateInfo.state,
@@ -642,7 +657,7 @@ async function main() {
       scoreFormula:
         "round(0.70 * WARN employees per 10k labor force percentile + 0.30 * unemployment YoY delta percentile)",
       rankingNote:
-        "Ranks only states whose WARN coverage sourceStatus is live/current machine-readable, whose latest LAUS labor force is available, and whose WARN coverage or notices overlap the current 12-month WARN window. Manual-only, unavailable, and stale historical WARN feeds remain in metadata but are not ranked. Higher WARN rates and higher unemployment-rate YoY deltas increase pressure score; null YoY deltas score as 0 for that component. This is a descriptive pressure/association ranking; it does not establish causality between WARN notices and broader labor-market indicators.",
+        "Ranks only states whose WARN coverage sourceStatus is live/current machine-readable, whose latest LAUS labor force is available, and whose WARN notice/provenance dates overlap the current 12-month WARN window. Effective dates are not used as notice-date provenance. Manual-only, unavailable, undated, and stale historical WARN feeds remain in metadata but are not ranked. Higher WARN rates and higher unemployment-rate YoY deltas increase pressure score; null YoY deltas score as 0 for that component. This is a descriptive pressure/association ranking; it does not establish causality between WARN notices and broader labor-market indicators.",
       warnWindowEndBasis,
       warnWindowNote,
     },
