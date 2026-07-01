@@ -62,18 +62,10 @@ function IconSkills() {
   );
 }
 
-function IconHeatmap() {
+function IconLabor() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3"  y="3"  width="5" height="5" rx="0.5" />
-      <rect x="10" y="3"  width="5" height="5" rx="0.5" />
-      <rect x="17" y="3"  width="5" height="5" rx="0.5" />
-      <rect x="3"  y="10" width="5" height="5" rx="0.5" />
-      <rect x="10" y="10" width="5" height="5" rx="0.5" />
-      <rect x="17" y="10" width="5" height="5" rx="0.5" />
-      <rect x="3"  y="17" width="5" height="5" rx="0.5" />
-      <rect x="10" y="17" width="5" height="5" rx="0.5" />
-      <rect x="17" y="17" width="5" height="5" rx="0.5" />
+      <polyline points="2 12 6 12 8 4 10 20 12 12 14 16 16 12 22 12" />
     </svg>
   );
 }
@@ -84,24 +76,6 @@ function IconGlobe() {
       <circle cx="12" cy="12" r="10" />
       <line x1="2" y1="12" x2="22" y2="12" />
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  );
-}
-
-function IconPulse() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="2 12 6 12 8 4 10 20 12 12 14 16 16 12 22 12" />
-    </svg>
-  );
-}
-
-function IconLayoffs() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="12" y1="3" x2="12" y2="15" />
-      <polyline points="8 11 12 15 16 11" />
-      <line x1="6" y1="19" x2="18" y2="19" />
     </svg>
   );
 }
@@ -217,19 +191,13 @@ function ThemeToggle() {
   );
 }
 
-// ─── Nav items ─────────────────────────────────────────────────────────────────
-const NAV_ITEMS = [
-  { href: "/",        labelKey: "dashboard", Icon: IconDashboard },
-  { href: "/sectors", labelKey: "sectors",   Icon: IconSectors   },
-  { href: "/careers", labelKey: "careers",   Icon: IconCareers   },
-  { href: "/skills",  labelKey: "skills",    Icon: IconSkills    },
-  { href: "/explore", labelKey: "explore",   Icon: IconExplore   },
-  { href: "/report",  labelKey: "report",    Icon: IconReport    },
-  { href: "/heatmap", labelKey: "heatmap",   Icon: IconHeatmap   },
-  { href: "/global",  labelKey: "global",    Icon: IconGlobe     },
-  { href: "/pulse",   labelKey: "pulse",     Icon: IconPulse     },
-  { href: "/layoffs", labelKey: "layoffs",   Icon: IconLayoffs   },
-  { href: "/sources", labelKey: "sources",   Icon: IconSources   },
+// ─── Nav sections ──────────────────────────────────────────────────────────────
+const NAV_SECTIONS = [
+  { key: "secOverview",   items: [ { href: "/",        labelKey: "dashboard", Icon: IconDashboard }, { href: "/report",   labelKey: "report",   Icon: IconReport  } ] },
+  { key: "secExposure",   items: [ { href: "/careers", labelKey: "careers",   Icon: IconCareers   }, { href: "/sectors",  labelKey: "sectors",  Icon: IconSectors }, { href: "/explore", labelKey: "explore", Icon: IconExplore } ] },
+  { key: "secLabor",      items: [ { href: "/labor",   labelKey: "labor",     Icon: IconLabor     }, { href: "/global",   labelKey: "global",   Icon: IconGlobe   } ] },
+  { key: "secTransition", items: [ { href: "/skills",  labelKey: "skills",    Icon: IconSkills    } ] },
+  { key: "secAbout",      items: [ { href: "/sources", labelKey: "sources",   Icon: IconSources   } ] },
 ];
 
 // ─── Logo ──────────────────────────────────────────────────────────────────────
@@ -278,37 +246,46 @@ function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
     <>
       <SearchButton onNavigate={onNavigate} />
       <nav className="flex-1 p-3" aria-label="Main navigation">
-        <ul className="space-y-0.5">
-          {NAV_ITEMS.map(({ href, labelKey, Icon }) => {
-            const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={onNavigate}
-                  aria-current={isActive ? "page" : undefined}
-                  className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
-                    isActive
-                      ? "bg-zinc-200/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-white"
-                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50"
-                  }`}
-                >
-                  {isActive && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 brand-grad rounded-full"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span className={isActive ? "text-violet-500 dark:text-violet-400" : ""}>
-                    <Icon />
-                  </span>
-                  <span className={isActive ? "text-gradient font-semibold" : ""}>
-                    {t(labelKey)}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="space-y-4">
+          {NAV_SECTIONS.map((section) => (
+            <li key={section.key}>
+              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-500 select-none">
+                {t(section.key)}
+              </p>
+              <ul className="space-y-0.5">
+                {section.items.map(({ href, labelKey, Icon }) => {
+                  const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
+                  return (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        onClick={onNavigate}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 ${
+                          isActive
+                            ? "bg-zinc-200/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-white"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50"
+                        }`}
+                      >
+                        {isActive && (
+                          <span
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 brand-grad rounded-full"
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className={isActive ? "text-violet-500 dark:text-violet-400" : ""}>
+                          <Icon />
+                        </span>
+                        <span className={isActive ? "text-gradient font-semibold" : ""}>
+                          {t(labelKey)}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
         </ul>
       </nav>
       <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/60 text-xs text-zinc-500 space-y-1">

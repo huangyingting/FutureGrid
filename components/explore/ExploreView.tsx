@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { generateAllCareerInsights } from "@/lib/data";
+import { generateAllCareerInsights, getSectorAggregatesExtended } from "@/lib/data";
 import type { CareerInsight } from "@/lib/data";
 import BeeswarmChart from "@/components/charts/BeeswarmChart";
 import TreemapChart from "@/components/charts/TreemapChart";
 import QuadrantScatterChart from "@/components/charts/QuadrantScatterChart";
 import BarChartRace from "@/components/charts/BarChartRace";
+import HeatmapView from "@/components/heatmap/HeatmapView";
 import { useT } from "@/lib/i18n/useT";
 
 // ── Risk bands ────────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export default function ExploreView() {
   const t = useT("explore");
 
   const allInsights = useMemo(() => generateAllCareerInsights(), []);
+  const sectors     = useMemo(() => getSectorAggregatesExtended(), []);
 
   // Unique sectors sorted
   const allSectors = useMemo(
@@ -199,6 +201,24 @@ export default function ExploreView() {
         </div>
         <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
           <BarChartRace />
+        </div>
+      </section>
+
+      {/* ── Heatmap section ─────────────────────────────────────────────────── */}
+      <section aria-labelledby="heatmap-heading">
+        <div className="mb-4">
+          <h2
+            id="heatmap-heading"
+            className="text-xl font-semibold text-zinc-900 dark:text-white"
+          >
+            {t("sectionHeatmap")}
+          </h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            {t("sectionHeatmapDesc")}
+          </p>
+        </div>
+        <div className="glass bg-white/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
+          <HeatmapView sectors={sectors} />
         </div>
       </section>
     </div>

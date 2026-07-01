@@ -10,6 +10,9 @@ export const exploreEn: Record<string, string> = {
   sectionQuadrant: "Risk vs. Salary Quadrant",
   sectionQuadrantDesc:
     "Occupations plotted by AI exposure and median salary.",
+  sectionHeatmap: "Sector Risk Heatmap",
+  sectionHeatmapDesc:
+    "AI automation risk intensity across sectors — each cell shows average exposure and employment.",
   filterSector: "Sector",
   filterAllSectors: "All Sectors",
   filterRisk: "Risk Band",

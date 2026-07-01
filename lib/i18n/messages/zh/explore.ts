@@ -8,6 +8,8 @@ export const exploreZh: Record<string, string> = {
   sectionTreemapDesc: "按行业划分的就业人数与AI暴露度。",
   sectionQuadrant: "风险与薪资象限图",
   sectionQuadrantDesc: "按AI暴露度和工资中位数对职业进行分类。",
+  sectionHeatmap: "行业风险热力图",
+  sectionHeatmapDesc: "各行业AI自动化风险强度——每格显示平均暴露度及就业人数。",
   filterSector: "行业",
   filterAllSectors: "所有行业",
   filterRisk: "风险等级",
