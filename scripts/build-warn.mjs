@@ -271,7 +271,6 @@ async function fetchCA() {
   const records = [];
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber <= headerRow) return;
-    const get = (key) => row.getCell(colIndex[key] ?? 0);
     const getVal = (key) => (colIndex[key] ? row.getCell(colIndex[key]).value : null);
     const getStr = (key) => (colIndex[key] ? cellStr(row.getCell(colIndex[key])) : null);
 
