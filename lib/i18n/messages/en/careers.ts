@@ -51,6 +51,8 @@ export const careersEn = {
   labelOnetOutlook: "O*NET Outlook",
   labelProjAnnualOpenings: "Proj. Annual Openings",
   labelEmploymentOews: "Employment (OEWS 2025)",
+  labelEmpGrowthWindow: "Empl. growth ({from}–{to})",
+  labelEmpGrowth: "Recent empl. growth",
   labelAIResiliencyScore: "AI Resiliency Score",
   dataNote:
     "AI exposure from the Anthropic Economic Index (2025); salary from BLS; skills from O*NET.",

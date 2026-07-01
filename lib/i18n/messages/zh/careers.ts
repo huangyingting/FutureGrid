@@ -51,6 +51,8 @@ export const careersZh = {
   labelOnetOutlook: "O*NET 前景",
   labelProjAnnualOpenings: "预计年度招聘量",
   labelEmploymentOews: "就业人数（OEWS 2025）",
+  labelEmpGrowthWindow: "就业增长（{from}–{to}）",
+  labelEmpGrowth: "近期就业增长",
   labelAIResiliencyScore: "AI 韧性评分",
   dataNote:
     "AI 暴露度数据来源：Anthropic 经济指数（2025）；薪资来源：BLS；技能来源：O*NET。",

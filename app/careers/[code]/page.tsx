@@ -101,6 +101,23 @@ export default function CareerDetailPage() {
                 },
               ]
             : []),
+          ...(career.growthRate != null
+            ? [
+                {
+                  value: `${career.growthRate > 0 ? "+" : ""}${career.growthRate}%/yr`,
+                  label: career.growthWindow
+                    ? t("labelEmpGrowthWindow", {
+                        from: String(career.growthWindow.fromYear),
+                        to: String(career.growthWindow.toYear),
+                      })
+                    : t("labelEmpGrowth"),
+                  className:
+                    career.growthRate >= 0
+                      ? "text-green-700 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400",
+                },
+              ]
+            : []),
           {
             value: `${resiliency}`,
             label: t("labelAIResiliencyScore"),

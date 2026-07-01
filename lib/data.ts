@@ -11,6 +11,8 @@ export interface CareerInsight {
   automationRisk: "Low" | "Medium" | "High" | "Very High";
   automationProbability: number;
   growthRate: number | null;
+  /** Window (years) growthRate was derived from when computed from OEWS employment history. */
+  growthWindow?: { fromYear: number; toYear: number } | null;
   medianSalary: number;
   totalEmployment: number | null;
   projectedOpenings: number | null;
@@ -42,25 +44,56 @@ type SnapshotRow = {
 
 const snapshot = occupationSnapshot as SnapshotRow[];
 
+/**
+ * Recent employment growth (annualized CAGR, %) derived from the real OEWS
+ * employmentHistory (e.g. 2019→2025). Authentic BLS-sourced fallback used only
+ * when no bundled growthRate exists. Returns null with <2 usable years.
+ */
+function computeGrowthFromHistory(
+  history?: Record<string, number> | null,
+): { rate: number; fromYear: number; toYear: number } | null {
+  if (!history) return null;
+  const years = Object.keys(history)
+    .map(Number)
+    .filter((y) => Number.isFinite(y) && history[String(y)] > 0)
+    .sort((a, b) => a - b);
+  if (years.length < 2) return null;
+  const fromYear = years[0];
+  const toYear = years[years.length - 1];
+  const start = history[String(fromYear)];
+  const end = history[String(toYear)];
+  if (toYear <= fromYear || !(start > 0) || !(end > 0)) return null;
+  const cagr = (Math.pow(end / start, 1 / (toYear - fromYear)) - 1) * 100;
+  if (!Number.isFinite(cagr)) return null;
+  return { rate: Math.round(cagr * 10) / 10, fromYear, toYear };
+}
+
 let _insightsCache: CareerInsight[] | null = null;
 
 export function generateAllCareerInsights(): CareerInsight[] {
   if (!_insightsCache) {
-    _insightsCache = snapshot.map((row) => ({
-      occupationCode: row.socCode,
-      occupationName: row.title,
-      automationRisk: row.automationRisk,
-      automationProbability: row.automationProbability,
-      growthRate: row.growthRate,
-      medianSalary: row.medianSalary,
-      totalEmployment: row.employment,
-      projectedOpenings: row.projectedOpenings ?? null,
-      outlook: row.outlook ?? (row.brightOutlook ? "Bright" : "Average"),
-      sectorName: row.sector,
-      skills: row.skills,
-      employmentHistory: row.employmentHistory ?? null,
-      wageHistory: row.wageHistory ?? null,
-    }));
+    _insightsCache = snapshot.map((row) => {
+      const derivedGrowth =
+        row.growthRate == null ? computeGrowthFromHistory(row.employmentHistory) : null;
+      return {
+        occupationCode: row.socCode,
+        occupationName: row.title,
+        automationRisk: row.automationRisk,
+        automationProbability: row.automationProbability,
+        growthRate: row.growthRate ?? (derivedGrowth ? derivedGrowth.rate : null),
+        growthWindow: derivedGrowth
+          ? { fromYear: derivedGrowth.fromYear, toYear: derivedGrowth.toYear }
+          : null,
+        medianSalary: row.medianSalary,
+        totalEmployment: row.employment,
+        projectedOpenings: row.projectedOpenings ?? null,
+        outlook: row.outlook ?? (row.brightOutlook ? "Bright" : "Average"),
+        sectorName: row.sector,
+        skills: row.skills,
+        employmentHistory: row.employmentHistory ?? null,
+        wageHistory: row.wageHistory ?? null,
+      };
+    });
   }
   return [..._insightsCache];
 }
