@@ -24,6 +24,7 @@ const MAX_NOTICES_PER_STATE = 2500;
 // Keep only the latest 10 years of notices (drop older historical rows).
 const MIN_NOTICE_YEAR = new Date().getUTCFullYear() - 10;
 const MIN_NOTICE_DATE = `${MIN_NOTICE_YEAR}-01-01`;
+const MIN_PLAUSIBLE_WARN_DATE = "2010-01-01";
 
 // ─── Generic HTTP fetch with retry + exponential backoff ────────────────────
 
@@ -46,6 +47,10 @@ async function fetchBuffer(url, maxAttempts = 3) {
     }
   }
   throw lastErr;
+}
+
+async function fetchText(url, maxAttempts = 3) {
+  return (await fetchBuffer(url, maxAttempts)).toString("utf-8");
 }
 
 // ─── Cell / header helpers ───────────────────────────────────────────────────
@@ -108,10 +113,31 @@ function parseDate(val) {
       else if (yr.length !== 4) return null;            // 1 or 3 digits → unparseable
       return fmtDate(+yr, +mdy[1], +mdy[2]);
     }
+    if (/^\d{4}$/.test(s)) return null;
+    if (/^[1-4]\d{4}$/.test(s)) return null;
+    if (/^q[1-4]\s*\d{4}$/i.test(s)) return null;
+    if (/^\d{1,2}\/\d{4}$/.test(s)) return null;
     const d = new Date(s);
     if (!isNaN(d.getTime()) && d.getUTCFullYear() > 1900) return d.toISOString().slice(0, 10);
   }
   return null;
+}
+
+function parsePlausibleWarnDate(val, minDate = MIN_PLAUSIBLE_WARN_DATE) {
+  const date = parseDate(val);
+  return date && date >= minDate ? date : null;
+}
+
+function scrubImplausibleEffectiveDates(records, state) {
+  let scrubbed = 0;
+  for (const record of records) {
+    if (record.effectiveDate && record.effectiveDate < MIN_PLAUSIBLE_WARN_DATE) {
+      record.effectiveDate = null;
+      scrubbed++;
+    }
+  }
+  if (scrubbed > 0) console.warn(`  ${state}: nulled ${scrubbed} implausible pre-2010 effective date(s)`);
+  return records;
 }
 
 function fmtDate(y, m, d) {
@@ -132,6 +158,8 @@ function fmtDate(y, m, d) {
 function normalizeLayoffType(t) {
   if (!t) return null;
   const s = t.trim().toLowerCase();
+  if (/^(cl|closure)$/i.test(t.trim())) return "Closure";
+  if (/^(lo|layoff)$/i.test(t.trim())) return "Layoff";
   if (/plant.clos|closure.perm|perm.*clos|clos.*perm/.test(s)) return "Closure";
   if (/layoff.perm|perm.*layoff/.test(s)) return "Layoff Permanent";
   if (/layoff.temp|temp.*layoff/.test(s)) return "Layoff Temporary";
@@ -183,6 +211,148 @@ function parseCSV(text) {
     if (row.length > 0) rows.push(row);
   }
   return rows;
+}
+
+// ─── Lightweight HTML helpers for official static tables/accordions ──────────
+
+function decodeHtmlEntities(value) {
+  const named = {
+    amp: "&",
+    apos: "'",
+    bull: "•",
+    gt: ">",
+    ldquo: "“",
+    lsquo: "‘",
+    lt: "<",
+    nbsp: " ",
+    ndash: "–",
+    quot: '"',
+    rdquo: "”",
+    rsquo: "’",
+  };
+  return String(value ?? "").replace(/&(#x[\da-f]+|#\d+|[a-z][\da-z]+);/gi, (match, entity) => {
+    const key = entity.toLowerCase();
+    if (key.startsWith("#x")) {
+      const code = Number.parseInt(key.slice(2), 16);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    if (key.startsWith("#")) {
+      const code = Number.parseInt(key.slice(1), 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    return named[key] ?? match;
+  });
+}
+
+function htmlToText(fragment) {
+  return decodeHtmlEntities(fragment)
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:div|h[1-6]|li|p|td|th|tr)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[ \t\f\v\u00a0]+/g, " ")
+    .replace(/\s*\n\s*/g, "\n")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
+function htmlCellText(fragment) {
+  return htmlToText(fragment).replace(/\s+/g, " ").trim();
+}
+
+function extractHtmlTables(html) {
+  const tables = [];
+  for (const tableMatch of html.matchAll(/<table\b[\s\S]*?<\/table>/gi)) {
+    const rows = [];
+    for (const rowMatch of tableMatch[0].matchAll(/<tr\b[\s\S]*?<\/tr>/gi)) {
+      const cells = [];
+      for (const cellMatch of rowMatch[0].matchAll(/<(?:td|th)\b[^>]*>([\s\S]*?)<\/(?:td|th)>/gi)) {
+        cells.push(htmlCellText(cellMatch[1]));
+      }
+      if (cells.some(Boolean)) rows.push(cells);
+    }
+    if (rows.length) tables.push(rows);
+  }
+  return tables;
+}
+
+function findHtmlTable(html, requiredHeaderTests) {
+  for (const rows of extractHtmlTables(html)) {
+    const headerRow = rows.findIndex((row) => {
+      const headers = row.map(normalizeHeader);
+      return requiredHeaderTests.every((test) => headers.some(test));
+    });
+    if (headerRow !== -1) {
+      return { rows, headerRow, headers: rows[headerRow].map(normalizeHeader) };
+    }
+  }
+  return null;
+}
+
+function findHeaderIndex(headers, tests) {
+  for (let index = 0; index < headers.length; index++) {
+    const header = headers[index];
+    if (tests.some((test) => test(header))) return index;
+  }
+  return null;
+}
+
+function parseEmployees(value) {
+  if (value == null) return NaN;
+  const match = String(value).replace(/\u00a0/g, " ").match(/\d[\d,]*/);
+  if (!match) return NaN;
+  return Number(match[0].replace(/,/g, ""));
+}
+
+function cleanOptionalText(value) {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (!text || /^(?:n\/?a|none|null)$/i.test(text)) return null;
+  return text;
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function extractCityFromLocation(value, stateCode, stateName = stateCode) {
+  const raw = cleanOptionalText(value);
+  if (!raw || /^(?:statewide|various|remote)(?:\b|$)/i.test(raw)) return null;
+
+  const statePattern = [stateCode, stateName].filter(Boolean).map(escapeRegExp).join("|");
+  const beforeState =
+    raw.match(new RegExp(`(.+?)\\s*,?\\s*(?:${statePattern})\\s*(?:\\d{5}(?:-\\d{4})?)?\\b`, "i"))?.[1] ??
+    raw;
+  const withoutNotes = beforeState.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  const commaParts = withoutNotes.split(",").map((part) => part.trim()).filter(Boolean);
+  let candidate = commaParts.length > 1 ? commaParts.at(-1) : withoutNotes;
+
+  const streetMatch = candidate.match(
+    /\b(?:airport|avenue|ave|blvd|boulevard|center|centre|cir|circle|court|ct|drive|dr|highway|hwy|lane|ln|mall|parkway|pkwy|place|pl|pike|road|rd|square|sq|street|st|suite|trail|trl|way)\.?\s+([A-Z][A-Za-z .'-]+)$/i,
+  );
+  if (streetMatch) candidate = streetMatch[1].trim();
+
+  candidate = candidate.replace(/\b(?:VA|MD|NC|PA)\b$/i, "").replace(/\s+/g, " ").trim();
+  if (!candidate || /^(?:statewide|various|remote|headquarters)$/i.test(candidate)) return null;
+  if (/\d/.test(candidate) || candidate.length > 80) return null;
+  return candidate;
+}
+
+function extractLinks(html, baseUrl) {
+  const links = [];
+  for (const match of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
+    const href = match[1].match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!href) continue;
+    try {
+      links.push({
+        url: new URL(decodeHtmlEntities(href), baseUrl).toString(),
+        text: htmlCellText(match[2]),
+      });
+    } catch {
+      // Ignore malformed or non-HTTP links.
+    }
+  }
+  return links;
 }
 
 // ─── exceljs row → normalized record helper ──────────────────────────────────
@@ -811,6 +981,266 @@ async function fetchIA() {
   return records;
 }
 
+async function fetchIN() {
+  const url = "https://www.in.gov/dwd/warn-notices/current-warn-notices/";
+  const html = await fetchText(url);
+  const table = findHtmlTable(html, [
+    (h) => h.includes("company"),
+    (h) => h.includes("affected") || h.includes("worker"),
+    (h) => h.includes("notice") && h.includes("date"),
+  ]);
+  if (!table) throw new Error("IN: current WARN table not found");
+
+  const colIndex = {
+    company: findHeaderIndex(table.headers, [(h) => h.includes("company")]),
+    city: findHeaderIndex(table.headers, [(h) => h === "city" || h.includes("city")]),
+    employees: findHeaderIndex(table.headers, [(h) => h.includes("affected") || h.includes("worker")]),
+    noticeDate: findHeaderIndex(table.headers, [(h) => h.includes("notice") && h.includes("date")]),
+    effectiveDate: findHeaderIndex(table.headers, [(h) => h.includes("lo/cl") && h.includes("date")]),
+    layoffType: findHeaderIndex(table.headers, [
+      (h) => h === "notice type" || h === "type" || h === "lo/cl" || (h.includes("lo/cl") && !h.includes("date")),
+    ]),
+  };
+  console.log(`  IN colIndex: ${JSON.stringify(colIndex)}`);
+
+  const records = [];
+  for (const row of table.rows.slice(table.headerRow + 1)) {
+    const get = (key) => (colIndex[key] != null ? row[colIndex[key]] : "");
+    const company = cleanOptionalText(get("company"));
+    if (!company || /^\s*(total|grand total|subtotal)\s*$/i.test(company)) continue;
+    const employees = parseEmployees(get("employees"));
+    if (!isFinite(employees) || employees <= 0) continue;
+
+    records.push({
+      company,
+      county: null,
+      city: cleanOptionalText(get("city")),
+      employees: Math.round(employees),
+      noticeDate: parseDate(get("noticeDate") || null),
+      effectiveDate: parseDate(get("effectiveDate") || null),
+      layoffType: normalizeLayoffType(cleanOptionalText(get("layoffType"))),
+      state: "IN",
+      stateName: "Indiana",
+    });
+  }
+
+  if (records.length === 0) throw new Error("IN: no valid records in current WARN table");
+  return records;
+}
+
+const MD_WARN_URLS = [
+  "https://www.dllr.state.md.us/employment/warn.shtml",
+  ...Array.from(
+    { length: Math.max(0, new Date().getUTCFullYear() - MIN_NOTICE_YEAR) },
+    (_, index) => `https://www.dllr.state.md.us/employment/warn${new Date().getUTCFullYear() - 1 - index}.shtml`,
+  ),
+];
+
+async function fetchMD() {
+  const records = [];
+  let pagesOk = 0;
+
+  for (const url of MD_WARN_URLS) {
+    const html = await fetchText(url);
+    const table = findHtmlTable(html, [
+      (h) => h.includes("notice") && h.includes("date"),
+      (h) => h.includes("company"),
+      (h) => h.includes("employee"),
+    ]);
+    if (!table) {
+      console.warn(`  MD: no WARN table found at ${url}`);
+      continue;
+    }
+    pagesOk++;
+
+    const colIndex = {
+      noticeDate: findHeaderIndex(table.headers, [(h) => h.includes("notice") && h.includes("date")]),
+      company: findHeaderIndex(table.headers, [(h) => h.includes("company")]),
+      location: findHeaderIndex(table.headers, [(h) => h.includes("location")]),
+      county: findHeaderIndex(table.headers, [(h) => h.includes("local") || h.includes("county")]),
+      employees: findHeaderIndex(table.headers, [(h) => h.includes("employee")]),
+      effectiveDate: findHeaderIndex(table.headers, [(h) => h.includes("effective") && h.includes("date")]),
+      layoffType: findHeaderIndex(table.headers, [(h) => h === "type" || h.includes("closure") || h.includes("layoff")]),
+    };
+
+    for (const row of table.rows.slice(table.headerRow + 1)) {
+      const get = (key) => (colIndex[key] != null ? row[colIndex[key]] : "");
+      const company = cleanOptionalText(get("company"));
+      if (!company || /^\s*(total|grand total|subtotal)\s*$/i.test(company)) continue;
+      const employees = parseEmployees(get("employees"));
+      if (!isFinite(employees) || employees <= 0) continue;
+
+      records.push({
+        company,
+        county: cleanOptionalText(get("county")),
+        city: extractCityFromLocation(get("location"), "MD", "Maryland"),
+        employees: Math.round(employees),
+        noticeDate: parseDate(get("noticeDate") || null),
+        effectiveDate: parseDate(get("effectiveDate") || null),
+        layoffType: normalizeLayoffType(cleanOptionalText(get("layoffType"))),
+        state: "MD",
+        stateName: "Maryland",
+      });
+    }
+  }
+
+  console.log(`  MD: processed ${pagesOk} yearly HTML tables`);
+  if (records.length === 0) throw new Error("MD: no valid records across WARN tables");
+  return records;
+}
+
+async function fetchNC() {
+  const mainUrl = "https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports";
+  const currentYear = new Date().getUTCFullYear();
+  const fallbackReportUrl = `${mainUrl}/report-workforce-warn-summary-list-${currentYear}`;
+  const mainHtml = await fetchText(mainUrl);
+  const reportUrl =
+    extractLinks(mainHtml, mainUrl).find((link) => link.url.includes(`warn-summary-list-${currentYear}`))?.url ??
+    fallbackReportUrl;
+  const reportHtml = await fetchText(reportUrl);
+  const csvUrls = [
+    ...new Set(
+      extractLinks(reportHtml, reportUrl)
+        .filter((link) => /\.csv(?:[?#]|$)/i.test(link.url) || /export table data/i.test(link.text))
+        .map((link) => link.url),
+    ),
+  ];
+
+  if (csvUrls.length === 0) throw new Error("NC: current WARN report CSV export not found");
+
+  const records = [];
+  for (const csvUrl of csvUrls) {
+    const rows = parseCSV(await fetchText(csvUrl));
+    if (rows.length < 2) continue;
+    const headers = rows[0].map(normalizeHeader);
+    console.log(`  NC headers: ${headers.join(" | ")}`);
+    const colIndex = {
+      county: findHeaderIndex(headers, [(h) => h === "county" || h.includes("county")]),
+      noticeDate: findHeaderIndex(headers, [(h) => h === "date of notice" || (h.includes("date") && h.includes("notice"))]),
+      effectiveDate: findHeaderIndex(headers, [(h) => h.includes("effective") && h.includes("date")]),
+      company: findHeaderIndex(headers, [(h) => h.includes("warn notice name") || h === "company"]),
+      noticeType: findHeaderIndex(headers, [(h) => h === "warn notice type" || h === "notice type"]),
+      layoffType: findHeaderIndex(headers, [(h) => h.includes("layoff") || h.includes("closure")]),
+      employees: findHeaderIndex(headers, [(h) => h.includes("number affected") || h.includes("employees")]),
+      city: findHeaderIndex(headers, [(h) => h === "city"]),
+    };
+    console.log(`  NC colIndex: ${JSON.stringify(colIndex)}`);
+
+    for (const row of rows.slice(1)) {
+      const get = (key) => (colIndex[key] != null ? (row[colIndex[key]] ?? "").trim() : "");
+      const company = cleanOptionalText(get("company"));
+      if (!company || /^\s*(total|grand total|subtotal)\s*$/i.test(company)) continue;
+      const employees = parseEmployees(get("employees"));
+      if (!isFinite(employees) || employees <= 0) continue;
+      const noticeType = cleanOptionalText(get("noticeType"));
+      const layoffDetail = cleanOptionalText(get("layoffType"));
+      const layoffType = normalizeLayoffType([noticeType, layoffDetail].filter(Boolean).join(" ") || null);
+
+      records.push({
+        company,
+        county: cleanOptionalText(get("county")),
+        city: cleanOptionalText(get("city")),
+        employees: Math.round(employees),
+        noticeDate: parseDate(get("noticeDate") || null),
+        effectiveDate: parseDate(get("effectiveDate") || null),
+        layoffType,
+        state: "NC",
+        stateName: "North Carolina",
+      });
+    }
+  }
+
+  if (records.length === 0) throw new Error("NC: no valid records in current WARN CSV export");
+  return records;
+}
+
+async function fetchPA() {
+  const url =
+    "https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices";
+  const html = await fetchText(url);
+  const records = [];
+
+  for (const match of html.matchAll(/<div class="cmp-accordion__item"[\s\S]*?(?=<div class="cmp-accordion__item"|$)/gi)) {
+    const item = match[0];
+    const company = cleanOptionalText(
+      htmlCellText(item.match(/<span\b[^>]*class="[^"]*\bcmp-accordion__title\b[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.[1] ?? ""),
+    );
+    if (!company || /^\s*(total|grand total|subtotal)\s*$/i.test(company)) continue;
+
+    const lines = htmlToText(item)
+      .split("\n")
+      .map((line) => line.replace(/\u200b/g, "").trim())
+      .filter(Boolean);
+    const valueFor = (pattern) => cleanOptionalText(lines.find((line) => pattern.test(line))?.replace(pattern, ""));
+    const affectedText = valueFor(/^#\s*affected\s*:\s*/i);
+    const employees = parseEmployees(affectedText);
+    if (!isFinite(employees) || employees <= 0) continue;
+
+    records.push({
+      company,
+      county: valueFor(/^county\s*:\s*/i),
+      city: extractCityFromLocation(lines.join(" "), "PA", "Pennsylvania"),
+      employees: Math.round(employees),
+      noticeDate: null,
+      effectiveDate: parseDate(valueFor(/^effective\s+date\s*:\s*/i)),
+      layoffType: normalizeLayoffType(valueFor(/^closure\s+or\s+layoff\s*:\s*/i)),
+      state: "PA",
+      stateName: "Pennsylvania",
+    });
+  }
+
+  if (records.length === 0) throw new Error("PA: no valid records in WARN accordion");
+  return records;
+}
+
+async function fetchVA() {
+  const pageUrl = "https://virginiaworks.gov/im-an-employer/retain-and-grow/warn-notices/";
+  const pageHtml = await fetchText(pageUrl);
+  const csvUrl = extractLinks(pageHtml, pageUrl).find(
+    (link) => /\.csv(?:[?#]|$)/i.test(link.url) || /download filtered list/i.test(link.text),
+  )?.url;
+  if (!csvUrl) throw new Error("VA: CSV export link not found on WARN page");
+  const rows = parseCSV(await fetchText(csvUrl));
+  if (rows.length < 2) throw new Error("VA: CSV has too few rows");
+
+  const headers = rows[0].map(normalizeHeader);
+  console.log(`  VA headers: ${headers.join(" | ")}`);
+  const colIndex = {
+    company: findHeaderIndex(headers, [(h) => h === "company" || h.includes("company")]),
+    noticeDate: findHeaderIndex(headers, [(h) => h.includes("notice") && h.includes("date")]),
+    effectiveDate: findHeaderIndex(headers, [(h) => h.includes("impact") && h.includes("date")]),
+    employees: findHeaderIndex(headers, [(h) => h.includes("employee") && h.includes("affected")]),
+    location: findHeaderIndex(headers, [(h) => h.includes("location")]),
+    layoffType: findHeaderIndex(headers, [(h) => h.includes("notice type") || h === "type"]),
+  };
+  console.log(`  VA colIndex: ${JSON.stringify(colIndex)}`);
+
+  const records = [];
+  for (const row of rows.slice(1)) {
+    const get = (key) => (colIndex[key] != null ? (row[colIndex[key]] ?? "").trim() : "");
+    const company = cleanOptionalText(get("company"));
+    if (!company || /^\s*(total|grand total|subtotal)\s*$/i.test(company)) continue;
+    const employees = parseEmployees(get("employees"));
+    if (!isFinite(employees) || employees <= 0) continue;
+
+    records.push({
+      company,
+      county: null,
+      city: extractCityFromLocation(get("location"), "VA", "Virginia"),
+      employees: Math.round(employees),
+      noticeDate: parsePlausibleWarnDate(get("noticeDate") || null),
+      effectiveDate: parsePlausibleWarnDate(get("effectiveDate") || null),
+      layoffType: normalizeLayoffType(cleanOptionalText(get("layoffType"))),
+      state: "VA",
+      stateName: "Virginia",
+    });
+  }
+
+  if (records.length === 0) throw new Error("VA: no valid records in WARN CSV");
+  records.sourceUrls = normalizeSourceUrls(pageUrl);
+  return records;
+}
+
 // ─── State config ─────────────────────────────────────────────────────────────
 
 const SOURCE_STATUS = Object.freeze({
@@ -941,6 +1371,76 @@ const STATE_CONFIG = [
     ],
     fetch: fetchIA,
   },
+  {
+    state: "IN", stateName: "Indiana",
+    name: "Indiana Current WARN Notices",
+    publisher: "Indiana Department of Workforce Development",
+    url: "https://www.in.gov/dwd/warn-notices/current-warn-notices/",
+    sourceStatus: SOURCE_STATUS.LIVE,
+    sourceType: "html",
+    sourceUrls: [
+      "https://www.in.gov/dwd/warn-notices/",
+      "https://www.in.gov/dwd/warn-notices/current-warn-notices/",
+    ],
+    parserConfidence: 0.95,
+    notes: "Official static HTML table with company, city, affected workers, notice date, LO/CL date, and LO/CL action.",
+    fetch: fetchIN,
+  },
+  {
+    state: "MD", stateName: "Maryland",
+    name: "Maryland WARN / ESA / Other Dislocations Log",
+    publisher: "Maryland Department of Labor",
+    url: "https://www.dllr.state.md.us/employment/warn.shtml",
+    sourceStatus: SOURCE_STATUS.LIVE,
+    sourceType: "html",
+    sourceUrls: MD_WARN_URLS,
+    parserConfidence: 0.95,
+    notes: "Official yearly HTML tables are parsed; PDF downloads are not used.",
+    fetch: fetchMD,
+  },
+  {
+    state: "NC", stateName: "North Carolina",
+    name: "North Carolina Workforce WARN Summary Report",
+    publisher: "North Carolina Department of Commerce",
+    url: "https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports",
+    sourceStatus: SOURCE_STATUS.LIVE,
+    sourceType: "csv",
+    sourceUrls: [
+      "https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports",
+      `https://www.commerce.nc.gov/data-tools-reports/labor-market-data-tools/workforce-warn-reports/report-workforce-warn-summary-list-${new Date().getUTCFullYear()}`,
+    ],
+    parserConfidence: 0.95,
+    notes: "Official current-year report CSV export is discovered from the state report page; archived PDFs remain manual-only.",
+    fetch: fetchNC,
+  },
+  {
+    state: "PA", stateName: "Pennsylvania",
+    name: "Pennsylvania WARN Notices",
+    publisher: "Pennsylvania Department of Labor & Industry",
+    url: "https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices",
+    sourceStatus: SOURCE_STATUS.LIVE,
+    sourceType: "html",
+    sourceUrls: [
+      "https://www.pa.gov/agencies/dli/programs-services/workforce-development-home/warn-requirements/warn-notices",
+    ],
+    parserConfidence: 0.8,
+    notes: "Official accordion entries are parsed for company, county, affected workers, effective date, and action; noticeDate is null because the page does not expose an explicit notice/received date, so effectiveDate is not used for pressure-ranking provenance.",
+    fetch: fetchPA,
+  },
+  {
+    state: "VA", stateName: "Virginia",
+    name: "Virginia WARN Notices",
+    publisher: "Virginia Works",
+    url: "https://virginiaworks.gov/im-an-employer/retain-and-grow/warn-notices/",
+    sourceStatus: SOURCE_STATUS.LIVE,
+    sourceType: "csv",
+    sourceUrls: [
+      "https://virginiaworks.gov/im-an-employer/retain-and-grow/warn-notices/",
+    ],
+    parserConfidence: 0.95,
+    notes: "Official page exposes a Download Filtered List CSV with notice date, impact date, affected employees, location, and notice type; the timestamped CSV export URL is discovered at build time.",
+    fetch: fetchVA,
+  },
 ];
 
 const ALL_STATES_AND_DC = [
@@ -963,6 +1463,10 @@ const MANUAL_ONLY_NOTE =
   "Official notices are available for manual/PDF/HTML review, but no stable CSV/XLSX/JSON adapter is registered.";
 const UNAVAILABLE_NOTE =
   "No reliable public statewide WARN notice listing or machine-readable feed is registered in this pipeline yet.";
+const ACCESS_BLOCKED_NOTE =
+  "Official page exists but returned access/bot-protection errors to deterministic server-side fetches during adapter evaluation; keep manual-only until a stable public export is available.";
+const JS_ONLY_NOTE =
+  "Official page rendered no static WARN table or export in fetched HTML during adapter evaluation; keep manual-only until a deterministic endpoint is identified.";
 
 const MANUAL_SOURCE_METADATA = {
   AL: {
@@ -971,7 +1475,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://www.labor.alabama.gov/warn/"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   CO: {
     name: "Colorado WARN Notices",
@@ -979,7 +1483,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://cdle.colorado.gov/employers/layoff-separations/warn-notices"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   CT: {
     name: "Connecticut WARN Notices",
@@ -987,7 +1491,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://portal.ct.gov/dol/divisions/warn/warn-notices"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   FL: {
     name: "Florida WARN Notices",
@@ -997,7 +1501,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceUrls: [
       "https://www.floridajobs.org/reemployment-assistance-service-center/reemployment-assistance/for-employers/warn-notices",
     ],
-    notes: MANUAL_ONLY_NOTE,
+    notes: "Registered FloridaCommerce WARN URL returned 404 during adapter evaluation; keep manual-only until the current official listing URL or export is confirmed.",
   },
   IL: {
     name: "Illinois WARN Activities and Layoff Data",
@@ -1005,7 +1509,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://www.illinoisworknet.com/LayoffRecovery/Pages/IllinoisWARNData.aspx"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: JS_ONLY_NOTE,
   },
   IN: {
     name: "Indiana WARN Notices",
@@ -1037,7 +1541,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://www.mass.gov/info-details/worker-adjustment-and-retraining-act-warn-weekly-report"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   MI: {
     name: "Michigan WARN Notices",
@@ -1045,7 +1549,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://www.michigan.gov/leo/bureaus-agencies/wd/programs-services/warn-notices"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   MN: {
     name: "Minnesota WARN Notices",
@@ -1053,7 +1557,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://mn.gov/deed/programs-services/dislocated-worker/employers/warn/"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: "Official Minnesota WARN URL led to a bot-manager CAPTCHA during adapter evaluation; keep manual-only until a deterministic public export is available.",
   },
   MO: {
     name: "Missouri WARN Notices",
@@ -1061,7 +1565,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceStatus: SOURCE_STATUS.MANUAL,
     sourceType: "html",
     sourceUrls: ["https://jobs.mo.gov/warn"],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
   NV: {
     name: "Nevada WARN Notices",
@@ -1113,7 +1617,7 @@ const MANUAL_SOURCE_METADATA = {
     sourceUrls: [
       "https://esd.wa.gov/employer-requirements/layoffs-and-employee-notifications/worker-adjustment-and-retraining-notification-warn-layoff-and-closure-database",
     ],
-    notes: MANUAL_ONLY_NOTE,
+    notes: ACCESS_BLOCKED_NOTE,
   },
 };
 
@@ -1133,7 +1637,13 @@ function buildCoverageStates(perStateResults) {
     const stateName = cfg?.stateName ?? fallbackName;
     const sourceStatus = cfg?.sourceStatus ?? manual.sourceStatus ?? SOURCE_STATUS.UNAVAILABLE;
     const sourceType = cfg?.sourceType ?? manual.sourceType ?? "none";
-    const sourceUrls = normalizeSourceUrls(cfg?.sourceUrls ?? [], cfg?.url ?? [], manual.sourceUrls ?? [], manual.url ?? []);
+    const sourceUrls = normalizeSourceUrls(
+      result?.sourceUrls ?? [],
+      cfg?.sourceUrls ?? [],
+      cfg?.url ?? [],
+      manual.sourceUrls ?? [],
+      manual.url ?? [],
+    );
 
     return {
       state,
@@ -1148,6 +1658,8 @@ function buildCoverageStates(perStateResults) {
       name: cfg?.name ?? manual.name ?? `${stateName} WARN Notices`,
       publisher: cfg?.publisher ?? manual.publisher ?? null,
       url: sourceUrls[0] ?? null,
+      parserConfidence: cfg?.parserConfidence ?? manual.parserConfidence ?? null,
+      parserNotes: cfg?.parserNotes ?? null,
       sourceUrls,
       notes: cfg?.notes ?? manual.notes ?? (cfg ? "Machine-readable public source is fetched by this pipeline." : UNAVAILABLE_NOTE),
       error: result?.error ?? null,
@@ -1270,12 +1782,15 @@ async function main() {
       });
       continue;
     }
+    records = scrubImplausibleEffectiveDates(records, cfg.state);
 
+    const sourceUrls = normalizeSourceUrls(records.sourceUrls ?? [], cfg.sourceUrls ?? [], cfg.url ?? []);
     const dates = records.map((r) => r.noticeDate).filter(Boolean).sort();
     console.log(`  ✓ ${cfg.state}: ${records.length} valid notices`);
     perStateResults.push({
       state: cfg.state, stateName: cfg.stateName, status: "ok", notices: records.length,
       dateRange: { earliest: dates[0] ?? null, latest: dates[dates.length - 1] ?? null },
+      sourceUrls,
     });
 
     fullRecordsPerState.push({ cfg, records });
@@ -1284,8 +1799,10 @@ async function main() {
       name: cfg.name, publisher: cfg.publisher, url: cfg.url,
       sourceStatus: cfg.sourceStatus,
       sourceType: cfg.sourceType,
-      sourceUrls: normalizeSourceUrls(cfg.sourceUrls ?? [], cfg.url ?? []),
+      sourceUrls,
       adapter: cfg.fetch.name,
+      parserConfidence: cfg.parserConfidence ?? null,
+      parserNotes: cfg.parserNotes ?? null,
       notes: cfg.notes ?? null,
       license: "Public Domain (state public record)",
     });

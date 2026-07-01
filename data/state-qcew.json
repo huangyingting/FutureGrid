@@ -1,0 +1,2373 @@
+{
+  "generatedAt": "2026-07-01T22:01:32.633Z",
+  "source": {
+    "name": "BLS Quarterly Census of Employment and Wages Annual Area CSVs",
+    "publisher": "U.S. Bureau of Labor Statistics",
+    "url": "https://www.bls.gov/cew/downloadable-data-files.htm",
+    "endpointPattern": "https://data.bls.gov/cew/data/api/{year}/a/area/{stateFips}000.csv",
+    "license": "Public Domain",
+    "year": 2025,
+    "yearsTried": [
+      2025
+    ],
+    "verifiedColumns": [
+      "area_fips",
+      "own_code",
+      "industry_code",
+      "agglvl_code",
+      "size_code",
+      "year",
+      "qtr",
+      "disclosure_code",
+      "annual_avg_estabs",
+      "annual_avg_emplvl",
+      "total_annual_wages",
+      "taxable_annual_wages",
+      "annual_contributions",
+      "annual_avg_wkly_wage",
+      "avg_annual_pay",
+      "lq_disclosure_code",
+      "lq_annual_avg_estabs",
+      "lq_annual_avg_emplvl",
+      "lq_total_annual_wages",
+      "lq_taxable_annual_wages",
+      "lq_annual_contributions",
+      "lq_annual_avg_wkly_wage",
+      "lq_avg_annual_pay",
+      "oty_disclosure_code",
+      "oty_annual_avg_estabs_chg",
+      "oty_annual_avg_estabs_pct_chg",
+      "oty_annual_avg_emplvl_chg",
+      "oty_annual_avg_emplvl_pct_chg",
+      "oty_total_annual_wages_chg",
+      "oty_total_annual_wages_pct_chg",
+      "oty_taxable_annual_wages_chg",
+      "oty_taxable_annual_wages_pct_chg",
+      "oty_annual_contributions_chg",
+      "oty_annual_contributions_pct_chg",
+      "oty_annual_avg_wkly_wage_chg",
+      "oty_annual_avg_wkly_wage_pct_chg",
+      "oty_avg_annual_pay_chg",
+      "oty_avg_annual_pay_pct_chg"
+    ],
+    "note": "Fetched live BLS QCEW annual area CSVs for each state area ({stateFips}000). The selected denominator is own_code 5/private and industry_code 10/all industries; own_code 0/all ownerships is used only when the private row is unavailable and is flagged per state."
+  },
+  "methodology": {
+    "qcewSelection": "For each of the 50 states plus DC, select the annual ('A') state total area row ({FIPS}000) with private ownership (own_code 5) and all industries (industry_code 10). If that row is absent, use total covered all ownerships (own_code 0) only as an explicit fallback.",
+    "wageFields": "annual_avg_emplvl supplies annualAverageEmployment. avg_annual_pay supplies averageAnnualPay. avg_wkly_wage is read when present; BLS annual area CSVs currently provide annual_avg_wkly_wage, which supplies averageWeeklyWage. If annual_avg_emplvl is absent and monthly employment fields exist, employment is derived as their average and flagged.",
+    "warnJoin": "WARN employees/notices for the current 12-month WARN Pressure window are copied from data/state-labor.json only when WARN coverage is rank-eligible/current-window valid there. When WARN coverage is unavailable, unusable, stale, or otherwise not rank-eligible, WARN counts and QCEW rates are null, not zero. LAUS labor force and existing WARN Pressure rank/score are copied as context; WARN Pressure ranks are not recomputed or altered here.",
+    "rateFormula": "warnEmployeesPer10kQcewEmployment = warnEmployees12m / annualAverageEmployment * 10000, computed only for non-null usable WARN counts and positive QCEW employment.",
+    "denominatorNote": "No industry mapping is inferred. WARN employees are compared only with state-level QCEW private/all-industries employment denominators; LAUS labor force appears as comparison context."
+  },
+  "summary": {
+    "qcewYear": 2025,
+    "totalJurisdictions": 51,
+    "statesWithQcewData": 51,
+    "privateOwnershipStates": 51,
+    "allOwnershipFallbackStates": 0,
+    "fallbackStates": [],
+    "statesWithBaselineRate": 9,
+    "rankedStates": 9,
+    "highestBaselineState": "CA",
+    "highestBaselineRate": 49.57,
+    "warnWindowMonths": 12,
+    "warnWindowStart": "2025-06-01",
+    "warnWindowEnd": "2026-05-31",
+    "stateLaborGeneratedAt": "2026-07-01T19:53:40.871Z",
+    "candidateYearAttempts": [
+      {
+        "year": 2025,
+        "statesWithEmployment": 51,
+        "missingStates": []
+      }
+    ]
+  },
+  "states": [
+    {
+      "state": "AL",
+      "stateName": "Alabama",
+      "fips": "01",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1722071,
+      "averageAnnualPay": 63695,
+      "averageWeeklyWage": 1225,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 2374506,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "01000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 158444,
+        "totalAnnualWages": 109687202175,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "AK",
+      "stateName": "Alaska",
+      "fips": "02",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 257750,
+      "averageAnnualPay": 75129,
+      "averageWeeklyWage": 1445,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 368765,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "02000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 23529,
+        "totalAnnualWages": 19364451254,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "AZ",
+      "stateName": "Arizona",
+      "fips": "04",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2825205,
+      "averageAnnualPay": 72784,
+      "averageWeeklyWage": 1400,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3744552,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "04000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 223604,
+        "totalAnnualWages": 205628874473,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "AR",
+      "stateName": "Arkansas",
+      "fips": "05",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1108043,
+      "averageAnnualPay": 61624,
+      "averageWeeklyWage": 1185,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1455735,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "05000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 105724,
+        "totalAnnualWages": 68281554027,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "CA",
+      "stateName": "California",
+      "fips": "06",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 15544576,
+      "averageAnnualPay": 97184,
+      "averageWeeklyWage": 1869,
+      "warnEmployees12m": 77058,
+      "warnNotices12m": 1461,
+      "warnEmployeesPer10kQcewEmployment": 49.57,
+      "lausLaborForce": 19668044,
+      "warnPressureRank": 1,
+      "warnPressureScore": 79,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "06000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 1912124,
+        "totalAnnualWages": 1510683673233,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "CO",
+      "stateName": "Colorado",
+      "fips": "08",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2432197,
+      "averageAnnualPay": 85476,
+      "averageWeeklyWage": 1644,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3206153,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "08000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 246440,
+        "totalAnnualWages": 207894668871,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "CT",
+      "stateName": "Connecticut",
+      "fips": "09",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1467965,
+      "averageAnnualPay": 92518,
+      "averageWeeklyWage": 1779,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1900410,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "09000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 145802,
+        "totalAnnualWages": 135813141262,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "DE",
+      "stateName": "Delaware",
+      "fips": "10",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 412051,
+      "averageAnnualPay": 75517,
+      "averageWeeklyWage": 1452,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 510226,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "10000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 46660,
+        "totalAnnualWages": 31116949401,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "DC",
+      "stateName": "District of Columbia",
+      "fips": "11",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 515126,
+      "averageAnnualPay": 123766,
+      "averageWeeklyWage": 2380,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 403744,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "11000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 50934,
+        "totalAnnualWages": 63755200895,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "FL",
+      "stateName": "Florida",
+      "fips": "12",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 8804478,
+      "averageAnnualPay": 72725,
+      "averageWeeklyWage": 1399,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 11144581,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "12000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 864692,
+        "totalAnnualWages": 640310008608,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "GA",
+      "stateName": "Georgia",
+      "fips": "13",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 4205796,
+      "averageAnnualPay": 74157,
+      "averageWeeklyWage": 1426,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 5470704,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "13000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 386812,
+        "totalAnnualWages": 311887897251,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "HI",
+      "stateName": "Hawaii",
+      "fips": "15",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 520286,
+      "averageAnnualPay": 67661,
+      "averageWeeklyWage": 1301,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 689589,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "15000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 59740,
+        "totalAnnualWages": 35203179880,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "ID",
+      "stateName": "Idaho",
+      "fips": "16",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 748223,
+      "averageAnnualPay": 63198,
+      "averageWeeklyWage": 1215,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1002324,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "16000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 101622,
+        "totalAnnualWages": 47286447084,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "IL",
+      "stateName": "Illinois",
+      "fips": "17",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 5242642,
+      "averageAnnualPay": 81147,
+      "averageWeeklyWage": 1561,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 6542482,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "17000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 371557,
+        "totalAnnualWages": 425424025629,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "IN",
+      "stateName": "Indiana",
+      "fips": "18",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2789963,
+      "averageAnnualPay": 65795,
+      "averageWeeklyWage": 1265,
+      "warnEmployees12m": 4642,
+      "warnNotices12m": 34,
+      "warnEmployeesPer10kQcewEmployment": 16.64,
+      "lausLaborForce": 3489693,
+      "warnPressureRank": 8,
+      "warnPressureScore": 13,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "18000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 191243,
+        "totalAnnualWages": 183565366532,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "IA",
+      "stateName": "Iowa",
+      "fips": "19",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1308220,
+      "averageAnnualPay": 63661,
+      "averageWeeklyWage": 1224,
+      "warnEmployees12m": 5035,
+      "warnNotices12m": 138,
+      "warnEmployeesPer10kQcewEmployment": 38.49,
+      "lausLaborForce": 1732228,
+      "warnPressureRank": 6,
+      "warnPressureScore": 39,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "19000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 104676,
+        "totalAnnualWages": 83283023043,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "KS",
+      "stateName": "Kansas",
+      "fips": "20",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1185600,
+      "averageAnnualPay": 64723,
+      "averageWeeklyWage": 1245,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1564904,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "20000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 94220,
+        "totalAnnualWages": 76735978023,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "KY",
+      "stateName": "Kentucky",
+      "fips": "21",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1691898,
+      "averageAnnualPay": 62666,
+      "averageWeeklyWage": 1205,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 2097040,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "21000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 154669,
+        "totalAnnualWages": 106025145436,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "LA",
+      "stateName": "Louisiana",
+      "fips": "22",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1620700,
+      "averageAnnualPay": 63596,
+      "averageWeeklyWage": 1223,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 2119491,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "22000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 152014,
+        "totalAnnualWages": 103069837215,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "ME",
+      "stateName": "Maine",
+      "fips": "23",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 548992,
+      "averageAnnualPay": 65985,
+      "averageWeeklyWage": 1269,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 704125,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "23000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 63665,
+        "totalAnnualWages": 36225436922,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MD",
+      "stateName": "Maryland",
+      "fips": "24",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2230280,
+      "averageAnnualPay": 78614,
+      "averageWeeklyWage": 1512,
+      "warnEmployees12m": 9429,
+      "warnNotices12m": 154,
+      "warnEmployeesPer10kQcewEmployment": 42.28,
+      "lausLaborForce": 3207390,
+      "warnPressureRank": 3,
+      "warnPressureScore": 69,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "24000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 195744,
+        "totalAnnualWages": 175331895743,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MA",
+      "stateName": "Massachusetts",
+      "fips": "25",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 3181344,
+      "averageAnnualPay": 101877,
+      "averageWeeklyWage": 1959,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3879544,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "25000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 287358,
+        "totalAnnualWages": 324106841265,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MI",
+      "stateName": "Michigan",
+      "fips": "26",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 3819076,
+      "averageAnnualPay": 70847,
+      "averageWeeklyWage": 1362,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 4930827,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "26000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 307118,
+        "totalAnnualWages": 270569836826,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MN",
+      "stateName": "Minnesota",
+      "fips": "27",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2547443,
+      "averageAnnualPay": 77518,
+      "averageWeeklyWage": 1491,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3137661,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "27000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 206668,
+        "totalAnnualWages": 197473460611,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MS",
+      "stateName": "Mississippi",
+      "fips": "28",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 942136,
+      "averageAnnualPay": 52628,
+      "averageWeeklyWage": 1012,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1287582,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "28000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 86901,
+        "totalAnnualWages": 49583146768,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MO",
+      "stateName": "Missouri",
+      "fips": "29",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2483030,
+      "averageAnnualPay": 67268,
+      "averageWeeklyWage": 1294,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3171078,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "29000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 244256,
+        "totalAnnualWages": 167029467055,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "MT",
+      "stateName": "Montana",
+      "fips": "30",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 427008,
+      "averageAnnualPay": 62491,
+      "averageWeeklyWage": 1202,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 575196,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "30000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 59068,
+        "totalAnnualWages": 26683994756,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NE",
+      "stateName": "Nebraska",
+      "fips": "31",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 853471,
+      "averageAnnualPay": 62987,
+      "averageWeeklyWage": 1211,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1101499,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "31000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 74387,
+        "totalAnnualWages": 53757504797,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NV",
+      "stateName": "Nevada",
+      "fips": "32",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1393339,
+      "averageAnnualPay": 68394,
+      "averageWeeklyWage": 1315,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1693582,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "32000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 106773,
+        "totalAnnualWages": 95295815331,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NH",
+      "stateName": "New Hampshire",
+      "fips": "33",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 604845,
+      "averageAnnualPay": 82605,
+      "averageWeeklyWage": 1589,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 776954,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "33000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 64217,
+        "totalAnnualWages": 49963039301,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NJ",
+      "stateName": "New Jersey",
+      "fips": "34",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 3703715,
+      "averageAnnualPay": 86713,
+      "averageWeeklyWage": 1668,
+      "warnEmployees12m": 16350,
+      "warnNotices12m": 129,
+      "warnEmployeesPer10kQcewEmployment": 44.14,
+      "lausLaborForce": 4909200,
+      "warnPressureRank": 4,
+      "warnPressureScore": 61,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "34000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 326596,
+        "totalAnnualWages": 321161321700,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NM",
+      "stateName": "New Mexico",
+      "fips": "35",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 690270,
+      "averageAnnualPay": 61026,
+      "averageWeeklyWage": 1174,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 976159,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "35000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 64701,
+        "totalAnnualWages": 42124612027,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NY",
+      "stateName": "New York",
+      "fips": "36",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 8365381,
+      "averageAnnualPay": 100946,
+      "averageWeeklyWage": 1941,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 10094212,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "36000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 699442,
+        "totalAnnualWages": 844455678868,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "NC",
+      "stateName": "North Carolina",
+      "fips": "37",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 4219237,
+      "averageAnnualPay": 72188,
+      "averageWeeklyWage": 1388,
+      "warnEmployees12m": 4119,
+      "warnNotices12m": 41,
+      "warnEmployeesPer10kQcewEmployment": 9.76,
+      "lausLaborForce": 5280593,
+      "warnPressureRank": 9,
+      "warnPressureScore": 13,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "37000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 374434,
+        "totalAnnualWages": 304576630463,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "ND",
+      "stateName": "North Dakota",
+      "fips": "38",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 353989,
+      "averageAnnualPay": 68980,
+      "averageWeeklyWage": 1327,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 434308,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "38000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 34324,
+        "totalAnnualWages": 24418301984,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "OH",
+      "stateName": "Ohio",
+      "fips": "39",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 4795848,
+      "averageAnnualPay": 67920,
+      "averageWeeklyWage": 1306,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 5896696,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "39000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 332513,
+        "totalAnnualWages": 325735430536,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "OK",
+      "stateName": "Oklahoma",
+      "fips": "40",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1362424,
+      "averageAnnualPay": 60835,
+      "averageWeeklyWage": 1170,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1994372,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "40000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 123116,
+        "totalAnnualWages": 82882494665,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "OR",
+      "stateName": "Oregon",
+      "fips": "41",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1690092,
+      "averageAnnualPay": 71982,
+      "averageWeeklyWage": 1384,
+      "warnEmployees12m": 7037,
+      "warnNotices12m": 83,
+      "warnEmployeesPer10kQcewEmployment": 41.64,
+      "lausLaborForce": 2203374,
+      "warnPressureRank": 2,
+      "warnPressureScore": 70,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "41000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 173152,
+        "totalAnnualWages": 121655396513,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "PA",
+      "stateName": "Pennsylvania",
+      "fips": "42",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 5374806,
+      "averageAnnualPay": 74385,
+      "averageWeeklyWage": 1430,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 6626372,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed lacks notice dates for current-window pressure ranking; no notices in the current 12-month window can be verified from notice dates"
+      ],
+      "sourceRow": {
+        "areaFips": "42000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 379084,
+        "totalAnnualWages": 399806725458,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "RI",
+      "stateName": "Rhode Island",
+      "fips": "44",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 437969,
+      "averageAnnualPay": 69365,
+      "averageWeeklyWage": 1334,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 581253,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "44000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 48464,
+        "totalAnnualWages": 30379654462,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "SC",
+      "stateName": "South Carolina",
+      "fips": "45",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1946062,
+      "averageAnnualPay": 63462,
+      "averageWeeklyWage": 1220,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 2673031,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "45000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 189329,
+        "totalAnnualWages": 123500926914,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "SD",
+      "stateName": "South Dakota",
+      "fips": "46",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 383868,
+      "averageAnnualPay": 61041,
+      "averageWeeklyWage": 1174,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 489913,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "46000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 38496,
+        "totalAnnualWages": 23431692071,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "TN",
+      "stateName": "Tennessee",
+      "fips": "47",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2826709,
+      "averageAnnualPay": 70727,
+      "averageWeeklyWage": 1360,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 3497830,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "47000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 212971,
+        "totalAnnualWages": 199924470861,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "TX",
+      "stateName": "Texas",
+      "fips": "48",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 12060102,
+      "averageAnnualPay": 79409,
+      "averageWeeklyWage": 1527,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 15901582,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN feed has no notices in the current 12-month window"
+      ],
+      "sourceRow": {
+        "areaFips": "48000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 839018,
+        "totalAnnualWages": 957677111738,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "UT",
+      "stateName": "Utah",
+      "fips": "49",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 1472901,
+      "averageAnnualPay": 69809,
+      "averageWeeklyWage": 1342,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 1825206,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "49000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 137333,
+        "totalAnnualWages": 102821482519,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "VT",
+      "stateName": "Vermont",
+      "fips": "50",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 254613,
+      "averageAnnualPay": 66766,
+      "averageWeeklyWage": 1284,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 339912,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "50000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 32090,
+        "totalAnnualWages": 16999590792,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "VA",
+      "stateName": "Virginia",
+      "fips": "51",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 3404471,
+      "averageAnnualPay": 80161,
+      "averageWeeklyWage": 1542,
+      "warnEmployees12m": 7727,
+      "warnNotices12m": 74,
+      "warnEmployeesPer10kQcewEmployment": 22.7,
+      "lausLaborForce": 4490601,
+      "warnPressureRank": 5,
+      "warnPressureScore": 56,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "51000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 311199,
+        "totalAnnualWages": 272905186453,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "WA",
+      "stateName": "Washington",
+      "fips": "53",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 3008603,
+      "averageAnnualPay": 101770,
+      "averageWeeklyWage": 1957,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 4065952,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "53000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 236885,
+        "totalAnnualWages": 306186204757,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "WV",
+      "stateName": "West Virginia",
+      "fips": "54",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 560078,
+      "averageAnnualPay": 59835,
+      "averageWeeklyWage": 1151,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 775073,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "54000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 58621,
+        "totalAnnualWages": 33512255038,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "WI",
+      "stateName": "Wisconsin",
+      "fips": "55",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 2558904,
+      "averageAnnualPay": 66612,
+      "averageWeeklyWage": 1281,
+      "warnEmployees12m": 5233,
+      "warnNotices12m": 68,
+      "warnEmployeesPer10kQcewEmployment": 20.45,
+      "lausLaborForce": 3131529,
+      "warnPressureRank": 7,
+      "warnPressureScore": 39,
+      "rankEligible": true,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10)."
+      ],
+      "sourceRow": {
+        "areaFips": "55000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 202514,
+        "totalAnnualWages": 170454098325,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    },
+    {
+      "state": "WY",
+      "stateName": "Wyoming",
+      "fips": "56",
+      "qcewYear": 2025,
+      "ownership": {
+        "code": "5",
+        "label": "Private"
+      },
+      "industry": {
+        "code": "10",
+        "label": "All industries"
+      },
+      "annualAverageEmployment": 214189,
+      "averageAnnualPay": 63303,
+      "averageWeeklyWage": 1217,
+      "warnEmployees12m": null,
+      "warnNotices12m": null,
+      "warnEmployeesPer10kQcewEmployment": null,
+      "lausLaborForce": 286969,
+      "warnPressureRank": null,
+      "warnPressureScore": null,
+      "rankEligible": false,
+      "dataQualityNotes": [
+        "Uses QCEW private ownership (own_code 5), all industries (industry_code 10).",
+        "WARN coverage is not rank-eligible; WARN counts/rates are unknown, not zero. Reason: WARN source is not currently machine-readable"
+      ],
+      "sourceRow": {
+        "areaFips": "56000",
+        "ownCode": "5",
+        "industryCode": "10",
+        "aggregationLevelCode": "51",
+        "sizeCode": "0",
+        "year": 2025,
+        "quarter": "A",
+        "disclosureCode": null,
+        "annualAverageEstablishments": 29478,
+        "totalAnnualWages": 13558744528,
+        "annualAverageEmploymentSource": "annual_avg_emplvl",
+        "averageAnnualPaySource": "avg_annual_pay",
+        "averageWeeklyWageSource": "annual_avg_wkly_wage",
+        "usedAllOwnershipFallback": false,
+        "derivedAnnualAverageEmployment": false
+      }
+    }
+  ]
+}

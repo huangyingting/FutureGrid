@@ -65,8 +65,19 @@ const WARN_NOTICES_JSON = path.join(process.cwd(), "data/warn-notices.json");
 const ISO_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 const MACHINE_READABLE_STATUSES = new Set(["live", "machine-readable", "current-machine-readable"]);
 const NON_MACHINE_READABLE_STATUSES = new Set(["manual-only", "pdf-only", "unavailable"]);
+const VALID_SOURCE_TYPES = new Set(["api", "csv", "html", "json", "none", "pdf", "xls", "xlsx", "xml"]);
 
 type UnknownRecord = Record<string, unknown>;
+
+interface WarnCoverageMetadata {
+  status: string;
+  sourceType?: string;
+  recordsIncluded?: boolean;
+  adapter?: string;
+  notices?: number;
+  dateRange?: unknown;
+  parserConfidence?: unknown;
+}
 
 type StateLaborModule = {
   getStateLaborData: () => unknown;
@@ -160,6 +171,31 @@ function optionalBooleanFrom(scopes: UnknownRecord[], keys: string[]): boolean |
   return undefined;
 }
 
+function canonicalCoverageStatus(status: string | undefined): string | undefined {
+  return status && MACHINE_READABLE_STATUSES.has(status) ? "live" : status;
+}
+
+function normalizeStatus(value: string | undefined): string | undefined {
+  return canonicalCoverageStatus(value?.trim().toLowerCase().replace(/[_\s]+/g, "-"));
+}
+
+function optionalSourceTypeFrom(scopes: UnknownRecord[]): string | undefined {
+  const sourceType = optionalStringFrom(scopes, ["sourceType", "warnSourceType"]);
+  if (!sourceType) return undefined;
+  const normalized = sourceType.trim().toLowerCase().replace(/[_\s]+/g, "-");
+  expect(VALID_SOURCE_TYPES.has(normalized), `${sourceType} should be a known WARN source type`).toBe(true);
+  return normalized;
+}
+
+function validateParserConfidence(value: unknown, label: string): void {
+  if (value == null) return;
+  expect(typeof value, `${label} should be numeric when present`).toBe("number");
+  if (typeof value !== "number") return;
+  expect(Number.isFinite(value), `${label} should be finite`).toBe(true);
+  expect(value, `${label} should be >= 0`).toBeGreaterThanOrEqual(0);
+  expect(value, `${label} should be <= 1`).toBeLessThanOrEqual(1);
+}
+
 function statesFrom(value: unknown, label: string): UnknownRecord[] {
   if (Array.isArray(value)) return value.map((item, index) => record(item, `${label}[${index}]`));
 
@@ -242,10 +278,10 @@ function rankEligibleOf(row: UnknownRecord): boolean {
 }
 
 function coverageStatusOf(row: UnknownRecord): string | undefined {
-  return optionalStringFrom(
+  return normalizeStatus(optionalStringFrom(
     [pressureOf(row), warnOf(row), row],
     ["coverageStatus", "warnCoverageStatus", "sourceStatus", "availability", "access", "status"],
-  )?.trim().toLowerCase().replace(/[_\s]+/g, "-");
+  ));
 }
 
 function rankIneligibleReasonOf(row: UnknownRecord): string | undefined {
@@ -261,7 +297,28 @@ function isoDate(value: unknown): string | undefined {
 }
 
 function noticeDate(notice: UnknownRecord): string | undefined {
-  return isoDate(notice.noticeDate) ?? isoDate(notice.effectiveDate);
+  return isoDate(notice.noticeDate);
+}
+
+function noticesForState(state: string): UnknownRecord[] {
+  const data = JSON.parse(readFileSync(WARN_NOTICES_JSON, "utf8")) as UnknownRecord;
+  const notices = Array.isArray(data.notices) ? (data.notices as UnknownRecord[]) : [];
+  return notices.filter((notice) => notice.state === state);
+}
+
+function hasOnlyEffectiveDates(state: string): boolean {
+  const notices = noticesForState(state);
+  return (
+    notices.length > 0 &&
+    notices.every((notice) => noticeDate(notice) === undefined) &&
+    notices.some((notice) => isoDate(notice.effectiveDate) !== undefined)
+  );
+}
+
+function expectMissingNoticeDateReason(row: UnknownRecord, label: string): void {
+  expect(rankIneligibleReasonOf(row) ?? "", `${label} should explain missing notice/provenance dates`).toMatch(
+    /(?:missing|no|without|lacks?).*(?:notice|provenance).*(?:dates?|basis)/i,
+  );
 }
 
 function dateRangeOverlapsWindow(dateRange: unknown, windowStart: string, windowEnd: string): boolean {
@@ -306,8 +363,9 @@ function staleLiveWarnFeeds(windowStart: string, windowEnd: string, counts: Map<
       [entry],
       ["coverageStatus", "sourceStatus", "availability", "access", "status"],
       `${code} WARN coverage status`,
-    ).trim().toLowerCase().replace(/[_\s]+/g, "-");
-    if (!MACHINE_READABLE_STATUSES.has(status)) continue;
+    );
+    const normalizedStatus = normalizeStatus(status);
+    if (!MACHINE_READABLE_STATUSES.has(normalizedStatus ?? "")) continue;
     const overlaps = dateRangeOverlapsWindow(entry.dateRange, windowStart, windowEnd) || (counts.get(code) ?? 0) > 0;
     if (!overlaps) stale.add(code);
   }
@@ -389,7 +447,7 @@ function expectRanksSorted(rows: UnknownRecord[]): void {
   }
 }
 
-function warnCoverageRegistry(): Map<string, string> {
+function warnCoverageRegistry(): Map<string, WarnCoverageMetadata> {
   const data = JSON.parse(readFileSync(WARN_NOTICES_JSON, "utf8")) as UnknownRecord;
   const registry = (
     data.coverageRegistry ??
@@ -401,15 +459,27 @@ function warnCoverageRegistry(): Map<string, string> {
 
   expect(Array.isArray(registry), "WARN coverage registry should be available for rank eligibility checks").toBe(true);
 
-  const statuses = new Map<string, string>();
+  const statuses = new Map<string, WarnCoverageMetadata>();
   for (const entry of registry as UnknownRecord[]) {
     const code = stringFrom([entry], ["state", "stateCode", "code"], "WARN coverage state code");
-    const status = stringFrom(
+    const status = normalizeStatus(stringFrom(
       [entry],
       ["coverageStatus", "sourceStatus", "availability", "access", "status"],
       `${code} WARN coverage status`,
-    ).trim().toLowerCase().replace(/[_\s]+/g, "-");
-    statuses.set(code, status === "machine-readable" ? "live" : status);
+    ));
+    expect(status, `${code} WARN coverage status should be recognized`).toBeTruthy();
+    const metadata: WarnCoverageMetadata = {
+      status: status ?? "unavailable",
+      sourceType: optionalSourceTypeFrom([entry]),
+      recordsIncluded:
+        typeof entry.recordsIncluded === "boolean" ? entry.recordsIncluded : undefined,
+      adapter: typeof entry.adapter === "string" && entry.adapter.trim() ? entry.adapter.trim() : undefined,
+      notices: typeof entry.notices === "number" ? entry.notices : undefined,
+      dateRange: entry.dateRange,
+      parserConfidence: entry.parserConfidence,
+    };
+    validateParserConfidence(metadata.parserConfidence, `${code} coverage parserConfidence`);
+    statuses.set(code, metadata);
   }
   return statuses;
 }
@@ -535,6 +605,75 @@ describe("state-labor WARN Pressure helpers", () => {
     expect(latestLausPeriod).toMatch(ISO_MONTH);
   });
 
+  it("mirrors WARN coverage metadata into state-labor pressure rows", async () => {
+    const stateLaborModule = await importStateLaborModule();
+    const coverage = warnCoverageRegistry();
+    const states = statesFrom(stateLaborModule.getWarnPressureStates(), "getWarnPressureStates()");
+
+    expect(coverage.size, "WARN coverage registry should include all states plus DC").toBe(51);
+
+    for (const row of states) {
+      const code = codeOf(row);
+      const metadata = coverage.get(code);
+      expect(metadata, `${code} should have WARN coverage metadata`).toBeDefined();
+      if (!metadata) continue;
+
+      const rowCoverage = optionalRecord(row.warnCoverage) ?? warnOf(row);
+      expect(coverageStatusOf(row), `${code} WARN coverage status should match WARN notices`).toBe(metadata.status);
+      expect(optionalSourceTypeFrom([rowCoverage, warnOf(row), row]), `${code} sourceType should match WARN notices`).toBe(
+        metadata.sourceType,
+      );
+      if (metadata.recordsIncluded !== undefined) {
+        expect(optionalBooleanFrom([rowCoverage], ["recordsIncluded"]), `${code} recordsIncluded should match WARN notices`).toBe(
+          metadata.recordsIncluded,
+        );
+      }
+      if (metadata.adapter) {
+        expect(optionalStringFrom([rowCoverage], ["adapter"]), `${code} adapter should match WARN notices`).toBe(
+          metadata.adapter,
+        );
+      }
+      validateParserConfidence(rowCoverage.parserConfidence, `${code} state-labor parserConfidence`);
+
+      if (MACHINE_READABLE_STATUSES.has(metadata.status)) {
+        expect(metadata.recordsIncluded, `${code} parsed WARN coverage should include records`).toBe(true);
+        expect(metadata.notices ?? 0, `${code} parsed WARN coverage should include notices`).toBeGreaterThan(0);
+        expect(metadata.sourceType, `${code} parsed WARN coverage should identify sourceType`).toBeTruthy();
+        expect(metadata.sourceType, `${code} parsed WARN coverage should not use sourceType=none`).not.toBe("none");
+      } else if (NON_MACHINE_READABLE_STATUSES.has(metadata.status)) {
+        expect(metadata.recordsIncluded, `${code} non-parsed WARN coverage should not include records`).toBe(false);
+        expect(metadata.notices ?? 0, `${code} non-parsed WARN coverage should not include notices`).toBe(0);
+        expect(metadata.adapter, `${code} non-parsed WARN coverage should not declare an adapter`).toBeUndefined();
+      }
+    }
+  });
+
+  it("does not rank Pennsylvania when records only expose effective dates", async () => {
+    const paNotices = noticesForState("PA");
+    expect(paNotices.length, "PA fixture should include records for the effective-date-only regression").toBeGreaterThan(
+      0,
+    );
+    expect(
+      paNotices.every((notice) => noticeDate(notice) === undefined),
+      "PA records should not expose notice/provenance dates in this regression fixture",
+    ).toBe(true);
+    expect(
+      paNotices.some((notice) => isoDate(notice.effectiveDate) !== undefined),
+      "PA records should only expose effective dates in this regression fixture",
+    ).toBe(true);
+
+    const stateLaborModule = await importStateLaborModule();
+    const states = statesFrom(stateLaborModule.getWarnPressureStates(), "getWarnPressureStates()");
+    const pa = states.find((row) => codeOf(row) === "PA");
+    expect(pa, "PA should be present in WARN pressure states").toBeDefined();
+    if (!pa) return;
+
+    expect(rankEligibleOf(pa), "PA should not be rank eligible without notice/provenance dates").toBe(false);
+    expect(rankOf(pa), "PA should not have a WARN Pressure rank without notice/provenance dates").toBeUndefined();
+    expect(scoreOf(pa), "PA should not have a WARN Pressure score without notice/provenance dates").toBeUndefined();
+    expectMissingNoticeDateReason(pa, "PA");
+  });
+
   it("ranks only current-window WARN feeds and excludes stale live feeds", async () => {
     const stateLaborModule = await importStateLaborModule();
     const snapshot = record(stateLaborModule.getStateLaborData(), "getStateLaborData()");
@@ -545,9 +684,35 @@ describe("state-labor WARN Pressure helpers", () => {
     const staleLiveStates = staleLiveWarnFeeds(warnWindowStart, warnWindowEnd, noticeCounts);
     const states = statesFrom(stateLaborModule.getWarnPressureStates(), "getWarnPressureStates()");
     const ranked = rankedStates(states);
+    const currentLiveStates = new Set<string>();
 
-    expect([...staleLiveStates], "fixture should include stale live WARN feeds").toEqual(
-      expect.arrayContaining(["GA", "NY", "TX"]),
+    for (const row of states) {
+      const code = codeOf(row);
+      const status = coverageStatusOf(row);
+      if (!status || !MACHINE_READABLE_STATUSES.has(status)) continue;
+
+      const hasCurrentWindowCoverage = hasWarnWindowCoverage(row, warnWindowStart, warnWindowEnd, noticeCounts);
+      if (hasCurrentWindowCoverage) {
+        currentLiveStates.add(code);
+        expect(rankEligibleOf(row), `${code} live WARN feed with current-window records should be rank eligible`).toBe(true);
+        expect(rankOf(row), `${code} current live WARN feed should have a rank`).not.toBeUndefined();
+        expect(scoreOf(row), `${code} current live WARN feed should have a score`).not.toBeUndefined();
+      } else {
+        expect(rankEligibleOf(row), `${code} live WARN feed without current-window records should not be rank eligible`).toBe(false);
+        expect(rankOf(row), `${code} stale live WARN feed should not have a rank`).toBeUndefined();
+        expect(scoreOf(row), `${code} stale live WARN feed should not have a score`).toBeUndefined();
+        if (hasOnlyEffectiveDates(code)) {
+          expectMissingNoticeDateReason(row, code);
+        } else {
+          expect(rankIneligibleReasonOf(row), `${code} stale live WARN feed should explain why it is unranked`).toMatch(
+            /no notices in the current 12-month window/i,
+          );
+        }
+      }
+    }
+
+    expect(ranked.map(codeOf).sort(), "ranked states should equal live feeds with current-window WARN records").toEqual(
+      [...currentLiveStates].sort(),
     );
 
     for (const row of ranked) {
@@ -561,9 +726,13 @@ describe("state-labor WARN Pressure helpers", () => {
       expect(rankEligibleOf(row), `${code} stale live feed should not be rank eligible`).toBe(false);
       expect(rankOf(row), `${code} stale live feed should not have a rank`).toBeUndefined();
       expect(scoreOf(row), `${code} stale live feed should not have a score`).toBeUndefined();
-      expect(rankIneligibleReasonOf(row), `${code} stale live feed should explain why it is unranked`).toMatch(
-        /no notices in the current 12-month window/i,
-      );
+      if (hasOnlyEffectiveDates(code)) {
+        expectMissingNoticeDateReason(row, code);
+      } else {
+        expect(rankIneligibleReasonOf(row), `${code} stale live feed should explain why it is unranked`).toMatch(
+          /no notices in the current 12-month window/i,
+        );
+      }
     }
   });
 
@@ -574,12 +743,15 @@ describe("state-labor WARN Pressure helpers", () => {
 
     for (const row of states) {
       const code = codeOf(row);
-      const status = coverage.get(code);
+      const metadata = coverage.get(code);
+      const status = metadata?.status;
       if (!status || !NON_MACHINE_READABLE_STATUSES.has(status)) continue;
 
       expect(rankEligibleOf(row), `${code} ${status} coverage should not be rank eligible`).toBe(false);
       expect(rankOf(row), `${code} ${status} coverage should not have a rank`).toBeUndefined();
       expect(scoreOf(row), `${code} ${status} coverage should not have a score`).toBeUndefined();
+      expect(metadata?.recordsIncluded, `${code} ${status} coverage should not include records`).toBe(false);
+      expect(metadata?.adapter, `${code} ${status} coverage should not declare an adapter`).toBeUndefined();
       expect(
         optionalNumberFrom(
           [pressureOf(row), warnOf(row), row],

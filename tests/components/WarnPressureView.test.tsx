@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { ComponentType, ReactNode } from "react";
@@ -9,6 +9,8 @@ import { describe, expect, it, vi } from "vitest";
 const COMPONENT_PATH = path.join(process.cwd(), "components/labor/WarnPressureView.tsx");
 const LABOR_MARKET_COMPONENT_PATH = path.join(process.cwd(), "components/labor/LaborMarketView.tsx");
 const STATE_LABOR_MODULE = path.join(process.cwd(), "lib/state-labor.ts");
+const STATE_QCEW_JSON = path.join(process.cwd(), "data/state-qcew.json");
+const WARN_PRESSURE_COMPONENT_TEST_TIMEOUT_MS = 15_000;
 const CAUSAL_PHRASES = [
   /\bcauses?\b/i,
   /\bcaused by\b/i,
@@ -82,26 +84,64 @@ async function topRankedState(): Promise<UnknownRecord> {
   return states[0];
 }
 
+function qcewStateNames(): string[] {
+  expect(existsSync(STATE_QCEW_JSON), "Expected data/state-qcew.json so WarnPressureView can render QCEW baseline rows").toBe(true);
+  const snapshot = JSON.parse(readFileSync(STATE_QCEW_JSON, "utf8")) as UnknownRecord;
+  const states = statesFrom(snapshot, "state-qcew snapshot");
+  expect(states, "state-qcew snapshot should include 50 states plus DC").toHaveLength(51);
+  return states.map((row) => stringFrom(row, ["stateName", "name"], "QCEW state name"));
+}
+
 describe("WarnPressureView", () => {
-  it("renders the heading, non-causal methodology, and at least one ranked state", async () => {
-    const WarnPressureView = await importComponent();
-    const topState = await topRankedState();
-    render(<WarnPressureView />);
+  it(
+    "renders the heading, non-causal methodology, and at least one ranked state",
+    async () => {
+      const WarnPressureView = await importComponent();
+      const topState = await topRankedState();
+      render(<WarnPressureView />);
 
-    expect(screen.getAllByRole("heading", { name: /warn pressure/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("heading", { name: /warn pressure/i }).length).toBeGreaterThan(0);
 
-    const pageText = document.body.textContent ?? "";
-    expect(pageText).toMatch(/percentile/i);
-    expect(pageText).toMatch(/70\s*%|0\.70/);
-    expect(pageText).toMatch(/30\s*%|0\.30/);
-    expect(pageText).toMatch(/context|correlat|compare|index/i);
-    for (const phrase of CAUSAL_PHRASES) {
-      expect(pageText, `WarnPressureView should avoid causal wording: ${phrase}`).not.toMatch(phrase);
-    }
+      const pageText = document.body.textContent ?? "";
+      expect(pageText).toMatch(/percentile/i);
+      expect(pageText).toMatch(/70\s*%|0\.70/);
+      expect(pageText).toMatch(/30\s*%|0\.30/);
+      expect(pageText).toMatch(/context|correlat|compare|index/i);
+      for (const phrase of CAUSAL_PHRASES) {
+        expect(pageText, `WarnPressureView should avoid causal wording: ${phrase}`).not.toMatch(phrase);
+      }
 
-    const stateName = stringFrom(topState, ["stateName", "name"], "top ranked state name");
-    expect(screen.getAllByText(stateName, { exact: false }).length).toBeGreaterThan(0);
-  });
+      const stateName = stringFrom(topState, ["stateName", "name"], "top ranked state name");
+      expect(screen.getAllByText(stateName, { exact: false }).length).toBeGreaterThan(0);
+    },
+    WARN_PRESSURE_COMPONENT_TEST_TIMEOUT_MS,
+  );
+
+  it(
+    "renders the Employment & Wage Baseline section with QCEW state context and no causal phrases",
+    async () => {
+      const WarnPressureView = await importComponent();
+      const stateNames = qcewStateNames();
+      render(<WarnPressureView />);
+
+      const baselineHeading = screen.getByRole("heading", {
+        name: /employment\s*(?:&|and)\s*wage baseline/i,
+      });
+      const baselineSection = baselineHeading.closest("section");
+      expect(baselineSection, "Employment & Wage Baseline heading should live in a section").toBeTruthy();
+
+      const baselineText = baselineSection?.textContent ?? "";
+      expect(baselineText).toMatch(/qcew|quarterly census|employment|wage/i);
+      expect(
+        stateNames.some((stateName) => baselineText.includes(stateName)),
+        "QCEW baseline section should render at least one state row/card",
+      ).toBe(true);
+      for (const phrase of CAUSAL_PHRASES) {
+        expect(baselineText, `QCEW baseline section should avoid causal wording: ${phrase}`).not.toMatch(phrase);
+      }
+    },
+    WARN_PRESSURE_COMPONENT_TEST_TIMEOUT_MS,
+  );
 });
 
 describe("LaborMarketView WARN Pressure tab", () => {

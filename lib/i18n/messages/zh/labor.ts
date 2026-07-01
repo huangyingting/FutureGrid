@@ -45,6 +45,27 @@ export const laborZh = {
   pressureBandWatch: "观察",
   pressureBandLow: "低",
   pressureBandNotRanked: "未排名",
+  pressureQcewHeading: "就业与工资基线",
+  pressureQcewDesc:
+    "QCEW 提供私营部门就业与工资分母背景，用于查看按就业规模标准化后的 WARN 员工人数。当前追踪 {period} 的 {states} 个基线州；如可用，LAUS 标签补充劳动力与 WARN Pressure 背景。",
+  pressureQcewNoStates: "QCEW 基线州数据尚不可用。",
+  pressureQcewSrLabel:
+    "QCEW 基线阶梯表，包含每 1 万私营就业 WARN 员工、WARN 活动、QCEW 就业、工资或薪酬以及 LAUS 背景。",
+  pressureQcewTableState: "州",
+  pressureQcewTableWarnRate: "每1万 QCEW 私营就业 WARN 员工",
+  pressureQcewTableWarnActivity: "WARN 员工 / 申报",
+  pressureQcewTableEmployment: "QCEW 就业",
+  pressureQcewTableWagePay: "平均周薪 / 年薪",
+  pressureQcewTableLausContext: "LAUS 背景",
+  pressureQcewWarnRateUnit: "每1万私营就业",
+  pressureQcewEmploymentSub: "私营就业",
+  pressureQcewWeeklyWage: "平均周薪",
+  pressureQcewAnnualPay: "平均年薪",
+  pressureQcewLausLaborForceChip: "LAUS 劳动力 {laborForce}",
+  pressureQcewPressureScoreChip: "WARN Pressure {score}",
+  pressureQcewSourceLine:
+    "来源：{publisher} 的 {source}；QCEW 私营就业与工资基线。许可：{license}。",
+  pressureQcewSourceLink: "打开 BLS QCEW 来源",
   pressureCoverageHeading: "覆盖范围背景",
   pressureCoverageDesc:
     "手工、不可用、PDF-only、失败或历史 WARN 数据会保留展示，但不参与排名。",
