@@ -40,7 +40,7 @@ function placeLabel(value: SignalValue) {
 function PanelShell({ panel, t, children }: { panel: SignalPanel; t: Translator; children: React.ReactNode }) {
   const title = t(panel.titleKey);
   return (
-    <article className="glass flex h-full flex-col rounded-2xl p-5 sm:p-6" aria-labelledby={`${panel.id}-heading`}>
+    <article className="glass mb-5 inline-block w-full break-inside-avoid rounded-2xl p-5 sm:p-6" aria-labelledby={`${panel.id}-heading`}>
       <div className="flex flex-1 flex-col">
         <div className="mb-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-500 dark:text-violet-300">
@@ -95,7 +95,7 @@ function BarListPanel({ panel, t }: { panel: SignalPanel; t: Translator }) {
           return (
             <li key={value.id} className="space-y-1.5">
               <div className="flex items-start justify-between gap-3 text-xs">
-                <span className="min-w-0 font-medium leading-snug text-zinc-700 dark:text-zinc-300">{placeLabel(value)}</span>
+                <span className="min-w-0 truncate font-medium leading-snug text-zinc-700 dark:text-zinc-300">{placeLabel(value)}</span>
                 <span className="shrink-0 font-bold tabular-nums text-violet-600 dark:text-violet-300">{displayValue(value)}</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200/80 dark:bg-zinc-800" aria-hidden="true">
@@ -148,8 +148,8 @@ function StackedSharePanel({ panel, t }: { panel: SignalPanel; t: Translator }) 
       <dl className="space-y-2">
         {panel.values.map((value) => (
           <div key={value.id} className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white/55 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950/35">
-            <dt className="text-xs text-zinc-700 dark:text-zinc-300">{placeLabel(value)}</dt>
-            <dd className="text-xs font-bold tabular-nums text-zinc-900 dark:text-white">{displayValue(value)}</dd>
+            <dt className="min-w-0 truncate text-xs text-zinc-700 dark:text-zinc-300">{placeLabel(value)}</dt>
+            <dd className="shrink-0 text-xs font-bold tabular-nums text-zinc-900 dark:text-white">{displayValue(value)}</dd>
           </div>
         ))}
       </dl>
@@ -181,7 +181,7 @@ function ProviderModelsPanel({ panel, t }: { panel: SignalPanel; t: Translator }
                   return (
                     <li key={`${provider.id}-${label}`} className="space-y-1">
                       <div className="flex justify-between gap-2 text-[11px]">
-                        <span className="truncate text-zinc-600 dark:text-zinc-400">{label}</span>
+                        <span className="min-w-0 truncate text-zinc-600 dark:text-zinc-400">{label}</span>
                         <span className="shrink-0 font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">{formatted}</span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" aria-hidden="true">
@@ -293,8 +293,8 @@ export default function AIAdoptionSignals({ dataset }: { dataset: AdoptionSignal
   return (
     <section aria-labelledby={headingId} className="space-y-6">
       <div className="glass p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-3xl">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-500 dark:text-violet-300">
               {t("adoptionSignalsEyebrow")}
             </p>
@@ -310,7 +310,7 @@ export default function AIAdoptionSignals({ dataset }: { dataset: AdoptionSignal
             </p>
           </div>
 
-          <dl className="grid min-w-0 gap-3 sm:grid-cols-3 lg:w-[28rem] lg:grid-cols-1">
+          <dl className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3 xl:max-w-[26rem] xl:flex-none">
             <div className="rounded-2xl border border-zinc-200 bg-white/55 p-4 dark:border-zinc-800 dark:bg-zinc-950/35">
               <dt className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">{t("adoptionSignalsCollectedFamilies")}</dt>
               <dd className="mt-1 text-2xl font-extrabold text-gradient tabular-nums">{dataset.coverage.collectedFamilies.length}</dd>
@@ -327,7 +327,7 @@ export default function AIAdoptionSignals({ dataset }: { dataset: AdoptionSignal
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="columns-1 gap-5 [column-fill:_balance] md:columns-2 xl:columns-3">
         {dataset.panels.map((panel) => (
           <PanelShell key={panel.id} panel={panel} t={t}>
             <PanelBody panel={panel} t={t} />
