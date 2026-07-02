@@ -159,9 +159,17 @@ describe("AI adoption signal loader", () => {
         expect(numbers, `${family} bar-list should expose numeric values`).toHaveLength(panel.values?.length ?? 0);
         expect(new Set(units).size, `${family} bar-list should not mix unit types`).toBeLessThanOrEqual(1);
 
+        const values = panel.values ?? [];
         const sortGroups = panel.id === "developerSurveyOverall"
-          ? Object.groupBy(panel.values ?? [], (value) => (typeof value.label === "string" ? value.label.split(":")[0] : ""))
-          : { [String(panel.id)]: panel.values ?? [] };
+          ? values.reduce<Record<string, SignalValue[]>>((groups, value) => {
+            const groupKey = typeof value.label === "string" ? value.label.split(":")[0] : "";
+            if (!groups[groupKey]) {
+              groups[groupKey] = [];
+            }
+            groups[groupKey].push(value);
+            return groups;
+          }, {})
+          : { [String(panel.id)]: values };
 
         for (const values of Object.values(sortGroups)) {
           const groupNumbers = (values ?? []).map(numericValue).filter((value): value is number => value !== null);
