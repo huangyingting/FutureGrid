@@ -27,3 +27,8 @@
 **2026-06-30 (Batch 5 — Theme + GAIRI + OccupationTrend):** #21 light-mode (next-themes, .dark CSS vars, charts re-render via useTheme, WCAG AA), #19 Oxford GAIRI 4th map toggle, #22 OccupationTrendChart (dual-axis wage/employment). Commits include "Closes #21" + "Closes #19" + "Closes #22". All 22 issues CLOSED.
 
 **2026-07-01 (AI-Demand Layer Visualization — Switch-30):** Switch-30 edited WorldChoropleth.tsx + GlobalView.tsx for AI job-demand metric integration (Indeed Hiring Lab, 9 economies). Emerald/teal sequential color ramp (#052e2b → #10b981 → #a7f3d0) distinct from brand ramp. Choropleth + bubble modes (proportional circles for 9-economy dataset). No-data countries grey. Legend auto-update, staggered entrance, WCAG AA, reduced-motion safe. i18n: +8 keys charts/global EN/ZH (metric label, legend, source note). Build exit 0. Commit 88dfeec. ✅ Orchestration 2026-07-01T10-43-22Z-switch-30.md
+
+
+## 2026-07-02T00:34:32.844+00:00 — Widescreen layout design and EvidenceStack fix
+
+Switch specified the centered wide-screen layout direction and Evidence Stack matrix redesign. After Trinity rejected Neo's first EvidenceStack grid for horizontal overflow at 1280/1440px, Switch owned the reviewer-protocol fix and changed the grid to shrinkable tracks; Playwright verification confirmed no horizontal overflow across 1280, 1440, 1920, and 2560px.

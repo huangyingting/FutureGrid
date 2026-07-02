@@ -31,3 +31,47 @@
 
 
 **2026-07-01 (Exposure Lenses Test Suite — Mouse-10):** Mouse-10 shipped tests/exposure.test.ts (4 test cases: getOccupationExposureLenses, consensus calc, gap logic, edge cases). Suite total 150/150 PASS (4 new + 146 baseline preserved). Validated: npm run test:run 150 passed, npm run build exit 0, npm run lint clean. Smoke 10/10 routes EN+中文 verified. Commit 88dfeec. ✅ Orchestration 2026-07-01T10-43-22Z-mouse-10.md
+
+
+## 2026-07-01T11:06:51.565+00:00 — WARN coverage verification
+- Added tests/warn-data.test.ts for schema stability, all-state + DC coverage metadata, retained machine-readable states, summary consistency, sorting/trimming, and no synthetic notices.
+- Coordinator validation reports targeted tests, eslint, build, full tests, lint, and diff check all passed.
+
+
+## 2026-07-01T13:19:30.034+00:00 — WARN Pressure Index QA
+
+Mouse added WARN Pressure helper/data/component tests and stabilized `tests/warn-data.test.ts` timeout without weakening assertions. Final validation passed `npm run test:run` (20 files / 165 tests), `npm run lint`, `npm run build`, and `git diff --check`.
+## 2026-07-01T19:27Z — WARN manual/HTML/PDF verification
+- Updated `tests/warn-data.test.ts` to require parsed/live WARN sources to carry sourceStatus/sourceType/sourceUrls/adapter metadata, tie parsed coverage to real notice rows/summary rows, and preserve no-notices/no-adapter rules for manual/unavailable coverage.
+- Updated `tests/warn-pressure.test.ts` to mirror WARN coverage metadata into state-labor pressure rows and require ranked states to equal live feeds with current-window WARN records.
+- Verification passed: `npm run test:run -- tests/warn-data.test.ts tests/warn-pressure.test.ts`; `npm run lint -- tests/warn-data.test.ts tests/warn-pressure.test.ts`.
+- Current snapshot has no parsed live HTML/PDF adapters yet; tests are ready to validate them when Tank promotes such states.
+
+## 2026-07-01T19:21:52.741+00:00 — WARN adapter regression hardening
+
+Mouse added regressions for PA effective-date-only rank ineligibility, VA provenance hygiene, and semantic date plausibility. Targeted WARN tests passed 17/17; full `npm run test:run` passed 20 files / 169 tests.
+
+### 2026-07-01T21:14Z — QCEW baseline focused tests
+- Added `tests/qcew-data.test.ts` covering package script, 51-state/DC QCEW snapshot shape, BLS source metadata, 2025/2024/2023 year tolerance, private/all-industries denominator context, positive public values, derived WARN-per-10k QCEW employment, and sorted/top helper behavior.
+- Updated `tests/components/WarnPressureView.test.tsx` to verify the Employment & Wage Baseline section renders QCEW state context and avoids causal phrases.
+- Validation: `npm exec -- eslint tests/qcew-data.test.ts tests/components/WarnPressureView.test.tsx` passed; `npm run test:run -- tests/qcew-data.test.ts tests/components/WarnPressureView.test.tsx --reporter=dot` passed (6 tests).
+
+## 2026-07-01T21:58:31Z — QCEW nullability regression tests
+- Added tests/qcew-data.test.ts coverage for state-labor WARN unusable/non-rank-eligible states (including AL) requiring QCEW WARN-derived counts/rates to be null while retaining positive QCEW denominators.
+- Added summary assertion that statesWithBaselineRate counts non-null WARN/QCEW rates only and helper assertion that top-state lists exclude null-rate states.
+- Validation: npx eslint tests/qcew-data.test.ts passed. npm run test:run -- tests/qcew-data.test.ts currently fails as expected against pre-fix data: AL warnEmployees12m is 0 instead of null, statesWithBaselineRate is 51/51, and no null-rate states are exposed.
+
+
+## 2026-07-01T21:56:44.721+00:00 — QCEW regression closeout
+
+Mouse's nullability regressions were satisfied after Neo's fix: non-rank-eligible WARN states keep QCEW denominators but expose null WARN/QCEW counts and rates, `statesWithBaselineRate` counts only non-null rates, and top helpers exclude null-rate states. Final full validation passed 21 files / 175 tests plus lint/build/diff-check.
+
+
+## 2026-07-01T22:27:30.269+00:00 — Market AI Sensitivity test closeout
+
+Mouse covered the market data/source shape, non-advisory wording, UI rendering, score normalization, and the XLE/XLU sub-1 score regression. Targeted market tests passed 7/7 and the full validation stack passed before PR #39 merged.
+
+
+## 2026-07-01T22:56:44.721+00:00 — Evidence Stack validation closeout
+
+Mouse's Evidence Stack regression coverage shipped in PR #40. `tests/components/EvidenceStack.test.tsx` covered helper shape, rendering, InsightsView wiring, EN/ZH key parity, and banned causal/predictive wording. Targeted tests passed 5/5; full `npm run test:run` passed 24 files / 187 tests plus lint/build/diff-check.

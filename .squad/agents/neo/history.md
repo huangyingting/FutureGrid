@@ -34,3 +34,33 @@
 
 
 **2026-07-01 (Career Lenses + Global Demand Layer — Neo-31):** Neo-31 built Across-AI-Measures panel on career detail pages (4 lenses: Anthropic adoption / OpenAI capability / AIOE ability / Frey & Osborne 2013 baseline, muted zinc historical styling, consensus + capability-vs-adoption gap callout, adjacent to AI Exposure Analysis card). Added global map 'AI job demand' layer (Indeed Hiring Lab, 9 economies, emerald/teal color scale, choropleth + bubble modes, legend, source note). i18n: +8 keys career panel EN/ZH + 8 keys global layer EN/ZH. Validated: build exit 0, smoke HTTP 200, Playwright EN+中文 screenshots confirm panel/layer render, no page errors. Commit 88dfeec. ✅ Orchestration 2026-07-01T10-43-22Z-neo-31.md
+
+
+## 2026-07-01T13:19:30.034+00:00 — WARN Pressure Index UI and fix
+
+Neo implemented the WARN Pressure `/labor` tab and then corrected rank eligibility after Trinity's rejection. Final eligibility requires live WARN coverage, valid LAUS labor force, and current-window WARN overlap; GA/NY/TX are unranked as stale. Neo also applied “Highest index score” and causality-free copy polish.
+## 2026-07-01T19:21:52.741+00:00 — Manual WARN adapter rejection fix
+
+Neo took the Reviewer Rejection Protocol fix after Tank lockout: PA remains parsed but unranked for WARN Pressure due to missing noticeDate provenance, VA timestamped CSV provenance was removed, implausible pre-2010 dates were filtered, and final WARN/state-labor data was regenerated.
+
+- 2026-07-01T21:09Z: Added QCEW Employment & Wage Baseline section to WARN Pressure using Tank's state-qcew helper contract. Updated en/zh i18n parity. Targeted ESLint, TypeScript check, and Next build pass once Tank's untracked data/state-qcew.json and lib/state-qcew.ts are present.
+
+
+## 2026-07-01T21:56:44.721+00:00 — QCEW nullability correction
+
+Neo owned the Reviewer Rejection Protocol fix for QCEW. The final join preserves QCEW denominators for all 51 jurisdictions while setting WARN-derived QCEW counts/rates to null for non-rank-eligible or unusable WARN coverage. Final validation passed `npm run test:run` (21 files / 175 tests), `npm run lint`, `npm run build`, and `git diff --check`.
+
+
+## 2026-07-01T22:27:30.269+00:00 — Market AI Sensitivity UI closeout
+
+Neo delivered the `/analysis` MarketSignalLens integration with EN/ZH i18n and corrected the score-normalization bug identified by Trinity so bundled 0–100 scores render faithfully. Final validation passed targeted market tests (7/7), full suite, lint, build, and diff-check before PR #39 merged.
+
+
+## 2026-07-01T22:56:44.721+00:00 — Evidence Stack UI closeout
+
+Neo's `/analysis` Evidence Stack UI shipped in PR #40: `EvidenceStack.tsx` was wired into `InsightsView` with EN/ZH i18n for conclusion statuses, confidence, caveats, metrics, and source links. Final validation passed targeted EvidenceStack tests, full tests, lint, build, and diff-check before merge `2512b46`.
+
+
+## 2026-07-02T00:34:32.844+00:00 — Widescreen UI implementation
+
+Neo implemented the centered app shell, page root centering, wider data-page caps, and initial Insights Lab EvidenceStack redesign. Trinity rejected the first EvidenceStack pass for horizontal overflow and locked Neo out of that component; Switch fixed it. Final validation passed build, tests, lint, diff-check, CI, and PR #41 merged.

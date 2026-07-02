@@ -33,3 +33,42 @@
 
 
 **2026-07-01 (Lean-Module Refactor — Tank-24):** Tank refactored labor-signal APIs into lean, route-scoped modules: lib/exposure.ts (getOccupationExposureLenses: 4 lenses + consensus + gap logic, JSON output) and lib/labor-signals.ts (moved getAIDemandSeries/getAILayoffSeries + added getCountryAIDemand ISO3-keyed). lib/analysis.ts re-exports labor APIs for back-compat. Bundle hygiene verified: careers chunk unaffected, demand tokens routed only to /global and /careers/[code]. Tests: 150 passed (4 new exposure tests + 146 baseline). Build exit 0, lint clean. Commit 88dfeec. ✅ Orchestration 2026-07-01T10-43-22Z-tank-24.md
+
+
+## 2026-07-01T11:06:51.565+00:00 — WARN all-state coverage implementation
+- Updated WARN build pipeline and regenerated data/warn-notices.json.
+- Added coverageSummary and coverageStates for 50 states + DC with 11 stable live adapters.
+- Added Iowa XLSX adapter and switched Oregon to official Socrata JSON; no synthetic manual/unavailable notices.
+
+
+## 2026-07-01T13:19:30.034+00:00 — WARN Pressure Index handoff
+
+Tank recommended BLS LAUS state labor data correlated with WARN notices and built the initial `build:state-labor` pipeline, `data/state-labor.json`, and `lib/state-labor.ts`. Trinity later rejected stale live feed ranking; Reviewer Rejection Protocol locked Tank out of the correction cycle. Neo fixed rank eligibility, regenerated final ranks (CA/OR/NJ/WI/IA), and validation passed.
+## 2026-07-01T19:21:52.741+00:00 — Manual WARN adapter handoff
+
+Tank parsed official IN, MD, NC, PA, and VA WARN sources and regenerated WARN/state-labor data. Trinity rejected the first pass for PA rank provenance, timestamped VA CSV provenance, and an impossible VA date; Reviewer Rejection Protocol locked Tank out of the fix cycle. Neo/Mouse completed corrections and final reviews passed.
+
+## 2026-07-01T21:14Z — QCEW state employment/wage baseline
+- Implemented `scripts/build-state-qcew.mjs`, `data/state-qcew.json`, `lib/state-qcew.ts`, and `build:state-qcew` package script.
+- Selected BLS QCEW 2025 annual area CSVs for all 50 states + DC; all 51 used private ownership (`own_code=5`) and all industries (`industry_code=10`), so no all-ownership fallbacks were needed.
+- Joined QCEW denominators with `data/state-labor.json` WARN 12-month metrics and LAUS labor-force context without recomputing WARN Pressure ranks.
+- Validation: `npm run build:state-qcew`, `node --check scripts/build-state-qcew.mjs`, `npx eslint scripts/build-state-qcew.mjs lib/state-qcew.ts package.json` (package ignored warning), `npx eslint scripts/build-state-qcew.mjs lib/state-qcew.ts`, and `npx vitest run tests/qcew-data.test.ts` all completed successfully.
+
+
+## 2026-07-01T21:56:44.721+00:00 — QCEW baseline handoff closeout
+
+Tank implemented the initial QCEW state employment/wage data layer and build script. Trinity rejected the first QCEW join for treating non-rank-eligible WARN states as zero; Tank remained locked out while Neo fixed nullability and Mouse added regressions. Final QCEW denominator rows remain 51/51, with WARN-derived QCEW fields null for non-rank-eligible WARN coverage.
+
+## 2026-07-01T22:34Z — Market AI sensitivity pipeline
+
+Implemented `scripts/build-market-signals.mjs`, `data/market-ai-signals.json`, and `lib/market-signals.ts` for the Yahoo Finance chart JSON based descriptive market AI sensitivity lens. Generated 11/11 SPDR sector ETF sectors plus SPY benchmark from 2022-11-30; top scores in this build were XLC, XLK, and XLF. Validation passed: `npm run build:market-signals`, `node --check scripts/build-market-signals.mjs`, and `npx eslint scripts/build-market-signals.mjs lib/market-signals.ts`.
+
+
+## 2026-07-01T22:27:30.269+00:00 — Market AI Sensitivity data layer closeout
+
+Tank delivered the market-signal builder, generated dataset, typed helpers, and `build:market-signals` script under the amended Yahoo Finance chart JSON source contract. Final validation passed targeted market tests (7/7), full test suite (23 files / 182 tests), lint, build, and diff-check before PR #39 merged.
+
+
+## 2026-07-01T22:56:44.721+00:00 — Evidence Stack data closeout
+
+Tank's `lib/evidence.ts` helper shipped in PR #40 with 7 conclusion rows and 9 source-family groups connecting occupation, exposure, labor, market, global, skills, and metadata sources to `/analysis` caveats and confidence. Final validation passed targeted EvidenceStack tests, full tests (24 files / 187 tests), lint, build, and diff-check before merge `2512b46`.

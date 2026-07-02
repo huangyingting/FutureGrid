@@ -1400,3 +1400,446 @@ Extracted AI-signal computation into two lean, route-scoped modules:
 #### Known Constraints & Data Model Decisions
 1. **Indeed Hiring Lab 9-economy snapshot:** Single latest month for simplicity; time-series support via getAIDemandSeries for dashboard timeline. All occupations use global Anthropic/OpenAI/AIOE/F&O measures; per-country demand breaks out separately.
 2. **Gap callout automation:** Coded as `if (capability > adoption + 20pp) → 'Adoption acceleration potential'` to highlight outliers without over-interpreting.
+
+
+---
+
+### 2026-07-01T11-07-32: Prioritize all-state layoff data coverage
+**By:** Squad
+**What:** Prioritize all-state layoff data coverage
+**References:** FutureGrid data expansion, WARN/layoff data pipeline
+**Why:** User directive/request: "all of them, another important job is to get more data from each united state, layoff information etc."
+
+Interpretation: FutureGrid should prioritize expanding data coverage across all U.S. states, especially layoff/WARN-style information, rather than limiting the layoff dataset to the current subset of states.
+
+### 2026-07-01T11-10-08: All-state WARN expansion contract
+**By:** Trinity
+**What:** All-state WARN expansion contract
+**References:** scripts/build-warn.mjs, lib/warn.ts, components/layoffs/LayoffsView.tsx, .squad/decisions.md
+**Why:** Decision: expand WARN/layoff data by separating actual notice coverage from all-state source coverage. Keep data/warn-notices.json backwards-compatible: existing top-level generatedAt, coverage, sources, notices, summary stay present; existing notice fields remain company, county, city, employees, noticeDate, effectiveDate, layoffType, state, stateName; summary.byState and summary.topEmployers remain state-aware; do not add address to notices. Add only optional/additive metadata, preferably top-level coverageStates/sourceRegistry, to represent all 50 states and their source status.
+
+Tank contract: create/maintain an all-state source registry. States with machine-readable official or accepted historical feeds may have adapters and records. States with only PDF/manual/email/non-public/no stable endpoint must be represented in coverageStates/sourceRegistry with machineReadable:false and a status such as manual-only/no-machine-readable/unavailable, plus source page and notes when known. Do not create fake notices or zero rows in notices. Do not put unsupported states into summary.byState because the current UI treats byState.length as states with actual data. sources[] should remain actual included data sources with stable url/name/publisher/license; new status/sourceType fields may be additive. Pipeline failures: required active adapters should fail validation on zero parseable rows or schema drift; optional/unavailable states should be reported in registry, not silently treated as data coverage. Prefer official CSV/XLSX/JSON/API/Socrata/Google Sheet/HTML-table feeds; use BLN/public historical backfills only when clearly labeled historical/backfill with underlying state publisher; avoid OCR/PDF scraping in this increment.
+
+Mouse contract: minimum acceptance is npm run build:warn producing valid data/warn-notices.json, current 10 states still present, any newly active states present with positive valid records, and all 50 states represented in coverageStates/sourceRegistry. Validate schema/types, positive integer employees, valid two-letter states and stateName, ISO dates or null, notices sorted newest-first with nulls last, per-state trimming unchanged, summary totals match the post-10-year full set, summary.byState contains only states with actual notices, sources are consistent with active included data states, and unsupported/manual-only states have no notices unless an adapter exists. Add deterministic fixture/parser tests where feasible so CI is not solely network-dependent; use a live build as integration evidence, with failures reported by state.
+
+Scope guard: WARN remains state/company-level evidence only; do not wire it into occupation-level Disruption Index/SOC analysis without a separately approved mapping model. UI copy currently hard-codes smaller state counts in layoffs i18n, so any data coverage increase must include a follow-up copy/UX update or at least avoid misleading badges.
+
+### 2026-07-01T11-14-31: WARN coverage tests require all-state registry metadata
+**By:** Mouse
+**What:** WARN coverage tests require all-state registry metadata
+**References:** Task: all-state WARN/layoff data expansion, tests/warn-data.test.ts
+**Why:** Added focused Vitest coverage for data/warn-notices.json that preserves the existing schema and 10 retained machine-readable states while expecting additive all-state + DC coverage metadata. The test accepts the registry under coverageRegistry, stateCoverage, coverageByState, or sourceCoverage, and accepts coverage status via coverageStatus, sourceStatus, availability, access, or status. Valid statuses are machine-readable, manual-only, pdf-only, and unavailable; notices are only allowed for machine-readable states so manual/PDF/unavailable states cannot get synthetic records.
+
+### 2026-07-01T11-20-05: Expand WARN pipeline with all-state coverage registry and only stable live adapters
+**By:** Tank
+**What:** Expand WARN pipeline with all-state coverage registry and only stable live adapters
+**References:** scripts/build-warn.mjs, data/warn-notices.json
+**Why:** For the all-state WARN expansion, I kept data/warn-notices.json backward-compatible by preserving existing top-level fields and notice/summary/source fields while adding coverageSummary and coverageStates. Live adapters are limited to stable machine-readable sources: the existing 10 states, a new official Iowa Workforce Development XLSX adapter, and Oregon moved to the official Socrata JSON feed. States without a stable CSV/XLSX/JSON adapter are represented as manual/PDF-only when an official public page is known, otherwise unavailable; no PDF scraping or fake notices were added.
+
+---
+
+### 2026-07-01T13-19-30.034+00-00: WARN Pressure Index `/labor` enhancement
+**By:** Scribe
+**What:** Merge team decisions for the BLS LAUS + WARN Pressure Index enhancement.
+**References:** Tank data correlation recommendation; Trinity WARN Pressure contract; Tank data-layer handoff; Neo WARN Pressure UI handoff; Trinity reassignment to Neo; Mouse WARN Pressure tests; scripts/build-state-labor.mjs; data/state-labor.json; lib/state-labor.ts; components/labor/WarnPressureView.tsx; tests/warn-pressure.test.ts; tests/components/WarnPressureView.test.tsx; tests/warn-data.test.ts
+**Why:** User requested useful new public data integrated into the app, correlated to mine more insight, ending in an app enhancement/new page.
+
+#### Decision bundle
+- Tank recommended BLS LAUS state labor data correlated with existing WARN notices as the highest-value, route-scoped next data increment.
+- Trinity approved WARN Pressure as a new `/labor` tab, not a new route, with descriptive/non-causal framing only.
+- Approved score: `round(0.70 * WARN-rate percentile + 0.30 * unemployment YoY delta percentile)`, ranking only states with current machine-readable WARN coverage and valid LAUS labor denominators.
+- Tank implemented the initial state labor pipeline, snapshot, and helpers: `build:state-labor`, `data/state-labor.json`, and `lib/state-labor.ts`.
+- Neo implemented the `/labor` tab and `WarnPressureView`, including cards, ranking table, coverage panel, trend/detail context, methodology copy, and labor i18n.
+- Mouse added WARN Pressure helper/data/component tests and stabilized `tests/warn-data.test.ts` timeout without weakening assertions.
+
+#### Reviewer rejection and correction
+- Trinity rejected the first pass because stale live feeds (GA/NY/TX) were included in ranked states.
+- Reviewer Rejection Protocol locked Tank out as original author; Trinity reassigned the fix to Neo.
+- Neo fixed rank eligibility to require live WARN coverage, valid LAUS labor force, and WARN current-window overlap. Stale live feeds such as GA, NY, and TX remain visible but unranked with stale-window reasons.
+- Final ranked states after regeneration: CA, OR, NJ, WI, IA.
+
+#### Final review and validation
+- Rai reviewed as Yellow/non-blocking; Neo applied causality-free wording polish including “Highest index score.”
+- Trinity final verdict: APPROVE.
+- Final validation passed: `npm run test:run` (20 files / 165 tests), `npm run lint`, `npm run build`, and `git diff --check`.
+
+### 2026-07-01T19-21-52.741+00-00: Manual WARN adapter expansion finalized
+**By:** Scribe
+**What:** Merged manual WARN adapter inbox decisions and recorded the final reviewer-corrected state.
+**References:** scripts/build-warn.mjs, scripts/build-state-labor.mjs, data/warn-notices.json, data/state-labor.json, tests/warn-data.test.ts, tests/warn-pressure.test.ts
+**Why:** Inbox entries from Tank and Rai are preserved as a consolidated, deduplicated decision record, with stale findings superseded by the final Reviewer Rejection Protocol outcome. Final state: IN/MD/NC/PA/VA parsed; PA remains parsed but unranked for WARN Pressure because noticeDate provenance is missing; VA CSV provenance is stable and timestamp-free; implausible pre-2010 dates are filtered. Coverage is 51 jurisdictions: 16 live states, 13 manual-only, 22 unavailable, 12,527 notices. New parsed counts: IN 529, MD 1,076, NC 49, PA 244 unranked, VA 762. WARN Pressure ranks 9 states: CA, OR, MD, NJ, VA, IA, WI, IN, NC. Validation passed targeted WARN tests 17/17, full `npm run test:run` 20 files/169 tests, `npm run lint`, `npm run build`, and `git diff --check`. Final reviews: Trinity APPROVE; Rai Green.
+
+
+---
+
+### 2026-07-01T21-56-44.721+00-00: QCEW WARN baseline finalized
+**By:** Scribe
+**What:** Consolidated the BLS QCEW Employment & Wage Baseline contract, reviewer correction, and final PR #38 closeout.
+**References:** PR #38; scripts/build-state-qcew.mjs; data/state-qcew.json; lib/state-qcew.ts; components/labor/WarnPressureView.tsx; tests/qcew-data.test.ts; tests/components/WarnPressureView.test.tsx; WARN adapters IN/MD/NC/PA/VA; Tank; Neo; Mouse; Trinity; Rai
+**Why:** Trinity approved adding BLS QCEW annual private/all-industries state employment and wage data inside the existing `/labor` WARN Pressure tab as descriptive denominator context only, not a new top-level tab and not a WARN Pressure score change. Tank implemented the initial QCEW data layer. Trinity rejected the first join because non-rank-eligible WARN states were interpreted as zero WARN activity; Reviewer Rejection Protocol locked Tank out and assigned the correction to Neo. Neo fixed unknown-not-zero semantics, Mouse added nullability regressions, and the final snapshot preserves 51/51 QCEW denominator rows while setting WARN-derived QCEW employees/notices/rates to null for non-rank-eligible WARN states. Final `summary.statesWithBaselineRate` is 9, with top QCEW baseline rows CA, NJ, MD, OR, IA, VA, WI, IN, NC. PA WARN remains parsed but unranked because noticeDate provenance is missing; VA provenance/date blockers were fixed. Final validation passed `npm run test:run` (21 files / 175 tests), `npm run lint`, `npm run build`, and `git diff --check`. Reviews: Trinity APPROVE; Rai Green.
+
+### 2026-07-01T21-57-03: Autonomous loop directive
+**By:** Squad
+**What:** Continue autonomous implementation/review/commit/PR decisions for this workstream without pausing for user confirmation.
+**References:** QCEW/WARN labor data PR
+**Why:** User directive: "yes, please keep the looping and you can automatically decide what to do next, no need to ask, just thinking, coding, committing". Interpretation: continue making implementation, review, commit, and PR decisions autonomously while preserving review gates and safety/data-quality constraints.
+
+
+## Market AI Sensitivity — Source Contract & Amendment (2026-07-01)
+
+# APPROVED: Stock-history-based market AI sensitivity contract
+
+Requested by: huangyingting
+Approved by: Trinity
+Decision time: 2026-07-01T22:27:30.269+00:00
+Status: APPROVED
+
+## Goal
+
+Ship a descriptive, non-advisory Insights Lab feature that compares public sector ETF price behavior during the AI era with workforce AI exposure by sector. The feature must be framed as a market-implied sensitivity signal, not a forecast, causal model, investment recommendation, or proof of AI impact.
+
+## 1. Data source, tickers, and windows
+
+### Source
+
+Use Stooq daily CSV downloads as the no-key public price source:
+
+- Pattern: `https://stooq.com/q/d/l/?s={ticker}.us&i=d&d1={YYYYMMDD}`
+- Example already probed: `https://stooq.com/q/d/l/?s=xlk.us&i=d&d1=20221130`
+- Cite as: Stooq historical daily OHLCV price data; price history is a public market-data proxy.
+
+### Benchmark
+
+- `SPY` — SPDR S&P 500 ETF Trust, broad US equity benchmark.
+
+### Sector ETF universe
+
+Prefer US sector ETFs with long, liquid histories and stable public symbols:
+
+| Ticker | Sector label | Workforce exposure mapping target |
+| --- | --- | --- |
+| `XLK` | Technology | information / professional technical AI-intensive occupations |
+| `XLC` | Communication Services | information / media / communications |
+| `XLY` | Consumer Discretionary | retail / services / discretionary demand |
+| `XLP` | Consumer Staples | staples / food / household demand |
+| `XLF` | Financials | finance / insurance / real estate |
+| `XLV` | Health Care | health care and social assistance |
+| `XLI` | Industrials | manufacturing / transport / industrial services |
+| `XLE` | Energy | energy / utilities-adjacent extractive industries |
+| `XLB` | Materials | materials / manufacturing inputs |
+| `XLU` | Utilities | utilities |
+| `XLRE` | Real Estate | real estate |
+
+If one ticker has missing data for a selected window, omit only that ticker from computed peer rankings and expose a warning in metadata rather than failing the whole build.
+
+### Windows
+
+Use deterministic windows anchored to public AI-era milestones and full available daily price data:
+
+1. `pre_ai_baseline`: 2020-01-02 through 2022-11-29
+   - Purpose: volatility/drawdown context before the ChatGPT public release era.
+2. `ai_era`: 2022-11-30 through latest common available Stooq close
+   - Purpose: primary market-implied AI-era movement.
+3. `ttm`: trailing 252 trading days ending at latest common available Stooq close
+   - Purpose: recent market signal, clearly labeled as recent performance.
+4. `ytd`: first trading day of current calendar year through latest common available close
+   - Purpose: familiar short-window context.
+
+Primary feature ranking uses `ai_era`; secondary detail cards may show `ttm`, `ytd`, and baseline risk context.
+
+## 2. Metrics and formulas
+
+All calculations use adjusted close if provided by source; otherwise use close. Stooq daily CSV provides `Close`, so use close unless a future source adds adjusted close.
+
+For each ticker/window:
+
+- `startClose`: first valid close in window.
+- `endClose`: last valid close in window.
+- `totalReturnPct = (endClose / startClose - 1) * 100`.
+- `benchmarkReturnPct`: same formula for `SPY` over identical dates.
+- `excessReturnPct = totalReturnPct - benchmarkReturnPct`.
+- Daily log returns: `ln(close_t / close_t-1)`.
+- `annualizedVolatilityPct = stdev(dailyLogReturns) * sqrt(252) * 100`.
+- `maxDrawdownPct = min((close_t / runningMaxClose_t - 1) * 100)`.
+- `observations`: number of valid trading rows.
+
+Workforce exposure mapping:
+
+- Reuse existing occupation-snapshot and analysis helpers where possible.
+- Aggregate occupation AI exposure into the sector labels above using employment-weighted averages.
+- `workforceExposurePct = sum(exposurePct * employment) / sum(employment)` for mapped occupations.
+- Include `mappedEmployment` and `mappingCoveragePct` in metadata for transparency.
+
+Sensitivity score:
+
+- Purpose: sort and compare sectors by market-implied AI-era sensitivity blended with workforce exposure.
+- Must not be displayed as a prediction.
+- Compute normalized components across valid sector ETFs for `ai_era`:
+  - `excessReturnZ = zscore(excessReturnPct)`.
+  - `exposureZ = zscore(workforceExposurePct)`.
+  - Optional risk dampener: `riskZ = zscore(annualizedVolatilityPct)`.
+- `marketAiSensitivityScore = round(50 + 15 * (0.6 * excessReturnZ + 0.4 * exposureZ - 0.1 * max(riskZ, 0)))`.
+- Clamp to `[0, 100]`.
+- Labels:
+  - `>= 70`: `High market-implied sensitivity`
+  - `45-69`: `Moderate market-implied sensitivity`
+  - `< 45`: `Lower market-implied sensitivity`
+
+Interpretation rule:
+
+- Positive excess return + high workforce exposure means the sector has both market outperformance during the AI era and greater labor exposure.
+- Negative excess return or low workforce exposure lowers the descriptive sensitivity score.
+- The copy must say this is correlation/descriptive context only.
+
+## 3. Output shape and helper names
+
+Keep route-specific data out of `lib/data.ts`.
+
+### Files to introduce later
+
+- `data/market-ai-signals.json` — generated static dataset committed to repo.
+- `lib/market-signals.ts` — typed helpers and selectors for app use.
+- `scripts/build-market-signals.mjs` — deterministic data builder fetching Stooq CSV and joining workforce exposure.
+
+### JSON shape
+
+```ts
+{
+  "schemaVersion": 1,
+  "generatedAt": "ISO-8601",
+  "source": {
+    "name": "Stooq daily historical prices",
+    "urlTemplate": "https://stooq.com/q/d/l/?s={ticker}.us&i=d&d1={YYYYMMDD}",
+    "accessedAt": "ISO-8601",
+    "notes": [
+      "Daily close prices are public market data proxies.",
+      "This dataset is descriptive and is not financial advice."
+    ]
+  },
+  "benchmark": { "ticker": "SPY", "label": "S&P 500 ETF benchmark" },
+  "windows": {
+    "pre_ai_baseline": { "start": "2020-01-02", "end": "2022-11-29" },
+    "ai_era": { "start": "2022-11-30", "end": "YYYY-MM-DD" },
+    "ttm": { "start": "YYYY-MM-DD", "end": "YYYY-MM-DD" },
+    "ytd": { "start": "YYYY-MM-DD", "end": "YYYY-MM-DD" }
+  },
+  "sectors": [
+    {
+      "ticker": "XLK",
+      "sector": "Technology",
+      "sensitivityLabel": "High market-implied sensitivity",
+      "marketAiSensitivityScore": 0,
+      "workforceExposurePct": 0,
+      "mappingCoveragePct": 0,
+      "mappedEmployment": 0,
+      "metrics": {
+        "ai_era": {
+          "startClose": 0,
+          "endClose": 0,
+          "totalReturnPct": 0,
+          "benchmarkReturnPct": 0,
+          "excessReturnPct": 0,
+          "annualizedVolatilityPct": 0,
+          "maxDrawdownPct": 0,
+          "observations": 0
+        },
+        "ttm": {},
+        "ytd": {},
+        "pre_ai_baseline": {}
+      },
+      "notes": []
+    }
+  ],
+  "warnings": []
+}
+```
+
+### Helper API
+
+In `lib/market-signals.ts`:
+
+- `getMarketAiSignals()` — returns the full typed dataset.
+- `getMarketAiSignalSectors()` — sectors sorted descending by `marketAiSensitivityScore`.
+- `getMarketAiSignalSummary()` — top-line summary: latest date, benchmark return, top/bottom sectors, source/disclaimer strings.
+- `formatMarketSignalPct(value)` — local formatting utility if no existing formatter fits.
+- Export types: `MarketAiSignalsDataset`, `MarketAiSignalSector`, `MarketAiSignalWindowKey`, `MarketAiSignalMetrics`.
+
+## 4. Visualization and location
+
+Add a new `/analysis` Insights Lab section after existing AI exposure/forecast context and before disruption conclusions, using the `analysis` i18n namespace.
+
+Recommended UI:
+
+1. Section title: `Market-implied AI sensitivity`
+2. Required disclaimer copy near the heading:
+   - `Uses sector ETF price history as a market-data proxy. This is descriptive context, not financial advice, a forecast, or proof that AI caused returns.`
+3. Primary chart: scatter/bubble plot
+   - X axis: `workforceExposurePct`
+   - Y axis: `ai_era.excessReturnPct`
+   - Bubble/color: `marketAiSensitivityScore`
+   - Benchmark line: horizontal zero excess-return line.
+4. Supporting ranked table/cards:
+   - Sector, ETF ticker, sensitivity label, AI-era return, excess return vs SPY, workforce exposure, volatility, max drawdown.
+5. Methodology accordion/callout:
+   - Stooq source citation.
+   - Ticker universe.
+   - Window definitions.
+   - Score formula in plain language.
+   - Explicit limitations.
+
+## 5. File ownership
+
+- Tank owns data pipeline and generated dataset:
+  - `scripts/build-market-signals.mjs`
+  - `data/market-ai-signals.json`
+  - source citation/warnings in generated metadata
+  - validation that Stooq fetches and missing tickers degrade gracefully
+
+- Neo owns helper/API integration and types:
+  - `lib/market-signals.ts`
+  - helper tests if existing test structure supports them
+  - ensuring route-specific data does not enter `lib/data.ts`
+  - wiring dataset into `/analysis` components without changing unrelated global data contracts
+
+- Mouse owns UX, i18n, and safety copy:
+  - `/analysis` visualization component/section
+  - `analysis` namespace strings
+  - disclaimer/methodology copy
+  - responsive and accessible chart/table presentation
+
+Coordination rule: Tank lands the JSON shape first; Neo consumes only that contract; Mouse consumes Neo helpers and must not duplicate formula logic in UI.
+
+## 6. Validation and review criteria
+
+### Builder validation
+
+- `node scripts/build-market-signals.mjs` regenerates `data/market-ai-signals.json` deterministically.
+- Dataset contains `SPY` benchmark metrics and all available sector ETFs.
+- All sectors have `ai_era` metrics or explicit warnings.
+- Scores are clamped 0-100 and sorted helper output is stable.
+- Missing/empty Stooq response for a ticker produces a warning, not a crash, unless benchmark `SPY` is unavailable.
+- No individual-stock recommendations or buy/sell language appears in code or UI copy.
+
+### App validation
+
+Run the smallest existing validation commands that cover the change, likely:
+
+- targeted unit/helper tests if present
+- existing lint/typecheck command
+- existing build command if lint/typecheck is insufficient for `/analysis`
+
+Do not add new tooling. If the repo has no targeted test path, run the existing project validation command documented in package scripts.
+
+### Review checklist
+
+- Feature is descriptive, non-advisory, and avoids forecasts/causal claims.
+- Stooq is cited clearly as public historical market data.
+- SPY is the broad-market benchmark for excess return.
+- Sector ETFs only; no single-stock recommendations.
+- Windows are deterministic and visible in methodology.
+- Workforce exposure join is employment-weighted and coverage is exposed.
+- Route-specific dataset is kept out of `lib/data.ts`.
+- UI is accessible, responsive, and i18n-backed under `analysis`.
+- Generated JSON has schemaVersion and source metadata.
+
+## Approval
+
+APPROVED for implementation by Tank, Neo, and Mouse under the ownership split above. Any change that introduces forecasts, financial recommendations, causal AI-impact claims, single-stock ranking, non-public/no-key-breaking data sources, or route-specific data in `lib/data.ts` requires renewed Trinity approval.
+
+### 2026-07-01T22-30-33: Amend market AI sensitivity price source from Stooq to Yahoo Finance chart JSON
+**By:** Trinity
+**What:** Amend market AI sensitivity price source from Stooq to Yahoo Finance chart JSON
+**References:** decisions/inbox/trinity-market-signal-contract.md, Coordinator Yahoo Finance XLK probe, Coordinator Stooq browser-verification probe
+**Why:** # APPROVED: Amended market AI sensitivity data-source contract
+
+Requested by: huangyingting
+Approved by: Trinity
+Decision time: 2026-07-01T22:29:52.619+00:00
+Status: APPROVED
+
+## Decision
+
+Use Yahoo Finance chart JSON as the public, unauthenticated, no-key daily ETF price source for this PR instead of Stooq. Stooq is no longer approved for this implementation path because the Node probe returned a browser verification challenge / HTML instead of deterministic CSV.
+
+## Amended source contract
+
+- Source name: Yahoo Finance chart JSON historical prices.
+- Endpoint pattern: `https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?period1={unixStart}&period2={unixEnd}&interval=1d&events=history&includeAdjustedClose=true`
+- Tickers remain unchanged: `SPY` benchmark plus `XLK`, `XLC`, `XLY`, `XLP`, `XLF`, `XLV`, `XLI`, `XLE`, `XLB`, `XLU`, `XLRE`.
+- Windows remain unchanged: `pre_ai_baseline`, `ai_era`, `ttm`, `ytd`, anchored exactly as previously approved, using the latest common available close from Yahoo chart data.
+- Price field rule: use adjusted close from `indicators.adjclose[0].adjclose` when present; otherwise fall back to `indicators.quote[0].close`. Expose the selected field in source metadata.
+- Date handling: derive daily rows from returned timestamps, normalize to ISO calendar dates, and align each ticker and `SPY` on identical valid trading dates for each window.
+- Failure handling: if Yahoo returns non-JSON, `chart.error`, missing benchmark `SPY`, or unusable benchmark history, fail the builder. If a sector ticker is missing/unusable, omit only that sector from peer rankings and emit a dataset warning.
+- Metadata caveats must state that Yahoo Finance chart JSON is a public unauthenticated endpoint but is unofficial/undocumented, may change or rate-limit, and is used only to build a static descriptive market-data proxy.
+- Citation copy: `Yahoo Finance chart historical daily price data, accessed via public unauthenticated chart JSON endpoint; used as a market-data proxy.`
+
+## Preserved constraints
+
+All previously approved non-source constraints remain binding: descriptive only; non-advisory; no forecasts; no causal AI-impact claims; no buy/sell language; sector ETFs only; `SPY` benchmark; employment-weighted workforce exposure; coverage metadata; deterministic generated JSON; route-specific data kept out of `lib/data.ts`; accessible/i18n-backed analysis UI; existing validation only.
+
+Any later change to single-stock rankings, financial recommendations, causal/advisory copy, authenticated/paywalled data, or another price source requires renewed Trinity approval.
+
+
+### 2026-07-01T22-57-14: Add Analysis Evidence Stack visualization to connect collected sources to conclusions and caveats
+**By:** Trinity
+**What:** Add Analysis Evidence Stack visualization to connect collected sources to conclusions and caveats
+**References:** /analysis, components/insights/InsightsView.tsx, lib/analysis.ts, data/sources.json, Tank, Neo, Mouse, Rai
+**Why:** APPROVED implementation contract
+
+Decision: add a compact "Evidence Stack" section on `/analysis`, after the existing framing note and before the numbered analytic sections. It should not imply every collected source must become a standalone chart. Instead, it should visualize how the main conclusions are supported across source families and where caveats/coverage gaps remain.
+
+Visualization/section:
+- New section title: "Evidence Stack: where the signals agree"
+- UX: matrix/heatmap of 5 conclusion rows x source-family columns, with colored cells for strong/supporting/context/not used, plus a right-side caveat panel for the selected row.
+- Rows/conclusions:
+  1. Occupation exposure is multi-method, not a single score.
+  2. Labor-market outcomes are descriptive and mixed, not causal proof of AI displacement.
+  3. Near-term stress is uneven by state/industry.
+  4. Markets price AI sensitivity differently than worker exposure.
+  5. Global adoption/exposure changes interpretation beyond the U.S. lens.
+
+Data sources to include:
+- Occupation snapshot + OEWS history: employment, wage, openings, salary, sector.
+- O*NET/Anthropic-derived occupation context already represented in the occupation snapshot/enrichment.
+- AI exposure lenses: LLM exposure, AIOE, automation baseline, usage exposure.
+- AI demand and AI layoffs time series.
+- JOLTS labor demand/turnover.
+- WARN notices with LAUS/QCEW normalization/context.
+- Market sector ETF signals.
+- Global AI metrics and country exposure.
+- Sources metadata for labels/caveats where available.
+
+Conclusions it can show:
+- Agreement strengthens descriptive confidence; disagreement is a caveat, not a bug.
+- High exposure does not automatically mean job loss; compare exposure with employment/wage growth, JOLTS, and WARN context.
+- State WARN pressure and market AI sensitivity are complementary lenses, not replacement measures.
+- Global adoption/diffusion provides context for why AI demand can rise while some local labor signals worsen.
+
+File ownership:
+- Tank: data contract and derived helper in `lib/analysis.ts` or a new `lib/evidence-stack.ts`; normalize source families, conclusion rows, confidence/caveat strings, and coverage counts. No raw-source overclaiming.
+- Neo: UI component `components/insights/EvidenceStack.tsx` and insertion in `components/insights/InsightsView.tsx` as new section 01, renumbering later sections or labeling it as "Overview".
+- Mouse: validation plan and tests for pure helper behavior; run existing targeted tests/lint/build. Verify empty/missing source handling, mobile accessibility, keyboard selection, and no causal wording.
+
+Validation:
+- Add/extend pure helper tests if the repo has analysis/lib tests; otherwise run existing lint/build as the smallest available verification.
+- Check `/analysis` renders with no console errors and no hydration mismatch.
+- Verify i18n keys in EN/ZH for title, labels, statuses, and caveats.
+
+RAI guardrails:
+- Explicitly label outputs as descriptive, directional evidence rather than causal attribution or predictions about individual workers.
+- Show coverage/method caveats next to each conclusion.
+- Avoid ranking people or countries as winners/losers; describe source coverage and signal agreement.
+- Provide source-family labels and link/route users to `/sources` for provenance.
+
+### 2026-07-01T23-16-41: APPROVE Evidence Stack synthesis matrix
+**By:** Trinity
+**What:** APPROVE Evidence Stack synthesis matrix
+**References:** feature/evidence-synthesis-matrix, lib/evidence.ts, components/insights/EvidenceStack.tsx, components/insights/InsightsView.tsx, tests/components/EvidenceStack.test.tsx
+**Why:** APPROVE. Reviewed scoped Evidence Stack changes without editing source files. Product fit matches the contract: the /analysis overview appears before existing modules and synthesizes source families into conclusion rows, status, confidence, caveats, metrics, and view links rather than forcing one chart per source. Spot-checked hardcoded evidence metrics against bundled data: 756 occupation rows, 151 High/Very High rows, 31.3% employment share, 745 OEWS outcome points, r≈0.02 employment and r≈-0.21 wage, exposure lens coverage/correlations, AI demand/layoffs, JOLTS, WARN/LAUS/QCEW, market, global, skills, and source-count claims. Caveats avoid causal, predictive, guarantee, individual-worker, and financial-advice framing. EN/ZH analysis keys are in parity for UI labels; data/source names remain English consistent with existing app convention. Bundle hygiene is acceptable because the new client component imports only the small evidence helper/source catalog, not the large labor/market/global snapshots. Targeted validation re-run passed: npm run test:run -- tests/components/EvidenceStack.test.tsx --reporter=dot (5/5).
+
+
+### 2026-07-02T00-41-49: Center FutureGrid page content with wider analysis/map caps
+**By:** Switch
+**What:** Center FutureGrid page content with wider analysis/map caps
+**References:** app/layout.tsx, components/insights/InsightsView.tsx, components/insights/EvidenceStack.tsx, components/dashboard/DashboardHome.tsx, components/global/GlobalView.tsx, components/explore/ExploreView.tsx
+**Why:** Design decision: fix wide-screen left gutter by centering the main content area globally and standardizing page containers. Keep RootLayout responsible for the sidebar offset/padding and add a centered inner shell for children/footer using `mx-auto w-full max-w-[min(100%,1720px)]`. Convert page roots from bare `max-w-[1400px]` to `mx-auto w-full max-w-[1400px]`, with data-dense map/grid pages allowed `max-w-[1600px]` and Insights Lab allowed `max-w-[1680px]`. This preserves mobile behavior while balancing gutters at 1920px and 2560px. For /analysis, redesign Evidence Stack as a wider matrix-first layout: 8/9 source-family columns with visible headers, 44-48px cells, sticky selected-conclusion drawer on xl+, and stacked/mobile fallback.
